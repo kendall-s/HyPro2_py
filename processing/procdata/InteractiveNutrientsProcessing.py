@@ -417,7 +417,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def move_camera_left(self):
         xmin, xmax = self.main_trace.get_xbound()
-        ten_percent = xmax * 0.1
+        ten_percent = (xmax-xmin) * 0.1
         if xmin > 0 - 100:
             self.main_trace.set_xlim(xmin - ten_percent, xmax - ten_percent)
             self.tracecanvas.draw()
@@ -426,7 +426,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def move_camera_right(self):
         xmin, xmax = self.main_trace.get_xbound()
-        ten_percent = xmax * 0.1
+        ten_percent = (xmax - xmin) * 0.1
         if xmax < len(self.chd_data.ad_data[self.current_nutrient]) + 100:
             self.main_trace.set_xlim(xmin + ten_percent, xmax + ten_percent)
             self.tracecanvas.draw()

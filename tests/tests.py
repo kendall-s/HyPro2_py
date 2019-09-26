@@ -66,28 +66,6 @@ def test_peak_shape_qc():
     assert new_quality_flags == [1, 1, 5, 5]
 
 
-def test_prepare_calibrants():
-    calibrant_indexes = [0, 1, 2, 3, 4, 5]
-    window_medians = [3000, 3500, 6000, 7000, 9000, 5000, 4000, 6000]
-    nominal_concs = [0, 0, 2, 3, 5, 8]
-    quality_flags = [1, 1, 1, 2, 1, 1]
-    cal_zero_label = 'Cal 0'
-    sample_ids = ['Cal 0', 'Cal 0', 'Cal 1', 'Cal 2', 'Cal 3', 'Cal 4', 'Test', 'Here']
-
-    cal_medians, cal_zero_mean, cal_concs, cal_weights, cal_flags = psn.prepare_calibrants(calibrant_indexes,
-                                                                                           window_medians,
-                                                                                           quality_flags,
-                                                                                           nominal_concs,
-                                                                                           cal_zero_label,
-                                                                                           sample_ids)
-
-    assert cal_medians == [-250, 250, 2750, 3750, 5750, 1750]
-    assert cal_zero_mean == 3250
-    assert cal_concs == [0, 0, 2, 3, 5, 8]
-    assert cal_weights == [2, 2, 1, 1, 1, 1]
-    assert cal_flags == [1, 1, 1, 2, 1, 1]
-
-
 def test_find_duplicate_indexes():
     sample_ids = ['RMNS', 'RMNS', '101', 'QUASI', 'LNSW', 'Drift', '911', '101', 'Cal 0']
 
@@ -123,4 +101,49 @@ def test_reset_calibrant_flags():
 
     assert new_flags == [1, 1, 1, 1, 2, 3, 5, 1, 6, 1, 3, 4, 1, 1, 1, 1, 1, 2, 1, 1, 1]
 
-test_baseline_correction()
+def test_get_calibrant_medians():
+    calibrant_indexes = [0, 1, 4, 5, 6]
+    window_medians = [4000, 5000, 4500, 6000, 5000, 3000, 7000]
+
+    calibrant_medians = psn.get_calibrant_medians(calibrant_indexes, window_medians)
+
+    assert calibrant_medians == [4000, 5000, 5000, 3000, 7000]
+
+def test_get_calibrant_concs():
+    calibrant_indexes = [1, 3, 4, 6]
+    nominal_concs = [0, 0, 1, 2, 3, 4, 5]
+
+    calibrant_concs = psn.get_calibrant_concentrations(calibrant_indexes, nominal_concs)
+
+    assert calibrant_concs == [0, 2, 3, 5]
+
+def test_get_calibrant_flags():
+    calibrant_indexes = [0, 2, 3, 4, 6]
+    quality_flags = [1, 1, 2, 3, 1, 2, 1]
+
+    calibrant_flags = psn.get_calibrant_flags(calibrant_indexes, quality_flags)
+
+    assert calibrant_flags == [1, 2, 3, 1, 1]
+
+def test_calibrant_zero_mean():
+    window_medians = [4000, 5000, 4500, 3000, 1500]
+    sample_ids = ['Cal 0', 'Cal 1', 'Cal 0', 'Cal0', 'Cal 2']
+    cal_zero_label = 'Cal 0'
+    cal_zero_mean = psn.get_calibrant_zero_mean(window_medians, sample_ids, cal_zero_label)
+
+    assert cal_zero_mean == 4250
+
+def test_remove_cal_zero():
+    calibrant_medians = [3300, 3500, 5250, 5500, 7400, 7600]
+    cal_zero_mean = 3400
+
+    cal_medians_minus_zero = psn.remove_calibrant_zero(calibrant_medians, cal_zero_mean)
+
+    assert cal_medians_minus_zero == [-100, 100, 1850, 2100, 4000, 4200]
+
+def test_calibration_weightings():
+    calibrant_concentrations = [0.0, 1.2, 1.2, 2.4, 0.0, 2.4, 3.2]
+
+    calibrant_weightings = psn.get_calibrant_weightings(calibrant_concentrations)
+
+    assert calibrant_weightings == [2, 1, 1, 1, 2, 1, 1]

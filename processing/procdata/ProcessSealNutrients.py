@@ -59,15 +59,15 @@ def processing_routine(slk_data, w_d, processing_parameters, current_nutrient):
     calibrant_cup_type = processing_parameters['nutrientprocessing']['cupnames']['calibrant']
     w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type, slk_data.cup_types)
 
-    # ----------- Prepare calibrants ----------------------------------------------------------------------------
+    # ----------- Prepare calibrants and various paramters ------------------------------------------------------
     cal_zero_label = processing_parameters['nutrientprocessing']['calibrants']['cal0']
-    (w_d.calibrant_medians, w_d.calibrant_zero_mean, w_d.calibrant_concs,
-     w_d.calibrant_weightings, w_d.calibrant_flags) = prepare_calibrants(w_d.calibrant_indexes,
-                                                                             w_d.corr_window_medians,
-                                                                             w_d.quality_flag,
-                                                                             slk_data.calibrants[current_nutrient],
-                                                                             cal_zero_label,
-                                                                             slk_data.sample_ids)
+    w_d.calibrant_medians = get_calibrant_medians(w_d.calibrant_indexes, w_d.corr_window_medians)
+    w_d.calibrant_concs = get_calibrant_concentrations(w_d.calibrant_indexes, slk_data.calibrants[current_nutrient])
+    w_d.calibrant_flags = get_calibrant_flags(w_d.calibrant_indexes, w_d.quality_flag)
+    w_d.calibrant_zero_mean = get_calibrant_zero_mean(w_d.corr_window_medians, slk_data.sample_ids, cal_zero_label)
+    w_d.calibrant_medians = remove_calibrant_zero(w_d.calibrant_medians, w_d.calibrant_zero_mean)
+    w_d.calibrant_weightings = get_calibrant_weightings(w_d.calibrant_concs)
+
 
     # ------------ Create calibration ---------------------------------------------------------------------------
     calibration_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient][
@@ -280,24 +280,42 @@ def drift_correction(drift_indexes, drift_medians, correction_type, window_media
         return window_medians
 
 
-def prepare_calibrants(calibrant_indexes, window_medians, quality_flag, nominal_concs, cal_zero_label, sample_ids):
+def get_calibrant_medians(calibrant_indexes, window_medians):
 
-    calibrant_medians = [window_medians[x] for x in calibrant_indexes]
-    calibrant_concs = [float(nominal_concs[x]) for x in calibrant_indexes]
-    calibrant_flags = [quality_flag[x] for x in calibrant_indexes]
+    calibrant_medians = [window_medians[ind] for ind in calibrant_indexes]
 
-    calibrant_zero_mean = statistics.mean(x for i, x in enumerate(window_medians) if sample_ids[i] == cal_zero_label)
+    return calibrant_medians
 
-    calibrant_medians_minus_zero = [(x - calibrant_zero_mean) for x in calibrant_medians]
+def get_calibrant_concentrations(calibrant_indexes, nominal_concentrations):
 
-    calibration_weightings = []
-    for x in calibrant_concs:
-        if x == 0.0:
-            calibration_weightings.append(2)
-        else:
-            calibration_weightings.append(1)
+    calibrant_concs = [float(nominal_concentrations[ind]) for ind in calibrant_indexes]
 
-    return calibrant_medians_minus_zero, calibrant_zero_mean, calibrant_concs, calibration_weightings, calibrant_flags
+    return calibrant_concs
+
+def get_calibrant_flags(calibrant_indexes, quality_flags):
+
+    calibrant_flags = [quality_flags[ind] for ind in calibrant_indexes]
+
+    return calibrant_flags
+
+def get_calibrant_zero_mean(window_medians, sample_ids, cal_zero_label):
+
+    calibrant_zero_mean = statistics.mean(median for ind, median in enumerate(window_medians) if sample_ids[ind] == cal_zero_label)
+
+    return calibrant_zero_mean
+
+
+def remove_calibrant_zero(calibrant_medians, cal_zero_mean):
+
+    calibrants_minus_zero = [(cal_median - cal_zero_mean) for cal_median in calibrant_medians]
+
+    return calibrants_minus_zero
+
+def get_calibrant_weightings(calibrant_concentrations):
+
+    calibration_weightings = [2 if x == 0.0 else 1 for x in calibrant_concentrations]
+
+    return calibration_weightings
 
 
 def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, calibrant_weightings, calibrant_error, calibrant_flags):
