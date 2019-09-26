@@ -1,0 +1,701 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyPro2 Documentation.md</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__left">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#hypro-technical-documentation">HyPro Technical Documentation</a>
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#table-of-contents">Table of Contents</a>
+<ul>
+<li></li>
+</ul>
+</li>
+<li><a href="#introduction-and-background-1">Introduction and Background</a></li>
+<li><a href="#hydrology-processing-1">Hydrology Processing</a></li>
+</ul>
+</li>
+<li><a href="#hypro-in-python-documentation">HyPro in Python documentation</a>
+<ul>
+<li></li>
+<li><a href="#python-file-structure">Python file structure</a></li>
+</ul>
+</li>
+<li><a href="#documentation-of-each-file">Documentation of each file</a>
+<ul>
+<li><a href="#dialogs">Dialogs</a>
+<ul>
+<li></li>
+</ul>
+</li>
+<li><a href="#processing">Processing</a>
+<ul>
+<li></li>
+<li><a href="#algo">Algo</a></li>
+<li><a href="#plotting">Plotting</a></li>
+<li><a href="#procdata">Procdata</a></li>
+<li><a href="#readdata">Readdata</a></li>
+<li><a href="#tests">Tests</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#flagging-system-1">Flagging system</a>
+<ul>
+<li>
+<ul>
+<li></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#glossary-1">Glossary</a>
+<ul>
+<li></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <blockquote>
+<p>Written with <a href="https://stackedit.io/">StackEdit</a></p>
+</blockquote>
+<p><img src="https://www.csiro.au/~/media/Web-team/Images/CSIRO_Logo/logo.png?mw=90&amp;hash=E7225C4985C2701654821B94F7A06AF5C3D30F8E" alt="CSIRO"></p>
+<h1 id="hypro-technical-documentation">HyPro Technical Documentation</h1>
+<blockquote>
+<h5 id="ctrlf-is-your-friend-grin">Ctrl+F is your friend 😁</h5>
+</blockquote>
+<h2 id="table-of-contents">Table of Contents</h2>
+<h4 id="introduction-and-background"><a href="#introduction-and-background-1">1. Introduction and Background</a></h4>
+<h4 id="hydrology-processing"><a href="#hydrology-processing-1">2. Hydrology Processing</a></h4>
+<h4 id="hypro-in-python"><a href="#hypro-in-python-documentation">3. HyPro in Python</a></h4>
+<h4 id="documentation-on-each-file"><a href="#documentation-of-each-file">4. Documentation on each file</a></h4>
+<h4 id="flagging-system"><a href="#flagging-system-1">5. Flagging System</a></h4>
+<h4 id="glossary"><a href="#glossary-1">6. Glossary</a></h4>
+<h2 id="introduction-and-background-1">Introduction and Background</h2>
+<p>HyPro was developed as a tool for collating and processing hydrology data including dissolved inorganic nutrients, dissolved oxygen and salinity. The software can ingest data files from each analysis and process the data as required. Voyage CTD deployment data can then be automatically matched up, allowing the creation of a final product that includes all the data grouped by each CTD deployment.</p>
+<h3 id="hypro-processing-structure">HyPro Processing Structure</h3>
+<p>HyPro is structured in a way to allow voyage data to be compartmentalized and organised neatly. The structure has a set hierachry that allows an individual sample to be identified and stored in the sqlite database with necessary defining features.</p>
+<div class="mermaid"><svg xmlns="http://www.w3.org/2000/svg" id="mermaid-svg-lRGTPUnW8mw8D1p2" width="100%" style="max-width: 444.9375px;" viewBox="0 0 444.9375 62"><g transform="translate(-12, -12)"><g class="output"><g class="clusters"></g><g class="edgePaths"><g class="edgePath" style="opacity: 1;"><path class="path" d="M84.140625,43L109.140625,43L134.140625,43" marker-end="url(#arrowhead182)" style="fill:none"></path><defs><marker id="arrowhead182" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M203.84375,43L228.84375,43L253.84375,43" marker-end="url(#arrowhead183)" style="fill:none"></path><defs><marker id="arrowhead183" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M321.640625,43L346.640625,43L371.640625,43" marker-end="url(#arrowhead184)" style="fill:none"></path><defs><marker id="arrowhead184" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g></g><g class="edgeLabels"><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node" id="id1" transform="translate(52.0703125,43)" style="opacity: 1;"><rect rx="5" ry="5" x="-32.0703125" y="-23" width="64.140625" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-22.0703125,-13)"><foreignObject width="44.140625" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">HyPro</div></foreignObject></g></g></g><g class="node" id="id2" transform="translate(168.9921875,43)" style="opacity: 1;"><rect rx="5" ry="5" x="-34.8515625" y="-23" width="69.703125" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-24.8515625,-13)"><foreignObject width="49.703125" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Project</div></foreignObject></g></g></g><g class="node" id="id3" transform="translate(287.7421875,43)" style="opacity: 1;"><rect rx="5" ry="5" x="-33.8984375" y="-23" width="67.796875" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-23.8984375,-13)"><foreignObject width="47.796875" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Survey</div></foreignObject></g></g></g><g class="node" id="id4" transform="translate(410.2890625,43)" style="opacity: 1;"><rect rx="5" ry="5" x="-38.6484375" y="-23" width="77.296875" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-28.6484375,-13)"><foreignObject width="57.296875" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Analysis</div></foreignObject></g></g></g></g></g></g></svg></div>
+<p>A project is setup for each voyage, this keeps data separated for each, creating a unique portable sqlite database file.</p>
+<p>A survey is a subsidery of the project and allows for the grouping of specific samples, e.g. CTD and underway samples. If a new project is created with the type CTD, a default survey is automatically created.</p>
+<p>An analysis is the process of measurement for each analyte, within HyPro these can be activated or deactivated for each survey, depending on the needs of the user.</p>
+<h3 id="hydrochemistry-analytes">Hydrochemistry analytes</h3>
+<h4 id="nutrients">Nutrients</h4>
+<p>Seawater nutrients are measured with a colormetric chemical method, whereby sample water is injected and mixed with various chemical reagents to produce a particular color, which is highly absorbant at one specific wavelength. The absorbance of each sample is measured, calibration standards of known concentrations are used to create a calibration curve. The concentrations of measured sample are determined against the calibration curve.</p>
+<p>For quality control an international reference standard is measured with each analysis, this allows the exact accuracy of the analysis to be determined. A number of other quality control measures are put in place to ensure the data quality is of international oceanographic standard.</p>
+<h4 id="dissolved-oxygen">Dissolved Oxygen</h4>
+<p>Dissolved oxygen measurements are made to calibrate the lowered sensors on the CTD rosette package. Oxygen measurements are made using an automated titration. This method is highly accurate and precise, often the largest contributor to bad oxygen mesaurements is incorrect sample collection.</p>
+<h4 id="salinity">Salinity</h4>
+<p>Salinity measurements are also made to calibrate the CTD rosette sensors. The determination of salinity is made through a physical measurement of the conductivity of the seawater. This measurement is much more accurate and precise than that of the typical CTD sensor. For the measurement of each deployments worth of samples the instrument is calibrated to within 0.001 PSU.</p>
+<div class="page-break-after"></div>
+<h2 id="hydrology-processing-1">Hydrology Processing</h2>
+<h3 id="nutrients-1">Nutrients</h3>
+<p>The algorithms used in processing nutrient data is quite complex and the interfaces provided by HyPro allow for a fast and automated process for high quality nutrient data.</p>
+<p>Nutrients are measured by a continuous flow nutrient analyser, Seal Analytical AA3. This instrument measures concentrations of nutrients in seawater colormetrically and calibrates the peak height signal to produce calculated concentrations. The AA3 on RV Investigator contains 5 channels, with the ability to measure 5 different nutrients in parallel.</p>
+<p align="center">
+  <img src="https://github.com/kendall-s/-markdown_reference/blob/master/aace_trace.png?raw=true" alt="AACE Trace">
+</p>
+<p>The Seal software produces two files when data is exported, these are a .SLK (.SYLK file format) and .CHD (Semi-colon separated file). The .SLK contains the run analysis information, such as various parameters and the tray protocol of the analysis. The .CHD file contains the signal information for each channel, each column is a different channel and each row is analog to digital signal conversion value for each second.</p>
+<p>In an ideal world these peaks are <b>П </b> shaped, as this represents a perfectly separated and formed sample. More typically peaks are slightly rounded, as seen in the image above. Ideally as well, across a run peaks will stay consistently spaced, this is not always the case especially when analyses are long (&gt;3 hours).</p>
+<h3 id="steps-of-processing-nutrient-data">Steps of processing nutrient data</h3>
+<blockquote>
+<p>There are several steps required in the processing of nutrient data, mainly due to the nature of the signal and chemistry that is used.</p>
+</blockquote>
+<p><b>Overview:</b></p>
+<ol>
+<li>Match raw A/D data to analysis cup list</li>
+<li>View trace and determine if peak shapes are acceptable</li>
+<li>Take median of each peak plateau window</li>
+<li>Apply baseline corrections</li>
+<li>Apply carryover corrections</li>
+<li>Apply drift corrections</li>
+<li>Iteratively apply regression to ensure calibrants are within defined error margins</li>
+<li>Calculate concentrations</li>
+<li>Look at QC charts to determine if analysis was within acceptable limits</li>
+</ol>
+<h4 id="match-raw-ad-data-to-analysis-cup-list">1. Match raw A/D data to analysis cup list</h4>
+<p>In order for the analog to digital data to make sense, it needs to be aligned with the analysis order, which is held within the .SLK file. Matching up the datatypes then allows processing to take place</p>
+<p align="center">
+  <img src="https://github.com/kendall-s/-markdown_reference/blob/master/slkfile.png?raw=true" alt="SLK and CHD file">
+</p>
+<h4 id="apply-time-correction-to-realign-peaks">1.5 Apply time correction to realign peaks</h4>
+<p>This is not entirely necessary and not implemented in the current version. However  on longer analytical runs with continuous segmented flow, the peaks can begin to shift, meaning the peak windows will not be consistently spaced.</p>
+<p align="center">
+  <img src="https://github.com/kendall-s/-markdown_reference/blob/master/peakslippage.png?raw=true" alt="SLK and CHD file">
+</p>
+<p>To counter this the half height of a drift sample can be measured and see if half of its height is in the expected place. If half of the peak height is not in the expected place, within reason, the peak start values will then be shifted to account for the difference.</p>
+<h4 id="view-trace-and-determine-if-peak-shapes-are-acceptable">2. View trace and determine if peak shapes are acceptable</h4>
+<p>This is both an automatic and use involved process. When first loading up the dataset the user will want to inspect the analysis trace to ensure peak shapes are in specification and the peak window is fitting correctly.</p>
+<h4 id="take-medians-of-each-peak-plateau-window">3. Take medians of each peak plateau window</h4>
+<p>After checking that the peak windows are in the correct spot, the median peak height for each peak can be calculated. This value will be used for the processing from here on, meaning each peak on has one signal value now associated with it.</p>
+<h4 id="apply-baseline-corrections">4. Apply baseline corrections</h4>
+<p>The first step in altering the data to determine concentrations is performing a baseline sample correction across all samples in an analytical run. The baseline correction that is preferred to be used is a <b>piecewise</b> correction, meaning between each baseline sample a linear interpolation is calculated between the two points.</p>
+<h4 id="apply-carryover-correction">5. Apply carryover correction</h4>
+<p>Carryover correction is used to account for the small amount of sample that may potentially pass between each sample. This can be most noticeable if for example an extremely high concentration sample was measured and then a near detection limit sample was then measured. To account for this a series of samples are used to quantify the carryover, referred to as high and lows. These are analysed in the following order to determine a carryover correction factor applied to all the peaks.</p>
+<p align="center">
+  <img src="https://github.com/kendall-s/-markdown_reference/blob/master/carryover.png?raw=true" alt="SLK and CHD file">
+</p>
+<p>The peak height values from this series of peaks is used in the following equation to calculate a coefficient (<i>k</i>) and that is then used to correct peaks.</p>
+<p><span class="katex--display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>k</mi><mo>=</mo><mo stretchy="false">(</mo><mi>B</mi><mo>−</mo><mi>C</mi><mo stretchy="false">)</mo><mi mathvariant="normal">/</mi><mo stretchy="false">(</mo><mi>A</mi><mo>−</mo><mi>B</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">
+k =(B - C) / (A - B)
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height: 0.69444em; vertical-align: 0em;"></span><span class="mord mathdefault" style="margin-right: 0.03148em;">k</span><span class="mspace" style="margin-right: 0.277778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right: 0.277778em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault" style="margin-right: 0.05017em;">B</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mord mathdefault" style="margin-right: 0.07153em;">C</span><span class="mclose">)</span><span class="mord">/</span><span class="mopen">(</span><span class="mord mathdefault">A</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mord mathdefault" style="margin-right: 0.05017em;">B</span><span class="mclose">)</span></span></span></span></span></span></p>
+<p><span class="katex--display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mover accent="true"><mi>x</mi><mo>˙</mo></mover><mo>=</mo><mo stretchy="false">(</mo><mi>n</mi><mo stretchy="false">)</mo><mi>p</mi><mi>e</mi><mi>a</mi><mi>k</mi><mo>−</mo><mi>k</mi><mo>⋅</mo><mo stretchy="false">(</mo><mi>n</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mi>p</mi><mi>e</mi><mi>a</mi><mi>k</mi></mrow><annotation encoding="application/x-tex">
+\dot{x}  = (n) peak - k \cdot(n-1)peak
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height: 0.66786em; vertical-align: 0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height: 0.66786em;"><span class="" style="top: -3em;"><span class="pstrut" style="height: 3em;"></span><span class="mord"><span class="mord mathdefault">x</span></span></span><span class="" style="top: -3em;"><span class="pstrut" style="height: 3em;"></span><span class="accent-body" style="left: -0.11111em;">˙</span></span></span></span></span></span><span class="mspace" style="margin-right: 0.277778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right: 0.277778em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mclose">)</span><span class="mord mathdefault">p</span><span class="mord mathdefault">e</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right: 0.03148em;">k</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 0.69444em; vertical-align: 0em;"></span><span class="mord mathdefault" style="margin-right: 0.03148em;">k</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">n</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mord mathdefault">p</span><span class="mord mathdefault">e</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right: 0.03148em;">k</span></span></span></span></span></span></p>
+<h4 id="apply-drift-corrections">6. Apply drift corrections</h4>
+<p>Similarly to the baseline correction, the drift correction is applied in a <b>piecewise</b> manner. However to limit the amount of correction that can take place between two drift samples, the interpolation is calculated from a ratio to the mean of all drifts.<br>
+Consider an array of drifts [drift1, drift2, drift3, drift4], first the mean peak height is calculated.<br>
+<span class="katex--display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mover accent="true"><mi>x</mi><mo>ˉ</mo></mover><mo>=</mo><mfrac><mrow><mo>∑</mo><mrow><msub><mi>x</mi><mn>1</mn></msub><mo separator="true">,</mo><msub><mi>x</mi><mn>2</mn></msub><mo separator="true">,</mo><msub><mi>x</mi><mn>3</mn></msub><mo separator="true">,</mo><msub><mi>x</mi><mn>4</mn></msub></mrow></mrow><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></mfrac></mrow><annotation encoding="application/x-tex">
+\bar{x} = \dfrac{\sum{x_{1}, x_{2}, {x_3}, {x_4}}}{n-1} 
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height: 0.56778em; vertical-align: 0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height: 0.56778em;"><span class="" style="top: -3em;"><span class="pstrut" style="height: 3em;"></span><span class="mord"><span class="mord mathdefault">x</span></span></span><span class="" style="top: -3em;"><span class="pstrut" style="height: 3em;"></span><span class="accent-body" style="left: -0.22222em;">ˉ</span></span></span></span></span></span><span class="mspace" style="margin-right: 0.277778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right: 0.277778em;"></span></span><span class="base"><span class="strut" style="height: 2.19633em; vertical-align: -0.76933em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height: 1.427em;"><span class="" style="top: -2.314em;"><span class="pstrut" style="height: 3em;"></span><span class="mord"><span class="mord mathdefault">n</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mord">1</span></span></span><span class="" style="top: -3.23em;"><span class="pstrut" style="height: 3em;"></span><span class="frac-line" style="border-bottom-width: 0.04em;"></span></span><span class="" style="top: -3.677em;"><span class="pstrut" style="height: 3em;"></span><span class="mord"><span class="mop op-symbol small-op" style="position: relative; top: -5e-06em;">∑</span><span class="mspace" style="margin-right: 0.166667em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height: 0.301108em;"><span class="" style="top: -2.55em; margin-left: 0em; margin-right: 0.05em;"><span class="pstrut" style="height: 2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height: 0.15em;"><span class=""></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right: 0.166667em;"></span><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height: 0.301108em;"><span class="" style="top: -2.55em; margin-left: 0em; margin-right: 0.05em;"><span class="pstrut" style="height: 2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height: 0.15em;"><span class=""></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right: 0.166667em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height: 0.301108em;"><span class="" style="top: -2.55em; margin-left: 0em; margin-right: 0.05em;"><span class="pstrut" style="height: 2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height: 0.15em;"><span class=""></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right: 0.166667em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">x</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height: 0.301108em;"><span class="" style="top: -2.55em; margin-left: 0em; margin-right: 0.05em;"><span class="pstrut" style="height: 2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">4</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height: 0.15em;"><span class=""></span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height: 0.76933em;"><span class=""></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></span><br>
+Using this calcualted mean drift height, each drift throughout the run is compared and a simple ratio of the n<sup>th</sup> drift to the mean drift.</p>
+<p>A drift to drift linear interpolation is then calculated using the ratio of change values and the time through the analysis, in seconds. The interpolation would then look like something below.</p>
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Interpolation_example_linear.svg/300px-Interpolation_example_linear.svg.png" alt="SLK and CHD file">
+</p>
+<h4 id="iteratively-apply-regression">7. Iteratively apply regression</h4>
+<p>To minimise the error in fitting a calibration curve, an iterative approach is taken to ensure the calibrants incorporated are the concentration they’re expected to be.</p>
+<h4 id="calculate-concentrations">8. Calculate concentrations</h4>
+<p>The concentrations of each sample are simply determined by solving the calibration curve using the median peak heights.</p>
+<p>At this stage, any diluted samples should be consider and re-corrected to their original concentrations. This is calculated by taking into account the amount of nutrients that is found in the LNSW, which is used when diluting over-range samples. Original concentrations are calculated as follows, where <i>dil</i> is the dilution factor which is a number greater than 1, e.g. 1:10 dilution = 10.</p>
+<p><span class="katex--display"><span class="katex-display"><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mover accent="true"><mi>x</mi><mo>˙</mo></mover><mo>=</mo><mi>x</mi><mo>⋅</mo><mi>d</mi><mi>i</mi><mi>l</mi><mo>−</mo><mo stretchy="false">(</mo><mi>d</mi><mi>i</mi><mi>l</mi><mo>−</mo><mn>1</mn><mo stretchy="false">)</mo><mo>⋅</mo><mo stretchy="false">[</mo><mi>L</mi><mi>N</mi><mi>S</mi><mi>W</mi><mo stretchy="false">]</mo></mrow><annotation encoding="application/x-tex">
+\dot{x} = x \cdot dil - (dil - 1) \cdot [LNSW]
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height: 0.66786em; vertical-align: 0em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height: 0.66786em;"><span class="" style="top: -3em;"><span class="pstrut" style="height: 3em;"></span><span class="mord"><span class="mord mathdefault">x</span></span></span><span class="" style="top: -3em;"><span class="pstrut" style="height: 3em;"></span><span class="accent-body" style="left: -0.11111em;">˙</span></span></span></span></span></span><span class="mspace" style="margin-right: 0.277778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right: 0.277778em;"></span></span><span class="base"><span class="strut" style="height: 0.44445em; vertical-align: 0em;"></span><span class="mord mathdefault">x</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 0.77777em; vertical-align: -0.08333em;"></span><span class="mord mathdefault">d</span><span class="mord mathdefault">i</span><span class="mord mathdefault" style="margin-right: 0.01968em;">l</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mopen">(</span><span class="mord mathdefault">d</span><span class="mord mathdefault">i</span><span class="mord mathdefault" style="margin-right: 0.01968em;">l</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mspace" style="margin-right: 0.222222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right: 0.222222em;"></span></span><span class="base"><span class="strut" style="height: 1em; vertical-align: -0.25em;"></span><span class="mopen">[</span><span class="mord mathdefault">L</span><span class="mord mathdefault" style="margin-right: 0.10903em;">N</span><span class="mord mathdefault" style="margin-right: 0.05764em;">S</span><span class="mord mathdefault" style="margin-right: 0.13889em;">W</span><span class="mclose">]</span></span></span></span></span></span></p>
+<h4 id="qc-charts">9. QC Charts</h4>
+<p>To assess a run, a number of quality control charts are inspected to ensure the analysis meets standards. The quality control parameters that are investigated are:</p>
+<ul>
+<li>Calibration curve fitting and linearity</li>
+<li>Calibrant error</li>
+<li>Baseline consistency</li>
+<li>Drift consistency</li>
+<li>Method detection limit precision</li>
+<li>RMNS accuracy and precision</li>
+</ul>
+<h3 id="dissolved-oxygen-1">Dissolved Oxygen</h3>
+<p>HyPro does not do anything special for processing of the oxygen data, parsing the output file a .LST (Space separated text file) is a little messy. The most processing required is the multiplication of the value from the instrument to change it from mL/L of oxygen in water to micromole/L of oxygen in water. This is accomplished by multiplying by 44.66.</p>
+<h3 id="salinity-1">Salinity</h3>
+<p>No further processing is required for the salinity data after it has been acquired by the software. The data is read in and matched with the CTD deployments if required. File format is a simple .XLS (Excel sheet file)</p>
+<h3 id="ctd-sampling-logsheet">CTD Sampling Logsheet</h3>
+<p>These logsheets are read in for CTD deployments so that the bottles can be matched to the relevant rosette positions on the CTD. This is more used for the salinity and dissolved oxygen, however could be better implemented for nutrients</p>
+<h3 id="ctd-seasave-data">CTD Seasave Data</h3>
+<p>This data is ingested to be used for the quality control and checking of sample analysis. The data from this is used to check for differences between the sensor and bottle data. The .ROS file is used as it provides the CTD around where the bottles were fired and should provide the best value for comparing to the bottle results.</p>
+<h1 id="hypro-in-python-documentation">HyPro in Python documentation</h1>
+<h3 id="structure">Structure</h3>
+<p>HyPro in python was very heavily based off of the processing and workflow of the first HyPro, written in Matlab. This workflow allows data to be contained on a voyage basis and also allows for a systematic approach in processing files.<br>
+The structure of how HyPro runs is outlined:</p>
+<div class="mermaid"><svg xmlns="http://www.w3.org/2000/svg" id="mermaid-svg-tS6WHBqJL3eUpJAF" width="100%" style="max-width: 908.15625px;" viewBox="0 0 908.15625 446"><g transform="translate(-12, -12)"><g class="output"><g class="clusters"></g><g class="edgePaths"><g class="edgePath" style="opacity: 1;"><path class="path" d="M132.84375,43L186.9453125,43L292.4052734375,212" marker-end="url(#arrowhead212)" style="fill:none"></path><defs><marker id="arrowhead212" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M137.09375,139L186.9453125,139L278.052734375,212" marker-end="url(#arrowhead213)" style="fill:none"></path><defs><marker id="arrowhead213" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M128.71875,235L186.9453125,235L236.796875,235" marker-end="url(#arrowhead214)" style="fill:none"></path><defs><marker id="arrowhead214" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M134.484375,331L186.9453125,331L278.052734375,258" marker-end="url(#arrowhead215)" style="fill:none"></path><defs><marker id="arrowhead215" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M123.546875,427L186.9453125,427L292.4052734375,258" marker-end="url(#arrowhead216)" style="fill:none"></path><defs><marker id="arrowhead216" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M376.71875,235L401.71875,235L439.4588216145833,260" marker-end="url(#arrowhead217)" style="fill:none"></path><defs><marker id="arrowhead217" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M365.734375,331L401.71875,331L439.4588216145833,306" marker-end="url(#arrowhead218)" style="fill:none"></path><defs><marker id="arrowhead218" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M521.640625,283L546.640625,283L571.640625,283" marker-end="url(#arrowhead219)" style="fill:none"></path><defs><marker id="arrowhead219" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g><g class="edgePath" style="opacity: 1;"><path class="path" d="M687.546875,283L712.546875,283L737.546875,283" marker-end="url(#arrowhead220)" style="fill:none"></path><defs><marker id="arrowhead220" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="strokeWidth" markerWidth="8" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" class="arrowheadPath" style="stroke-width: 1; stroke-dasharray: 1, 0;"></path></marker></defs></g></g><g class="edgeLabels"><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="translate(186.9453125,235)" style="opacity: 1;"><g transform="translate(-24.8515625,-13)" class="label"><foreignObject width="49.703125" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel">Project</span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g><g class="edgeLabel" transform="" style="opacity: 1;"><g transform="translate(0,0)" class="label"><foreignObject width="0" height="0"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;"><span class="edgeLabel"></span></div></foreignObject></g></g></g><g class="nodes"><g class="node" id="id3" transform="translate(78.546875,43)" style="opacity: 1;"><rect rx="5" ry="5" x="-54.296875" y="-23" width="108.59375" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-44.296875,-13)"><foreignObject width="88.59375" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Salinity Data</div></foreignObject></g></g></g><g class="node" id="id2" transform="translate(306.7578125,235)" style="opacity: 1;"><rect rx="5" ry="5" x="-69.9609375" y="-23" width="139.921875" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-59.9609375,-13)"><foreignObject width="119.921875" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Processing Menu</div></foreignObject></g></g></g><g class="node" id="id4" transform="translate(78.546875,139)" style="opacity: 1;"><rect rx="5" ry="5" x="-58.546875" y="-23" width="117.09375" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-48.546875,-13)"><foreignObject width="97.09375" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Nutrient Data</div></foreignObject></g></g></g><g class="node" id="id1" transform="translate(78.546875,235)" style="opacity: 1;"><rect rx="5" ry="5" x="-50.171875" y="-23" width="100.34375" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-40.171875,-13)"><foreignObject width="80.34375" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Main Menu</div></foreignObject></g></g></g><g class="node" id="id5" transform="translate(78.546875,331)" style="opacity: 1;"><rect rx="5" ry="5" x="-55.9375" y="-23" width="111.875" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-45.9375,-13)"><foreignObject width="91.875" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Oxygen Data</div></foreignObject></g></g></g><g class="node" id="id6" transform="translate(78.546875,427)" style="opacity: 1;"><rect rx="5" ry="5" x="-45" y="-23" width="90" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-35,-13)"><foreignObject width="70" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">CTD Data</div></foreignObject></g></g></g><g class="node" id="id7" transform="translate(474.1796875,283)" style="opacity: 1;"><rect rx="5" ry="5" x="-47.4609375" y="-23" width="94.921875" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-37.4609375,-13)"><foreignObject width="74.921875" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Processing</div></foreignObject></g></g></g><g class="node" id="id10" transform="translate(306.7578125,331)" style="opacity: 1;"><rect rx="5" ry="5" x="-58.9765625" y="-23" width="117.953125" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-48.9765625,-13)"><foreignObject width="97.953125" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">User Interacts</div></foreignObject></g></g></g><g class="node" id="id8" transform="translate(629.59375,283)" style="opacity: 1;"><rect rx="5" ry="5" x="-57.953125" y="-23" width="115.90625" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-47.953125,-13)"><foreignObject width="95.90625" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Collated Data</div></foreignObject></g></g></g><g class="node" id="id9" transform="translate(824.8515625,283)" style="opacity: 1;"><rect rx="5" ry="5" x="-87.3046875" y="-23" width="174.609375" height="46"></rect><g class="label" transform="translate(0,0)"><g transform="translate(-77.3046875,-13)"><foreignObject width="154.609375" height="26"><div xmlns="http://www.w3.org/1999/xhtml" style="display: inline-block; white-space: nowrap;">Exported Data for use</div></foreignObject></g></g></g></g></g></g></svg></div>
+<hr>
+<h2 id="python-file-structure">Python file structure</h2>
+<ul>
+<li>assets</li>
+<li><a href="#dialogs">dialogs</a>
+<ul>
+<li><a href="#addrmnsdialog">AddRMNSDialog.py</a></li>
+<li><a href="#analysisdialog">AnalysisDialog.py</a></li>
+<li><a href="#createnewproject">CreateNewProject.py</a></li>
+<li><a href="#deletedialog">DeleteDialog.py</a></li>
+<li><a href="#dialogtemplate">DialogTemplate.py</a></li>
+<li><a href="#exportdeployments">ExportDeployments.py</a></li>
+<li><a href="#importproject">ImportProject.py</a></li>
+<li><a href="#openproject">OpenProject.py</a></li>
+<li><a href="#parametersdialog">ParametersDialog.py</a></li>
+<li><a href="#plotselectiondialog">PlotSelectionDialog.py</a></li>
+<li><a href="#produceplotsdialog">ProducePlotsDialog.py</a></li>
+<li><a href="#rereaddialog">RereadDialog.py</a></li>
+<li><a href="#rmnsdialog">RMNSDialog.py</a></li>
+<li><a href="#surveydialog">SurveyDialog.py</a></li>
+<li><a href="#traceselectiondialog">TraceSelectionDialog.py</a></li>
+<li><a href="#valvecontrol">ValveControl.py</a></li>
+<li><a href="#viewdata">ViewData.py</a></li>
+<li><a href="#viewdatadialog">ViewDataDialog.py</a></li>
+</ul>
+</li>
+<li><a href="#processing">processing</a>
+<ul>
+<li><a href="#processing-menu">ProcessingMenu.py</a></li>
+<li><a href="#logger">LoggerOutput.py</a></li>
+<li><a href="#refreshfunction">RefreshFunction.py</a></li>
+<li><a href="#qcstats">QCStats.py</a></li>
+<li><a href="#algo">algo</a>
+<ul>
+<li><a href="#hyprocomplexities">HyProComplexities.py</a></li>
+<li><a href="#structures">Structures.py</a></li>
+</ul>
+</li>
+<li><a href="#plotting">plotting</a>
+<ul>
+<li><a href="#plottingwindow">PlottingWindow.py</a></li>
+<li><a href="#qcplots">QCPlots.py</a></li>
+</ul>
+</li>
+<li><a href="#procdata">procdata</a>
+<ul>
+<li><a href="#interactivenutrientsprocessing">InteractiveNutrientsProcessing.py</a></li>
+<li><a href="#interactiveoxygenprocessing">InteractiveOxygenProcessing.py</a></li>
+<li><a href="#interactivesalinityprocessing">InteractiveSalinityProcessing.py</a></li>
+<li><a href="#processsealnutrients">ProcessSealNutrients.py</a></li>
+<li><a href="#processscrippsoxygen">ProcessScrippsOxygen.py</a></li>
+<li><a href="#processguildlinesalinity">ProcessGuildlineSalinity.py</a></li>
+</ul>
+</li>
+<li><a href="#readdata">readdata</a>
+<ul>
+<li><a href="#readsealnutrients">ReadSealNutrients.py</a></li>
+<li><a href="#readscrippsoxygen">ReadScrippsOxygen.py</a></li>
+<li><a href="#readguildlinesalinity">ReadGuildlineSalinity.py</a></li>
+<li><a href="#initialisectddata">InitialiseCTDData.py</a></li>
+<li><a href="#initialisesamplesheet">InitialiseSampleSheet.py</a></li>
+<li><a href="#initialisetables">InitialiseTables.py</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#tests">tests</a>
+<ul>
+<li><a href="#tests-file">tests.py</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="documentation-of-each-file">Documentation of each file</h1>
+<h2 id="dialogs">Dialogs</h2>
+<h4 id="addrmnsdialog">AddRMNSDialog</h4>
+<p>Creates the window for adding a new RMNS into the local computer database of RMNS values.</p>
+<h5 id="iclassi-addrmnsdialog-database"><i>class</i> addrmnsDialog (database)</h5>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>database : string (path to database)</li>
+</ul>
+<hr>
+<h4 id="analysisdialog">AnalysisDialog</h4>
+<p>Creates the dialog for adding/activating analyses within a project. Can be useful for temporarily switching ‘off’ a an analysis when trying to process or edit something</p>
+<hr>
+<h4 id="createnewproject">CreateNewProject</h4>
+<p>Creates the dialog for producing a new project</p>
+<hr>
+<h4 id="deletedialog">DeleteDialog</h4>
+<p>The dialog for deleting already processed data from the project. Includes the option for</p>
+<h4 id="dialogtemplate">DialogTemplate</h4>
+<p>This class extends the base QDialog to setup some boilerplate on how we want the dialog windows to look. It primarily sets the icon, stylesheet, window location (center of active screen), sets the title and creates an underlying grid layout.</p>
+<h5 id="iclassi-hyprodialogtemplate-width-height-title"><i>class</i> hyproDialogTemplate (width, height, title)</h5>
+<p>Creates a standard template that we’re happy with to build off of.</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>height: int</li>
+<li>width : int</li>
+<li>title : string</li>
+</ul>
+<hr>
+<h4 id="exportdeployments">ExportDeployments</h4>
+<p>Provides the dialog for exporting data to csv or nc formats for publishing</p>
+<hr>
+<h4 id="importproject">ImportProject</h4>
+<p>Produces the dialog that allows a project to be import, for example the project was created and used on the ship. The project was copied and taken back to shore. It can then be imported and processing can continue</p>
+<hr>
+<h4 id="openproject">OpenProject</h4>
+<p>Open an existing project that is loaded in the local computer memory</p>
+<hr>
+<h4 id="parametersdialog">ParametersDialog</h4>
+<p>This is a complex dialog that allows for the editing and customisation of many parameters. Without this feature software updates to acquisition software could very easily break the importing of file formats.</p>
+<hr>
+<h4 id="plotselectiondialog">PlotSelectionDialog</h4>
+<p>Not implemented yet - should allow selection of data points from any plot</p>
+<hr>
+<h4 id="produceplotsdialog">ProducePlotsDialog</h4>
+<p>Not implemented fully - allows for the creation of custom plots as selected by the used</p>
+<hr>
+<h4 id="rereaddialog">RereadDialog</h4>
+<p>Creates a dialog that lets the user reselect a file for reprocessing</p>
+<hr>
+<h4 id="rmnsdialog">RMNSDialog</h4>
+<p>Displays the RMNS that are currently in memory</p>
+<hr>
+<h4 id="surveydialog">SurveyDialog</h4>
+<p>Creates a dialog that allows the configurable parameters for each survey to be set, this is a flexible dialog that changes based on the activated analyses</p>
+<hr>
+<h4 id="traceselectiondialog">TraceSelectionDialog</h4>
+<p>Creates a dialog when a user clicks on the trace from a nutrient run when processing. This provides all the information about the point they clicked.</p>
+<hr>
+<h4 id="valvecontrol">ValveControl</h4>
+<p>Not fully implemented - used for controlling a VICI automated valve<br>
+May remove</p>
+<hr>
+<h4 id="viewdata">ViewData</h4>
+<p>Creates a dialog to show the data that the user has selected</p>
+<hr>
+<h4 id="viewdatadialog">ViewDataDialog</h4>
+<p>Allows the user to select data and view</p>
+<hr>
+<h2 id="processing">Processing</h2>
+<h4 id="processing-menu">Processing Menu</h4>
+<p>The second main menu window, the processing menu functions as the hub for when a project is loaded and opened. From this screen it allows the user to read, delete and view data. It allows for the creation of plots via the menus.</p>
+<hr>
+<h4 id="loggeroutput">LoggerOutput</h4>
+<p>A modified QPlainText that extends the logging Handler, essentially merging the two and allowing a scrollable text window to catch all the log message and display them as necessary. This is used to inform the user of processed data or if an error has occured.</p>
+<hr>
+<h4 id="refreshfunction">RefreshFunction</h4>
+<p>Creates the functionality of loading in the newest file when a refresh is initiated. It follows a particular pattern of ingesting data files such that the order is CTD, Sample Logsheet, Salinity, Oxygen then Nutrients. This is to allow the proper datasets to be in place before other datatypes are read in. The obvious example of this is having CTD data in before Salinity and Oxygen so that an error plot can be produced.</p>
+<hr>
+<h4 id="qcstats">QCStats</h4>
+<hr>
+<h3 id="algo">Algo</h3>
+<h4 id="hyprocomplexities">HyproComplexities</h4>
+<hr>
+<h4 id="structures">Structures</h4>
+<h3 id="plotting">Plotting</h3>
+<h4 id="plottingwindow">PlottingWindow</h4>
+<hr>
+<h4 id="qcplots">QCPlots</h4>
+<hr>
+<h3 id="procdata">Procdata</h3>
+<h4 id="interactivenutrientsprocessing">InteractiveNutrientsProcessing</h4>
+<hr>
+<h4 id="interactiveoxygenprocessing">InteractiveOxygenProcessing</h4>
+<hr>
+<h4 id="interactivesalinityprocessing">InteractiveSalinityProcessing</h4>
+<hr>
+<h4 id="processsealnutrients">ProcessSealNutrients</h4>
+<h5 id="matchup_peaks-slk_data-chd_data-proc_parameters-current_nutrient-working_data">matchup_peaks (slk_data, chd_data, proc_parameters, current_nutrient, working_data)</h5>
+<p>Finds the window values that correspond to each peak as listed in the SLK file, using the peak start value.</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>slk_data : SLKData</li>
+<li>chd_data : CHDData</li>
+<li>processing_parameters : dict</li>
+<li>current_nutrient : string</li>
+<li>working_data : WorkingData</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>working_data : WorkingData</li>
+</ul>
+<h5 id="peak_shape_qc-window_values-quality_flags">peak_shape_qc (window_values, quality_flags)</h5>
+<p>Calculates whether or not a peak shape is within acceptable limits, if not it will give it an appropriate flag.</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>window_values : array-like</li>
+<li>quality_flags : array-like</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>quality_flags : array</li>
+</ul>
+<h5 id="window_medians-window_values">window_medians (window_values)</h5>
+<p>Calculates the medians for each array row</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>window_values : array
+<ul>
+<li>array shape n peaks length, n window points width e.g. (50, 14) (peaks, no. points)</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>window_medians : array</li>
+</ul>
+<h5 id="find_cup_indexesspecified_cup-analysis_cups">find_cup_indexes(specified_cup, analysis_cups)</h5>
+<p>Finds the indexes of a specified cup from the cups in a run</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>specified_cup : string</li>
+<li>analysis_cups : array-like
+<ul>
+<li>array of strings that represent the cups in an analysis run</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>clean_indexes : array of ints</li>
+</ul>
+<h5 id="find_carryover_indexeshigh_cup_name-low_cup_name-analysis_cups">find_carryover_indexes(high_cup_name, low_cup_name, analysis_cups)</h5>
+<p>Finds the indexes of the cups relating to carryover</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>high_cup_name : string</li>
+<li>low_cup_name : string</li>
+<li>analysis_cups : array-like
+<ul>
+<li>array of strings that represent the cups in a run</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>clean_high : int</li>
+<li>clean_low : array of ints</li>
+</ul>
+<h5 id="carryover_correction-high_index-low_indexes-window_medians">carryover_correction (high_index, low_indexes, window_medians)</h5>
+<p>Calculates and applies the carryover correction to an array of peak medians</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>high_index : int</li>
+<li>low_indexes : array-like</li>
+<li>window_medians : array_like</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>new_window_medians : list</li>
+<li>carryover_correction : float</li>
+</ul>
+<h5 id="organise_basedrift_medians-relevant_indexes-window_medians">organise_basedrift_medians (relevant_indexes, window_medians)</h5>
+<p>Due to how the baseline and drift corrections are applied, this function prepares the values for this, duplicating starting and ending values if the drift or baselines are not already there</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>relevant_indexes : array-like</li>
+<li>window_medians : array_like</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>medians : list</li>
+<li>relevant_indexes : list</li>
+</ul>
+<h5 id="baseline_correction-baseline_indexes-baseline_medians-correction_type-window_medians">baseline_correction (baseline_indexes, baseline_medians, correction_type, window_medians)</h5>
+<p>Creates a linear interpolation between baselines and then subtracts the interpolated baseline value from the A/D value of the peaks. Takes in a correction type to alter the correction applied, this will in standard practice be piece-wise.</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>baseline_indexes : array-like</li>
+<li>baseline_medians : array-like</li>
+<li>correction_type : string</li>
+<li>window_medians : array-like</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>new_window_medians : list</li>
+</ul>
+<h5 id="drift-_correction-drift_indexes-drift_medians-correction_type-window_medians">drift _correction (drift_indexes, drift_medians, correction_type, window_medians)</h5>
+<p>Calculates the mean drift peak height, then uses that to create a linear interpolation between the rest of the drifts.</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>drift_indexes: array-like</li>
+<li>drift_medians : array-like</li>
+<li>correction_type : string</li>
+<li>window_medians : array-like</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>new_window_medians : list</li>
+</ul>
+<h5 id="apply_calibration-cal_type-window_medians-calibration_coefficients">apply_calibration (cal_type, window_medians, calibration_coefficients)</h5>
+<p>Inputs the peak window medians into the calibration curve to determine the concentrations.</p>
+<blockquote>
+<p><b>Parameters</b>:</p>
+</blockquote>
+<ul>
+<li>cal_type: string</li>
+<li>window_medians : array-like</li>
+<li>calibration_coefficients : array-like</li>
+</ul>
+<blockquote>
+<p><b>Returns</b>:</p>
+</blockquote>
+<ul>
+<li>calculated_concentrations : list</li>
+</ul>
+<hr>
+<h4 id="processscrippsoxygen">ProcessScrippsOxygen</h4>
+<hr>
+<h4 id="processguildlinesalinity">ProcessGuildlineSalinity</h4>
+<hr>
+<h3 id="readdata">Readdata</h3>
+<h4 id="readsealnutrients">ReadSealNutrients</h4>
+<hr>
+<h4 id="readscrippsoxygen">ReadScrippsOxygen</h4>
+<hr>
+<h4 id="readguildlinesalinity">ReadGuildlineSalinity</h4>
+<hr>
+<h4 id="initialisectddata">InitialiseCTDData</h4>
+<hr>
+<h4 id="initialisetables">InitialiseTables</h4>
+<hr>
+<h3 id="tests">Tests</h3>
+<h4 id="tests-file">Tests File</h4>
+<h1 id="flagging-system-1">Flagging system</h1>
+<h4 id="good">1. Good</h4>
+<h4 id="suspect-operator-flagged">2. Suspect (operator flagged)</h4>
+<h4 id="bad-operator-flagged">3. Bad (operator flagged)</h4>
+<h4 id="peak-shape-suspect">4. Peak shape suspect</h4>
+<h4 id="peak-shape-bad">5. Peak shape bad</h4>
+<h4 id="duplicate-outside-spec">6. Duplicate outside spec</h4>
+<h4 id="calibrant-error-suspect-only-for-diagnostic">91. Calibrant error suspect (only for diagnostic)</h4>
+<h4 id="calibrant-error-bad-only-for-diagnostic">92. Calibrant error bad (only for diagnostic)</h4>
+<h1 id="glossary-1">Glossary</h1>
+<h3 id="nutrients-2">Nutrients</h3>
+
+<table>
+<thead>
+<tr>
+<th>Abbreviation</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CTD</td>
+<td>Conductivity Temperature Depth sensor</td>
+</tr>
+<tr>
+<td>CFA</td>
+<td>Continous Flow Analysis</td>
+</tr>
+<tr>
+<td>SFA</td>
+<td>Segmented Flow Analysis</td>
+</tr>
+<tr>
+<td>MDL</td>
+<td>Method Detection Limit</td>
+</tr>
+<tr>
+<td>RMNS</td>
+<td>Reference Material for Nutrients in Seawater</td>
+</tr>
+<tr>
+<td>Colormetric</td>
+<td>Determination of concentration using color, by measuring the amount of absorbance at a certain wavelength</td>
+</tr>
+<tr>
+<td>Reagent</td>
+<td>Chemical that is mixed with a water sample to produce a reaction</td>
+</tr>
+<tr>
+<td>Peak Window</td>
+<td>The section of a peak that is used for processing, often the flattest section of the plateau</td>
+</tr>
+<tr>
+<td>Baseline</td>
+<td>Quality control sample used to determine minimum signal, always ultra pure water, MilliQ</td>
+</tr>
+<tr>
+<td>Drift</td>
+<td>Quality control sample for checking the instrument sensitivity across a run, typically the same concentration as the highest standard</td>
+</tr>
+<tr>
+<td>LNSW</td>
+<td>Low Nutrient Sea Water, water collected from off the coast of Brisbane where nutrient levels are extrememly low. Used for making calibration standards and testing the detection limit of the instrument</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table><h3 id="salinity-2">Salinity</h3>
+
+<table>
+<thead>
+<tr>
+<th>Abbreviation</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Salinometer</td>
+<td>High accuracy salinity determination instrument, measures conductivity and infers salinity to a high degree</td>
+</tr>
+<tr>
+<td>OSIL</td>
+<td>Ocean Scientific International Ltd, makers of the internationally recognised salinity standard used to calibrate a Salinometer</td>
+</tr>
+<tr>
+<td></td>
+<td>Continous Flow Analysis</td>
+</tr>
+</tbody>
+</table><h3 id="dissolved-oxygen-2">Dissolved Oxygen</h3>
+
+<table>
+<thead>
+<tr>
+<th>Abbreviation</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Dosimat</td>
+<td>Type of automated burette that can dispesne volumes with high accuracy</td>
+</tr>
+<tr>
+<td>Titration</td>
+<td>The measured addition of a known concentration solution to another of unknown concentration, to thereby determine the unknown concentration</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table><hr>
+<p>Kendall Sherrin - 2019 <br>
+<b>CSIRO</b>  <i> Australia’s National Science Agency</i></p>
+<hr>
+
+    </div>
+  </div>
+</body>
+<style> h1,h2,h3 {margin-top: 21px;margin-bottom: 10.5px}
+</style>
+
+</html>
