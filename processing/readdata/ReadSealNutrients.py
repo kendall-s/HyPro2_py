@@ -10,20 +10,20 @@ def get_data_routine(file_path, w_d, processing_parameters, database):
     :return:
     """
     st = time.time()
-    #Extract data from the .SLK file - loads into slk data object
+    # Extract data from the .SLK file - loads into slk data object
     slk_data = extract_slk_data(file_path, processing_parameters)
 
-    #Extract data from the .CHD file - laods into chd data object
+    # Extract data from the .CHD file - laods into chd data object
     chd_data = extract_chd_data(file_path[:-3]+'CHD', slk_data)
 
-    #Determine our first active (was present in the file) nutrient and assign
+    # Determine our first active (was present in the file) nutrient and assign
+    # Fill out dilutions and flags with 1s as this point
     current_nutrient = slk_data.active_nutrients[0]
     w_d.analyte = current_nutrient
+    w_d.quality_flag = [1 for x in range(len(slk_data.sample_ids))]
+    w_d.dilution_factor = [1 for x in range(len(slk_data.sample_ids))]
 
-    #Match the SLK peak start data to the CHD A/D data
-    w_d = psn.matchup_peaks(slk_data, chd_data, processing_parameters, current_nutrient, w_d)
-
-    #Check and determine if we know the surveys
+    # Check and determine if we know the surveys
     slk_data.deployment, slk_data.rosette_position, slk_data.survey = psn.populate_nutrient_survey(database,
                                                                                                processing_parameters,
                                                                                                slk_data.sample_ids)
@@ -31,8 +31,6 @@ def get_data_routine(file_path, w_d, processing_parameters, database):
     print('Read time: ' + str(ft-st))
 
     return slk_data, chd_data, w_d, current_nutrient
-
-
 
 
 def parse_slk(slk_path):

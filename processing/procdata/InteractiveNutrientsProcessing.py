@@ -1,7 +1,8 @@
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QGridLayout, QCheckBox, QFrame, QVBoxLayout,
-                             QMainWindow, QTabWidget, QDesktopWidget, QApplication)
-from PyQt5 import QtGui, QtCore, QtWidgets
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QCheckBox, QFrame, QVBoxLayout, QTabWidget,
+                             QDesktopWidget, QApplication)
+from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtGui import *
+from PyQt5.QtCore import Qt, QSize
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from pylab import *
@@ -10,7 +11,7 @@ import sys, logging, traceback
 import hyproicons
 import processing.procdata.ProcessSealNutrients as psn
 import processing.readdata.ReadSealNutrients as rsn
-from processing.algo.HyproComplexities import load_proc_settings, match_click_to_peak, determineSurvey
+from processing.algo.HyproComplexities import load_proc_settings, match_click_to_peak
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.algo.Structures import WorkingData
 from threading import Thread
@@ -19,8 +20,8 @@ from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 #background-color: #ededed;
 
 # TODO: Finish new implementation of cleaned up testable Nutrients
-# TODO: clean up style sheet, move across into style file
-# TODO: Shift some of the calculative parts into the processnutrients script. Keep this slim and focused on GUI proc
+# TODO: Reimplement the QC chart tab system to be more L I G H T W E I G H T
+# TODO: Clean up style sheet, move across into style file
 
 class processingNutrientsWindow(hyproMainWindowTemplate):
 
@@ -28,13 +29,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad,
                     91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 
-
     """
-
     def __init__(self, file, database, path, project, interactive=True, rereading=''):
         screenwidth = QDesktopWidget().availableGeometry().width()
         screenheight = QDesktopWidget().availableGeometry().height()
-        super().__init__((screenwidth - (screenwidth * 0.1)), (screenheight - (screenheight * 0.1)),
+        super().__init__((screenwidth * 0.85), (screenheight * 0.85),
                          'HyPro - Process Nutrient Analysis')
 
         self.FLAG_COLORS = {1: '#68C968', 2: '#3CB6C9', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#C9852B'}
@@ -54,7 +53,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                                                              self.processing_parameters,
                                                                                              self.database)
 
-        self.w_d = psn.processing_routine(self.slk_data, self.w_d, self.processing_parameters, self.current_nutrient)
+        self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                          self.current_nutrient)
 
         if interactive:
             self.init_ui()
@@ -140,7 +140,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     def init_ui(self):
         try:
             self.setFont(QFont('Segoe UI'))
-            self.setWindowModality(QtCore.Qt.WindowModal)
+            self.setWindowModality(Qt.WindowModal)
+            self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)
 
             mainMenu = self.menuBar()
             fileMenu = mainMenu.addMenu('File')
@@ -200,35 +201,35 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             leftonxaxis = QPushButton()
             leftonxaxis.clicked.connect(self.move_camera_left)
             leftonxaxis.setIcon(QIcon(':/assets/greenleftarrow.svg'))
-            leftonxaxis.setIconSize(QtCore.QSize(33, 33))
+            leftonxaxis.setIconSize(QSize(33, 33))
             leftonxaxis.setProperty('icons', True)
             leftonxaxis.setFixedWidth(50)
 
             rightonxaxis = QPushButton()
             rightonxaxis.clicked.connect(self.move_camera_right)
             rightonxaxis.setIcon(QIcon(':/assets/greenrightarrow.svg'))
-            rightonxaxis.setIconSize(QtCore.QSize(33, 33))
+            rightonxaxis.setIconSize(QSize(33, 33))
             rightonxaxis.setProperty('icons', True)
             rightonxaxis.setFixedWidth(50)
 
             zoomin = QPushButton()
             zoomin.clicked.connect(self.zoom_in)
             zoomin.setIcon(QIcon(':/assets/zoomin.svg'))
-            zoomin.setIconSize(QtCore.QSize(33, 33))
+            zoomin.setIconSize(QSize(33, 33))
             zoomin.setProperty('icons', True)
             zoomin.setFixedWidth(50)
 
             zoomout = QPushButton()
             zoomout.clicked.connect(self.zoom_out)
             zoomout.setIcon(QIcon(':/assets/zoomout.svg'))
-            zoomout.setIconSize(QtCore.QSize(33, 33))
+            zoomout.setIconSize(QSize(33, 33))
             zoomout.setProperty('icons', True)
             zoomout.setFixedWidth(50)
 
             zoomfit = QPushButton()
             zoomfit.clicked.connect(self.zoom_fit)
             zoomfit.setIcon(QIcon(':/assets/expand.svg'))
-            zoomfit.setIconSize(QtCore.QSize(33, 33))
+            zoomfit.setIconSize(QSize(33, 33))
             zoomfit.setProperty('icons', True)
             zoomfit.setFixedWidth(50)
 
@@ -267,10 +268,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             # Setting everything into the layout
             self.grid_layout.addWidget(tracelabelframe, 0, 0, 1, 11)
-            self.grid_layout.addWidget(self.analysistraceLabel, 0, 0, 1, 3, QtCore.Qt.AlignCenter)
+            self.grid_layout.addWidget(self.analysistraceLabel, 0, 0, 1, 3, Qt.AlignCenter)
 
             self.grid_layout.addWidget(qclabelframe, 0, 11, 1, 5)
-            self.grid_layout.addWidget(self.qctabsLabel, 0, 11, 1, 1, QtCore.Qt.AlignCenter)
+            self.grid_layout.addWidget(self.qctabsLabel, 0, 11, 1, 1, Qt.AlignCenter)
 
             self.grid_layout.addWidget(traceframe, 1, 0, 20, 11)
             self.grid_layout.addWidget(self.tracecanvas, 1, 0, 17, 11)
@@ -279,22 +280,22 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.grid_layout.addWidget(qctabsframe, 1, 11, 19, 5)
             self.grid_layout.addWidget(self.qctabs, 1, 11, 19, 5)
 
-            self.grid_layout.addWidget(self.auto_size, 20, 0, QtCore.Qt.AlignCenter)
+            self.grid_layout.addWidget(self.auto_size, 20, 0, Qt.AlignCenter)
 
             self.grid_layout.addWidget(buttonsframe, 19, 3, 2, 5)
 
-            self.grid_layout.addWidget(leftonxaxis, 19, 3, 2, 1, QtCore.Qt.AlignHCenter)
-            self.grid_layout.addWidget(rightonxaxis, 19, 4, 2, 1, QtCore.Qt.AlignHCenter)
-            self.grid_layout.addWidget(zoomfit, 19, 5, 2, 1, QtCore.Qt.AlignHCenter)
-            self.grid_layout.addWidget(zoomin, 19, 6, 2, 1, QtCore.Qt.AlignHCenter)
-            self.grid_layout.addWidget(zoomout, 19, 7, 2, 1, QtCore.Qt.AlignHCenter)
+            self.grid_layout.addWidget(leftonxaxis, 19, 3, 2, 1, Qt.AlignHCenter)
+            self.grid_layout.addWidget(rightonxaxis, 19, 4, 2, 1, Qt.AlignHCenter)
+            self.grid_layout.addWidget(zoomfit, 19, 5, 2, 1, Qt.AlignHCenter)
+            self.grid_layout.addWidget(zoomin, 19, 6, 2, 1, Qt.AlignHCenter)
+            self.grid_layout.addWidget(zoomout, 19, 7, 2, 1, Qt.AlignHCenter)
 
-            self.grid_layout.addWidget(self.underwayfile, 19, 0, QtCore.Qt.AlignCenter)
+            self.grid_layout.addWidget(self.underwayfile, 19, 0, Qt.AlignCenter)
 
             self.grid_layout.addWidget(okcanframe, 20, 11, 1, 5)
 
-            self.grid_layout.addWidget(okbut, 20, 12, 1, 2, QtCore.Qt.AlignJustify)
-            self.grid_layout.addWidget(cancelbut, 20, 13, 1, 2, QtCore.Qt.AlignJustify)
+            self.grid_layout.addWidget(okbut, 20, 12, 1, 2, Qt.AlignJustify)
+            self.grid_layout.addWidget(cancelbut, 20, 13, 1, 2, Qt.AlignJustify)
 
             self.main_trace = self.tracefigure.add_subplot(111)
 
@@ -336,7 +337,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         #self.main_trace.plot(w_d.time_values[current_nutrient], w_d.window_values[current_nutrient], linewidth=0, color='#68C968', marker='o')
 
         self.main_trace.plot(w_d.baseline_peak_starts[:], w_d.baseline_medians[1:-1], linewidth=1, color="#d69f20")
-        self.main_trace.plot(w_d.drift_peak_starts[:], w_d.raw_drift_medians[:], linewidth = 1)
+        self.main_trace.plot(w_d.drift_peak_starts[:], w_d.raw_drift_medians[:], linewidth=1)
         self.tracecanvas.draw()
         ft = time.time()
 
@@ -397,7 +398,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     # Manages the key pressing
     def keyPressEvent(self, event):
-        # print(event.key())
+        #print(event.key())
         if event.key() == 65: # A
             self.move_camera_left()
         if event.key() == 68: # D
@@ -408,6 +409,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.zoom_out()
         if event.key() == 83: # S
             self.zoom_fit()
+        if event.key() == 82: # R Imitates changing peak windows etc, for testing optimisation of processing and draw
+            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                              self.current_nutrient)
+            self.draw_data(self.chd_data, self.w_d, self.current_nutrient)
+            self.move_camera_right()
 
         if event.key() == 81:
             if self.auto_size.isChecked():
@@ -493,7 +499,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.baseline_corr_tab = QWidget()
         self.qctabs.addTab(self.baseline_corr_tab, 'Baseline Correction')
         self.baseline_corr_tab.layout = QVBoxLayout()
-
 
         self.baseline_corr_tab.setLayout(self.baseline_corr_tab.layout)
 

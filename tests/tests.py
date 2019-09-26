@@ -147,3 +147,22 @@ def test_calibration_weightings():
     calibrant_weightings = psn.get_calibrant_weightings(calibrant_concentrations)
 
     assert calibrant_weightings == [2, 1, 1, 1, 2, 1, 1]
+
+def test_flag_hashed_sample():
+    peak_starts = ['255', '350', '1000', '#455', '900']
+    quality_flags =[1, 1, 1, 1, 1]
+
+    flags = psn.flag_hashed_samples(peak_starts, quality_flags)
+
+    assert flags == [1, 1, 1, 3, 1]
+
+
+def test_flag_null_sample():
+    analysis_cups = ['DRIF', 'SAMP', 'NULL', 'CALB', 'NULL', 'SAMP']
+    null_cup = 'NULL'
+    quality_flags = [1, 1, 1, 1, 1, 1]
+
+    flags = psn.flag_null_samples(analysis_cups, null_cup, quality_flags)
+
+    assert flags == [1, 1, 3, 1, 3, 1]
+
