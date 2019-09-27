@@ -39,6 +39,8 @@ class WorkingData:
         self.baseline_indexes = []
         self.baseline_peak_starts = []
         self.baseline_medians = []
+        self.baseline_flags = []
+        self.baseline_corr_percent = []
 
         self.high_index = []
         self.low_indexes = []
@@ -47,6 +49,8 @@ class WorkingData:
         self.drift_indexes = []
         self.drift_peak_starts = []
         self.drift_medians = []
+        self.drift_flags = []
+        self.drift_corr_percent = []
         self.raw_drift_medians = []
 
         self.calibrant_indexes = []
@@ -58,7 +62,6 @@ class WorkingData:
         self.calibrant_zero_mean = 0
         self.calibrant_flags = []
         self.calibration_coefficients = []
-
 
 class SLKData:
     def __init__(self, run):

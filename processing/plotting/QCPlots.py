@@ -167,6 +167,105 @@ class rmnsPlot(QWidget):
         self.canvas.draw()
 
 
+
+"""
+    Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad,
+                    91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
+"""
+
+def calibration_curve_plot(style, fig, axes, cal_medians, cal_concs, flags, reproc_count):
+
+    if len(axes.lines) > 0:
+        del axes.lines[:]
+    else:
+        axes.set_title('Calibration Curve')
+        axes.set_xlabel('Calibrant Concentrations')
+        axes.set_ylabel('A/D Medians')
+        axes.grid(alpha=0.4, zorder=1)
+
+    axes.plot(cal_medians, cal_concs, label=reproc_count)
+    fig.set_tight_layout(tight=True)
+
+def calibration_error_plot(style, fig, axes, cal, cal_error, analyte_error, flags):
+
+    if len(axes.lines) > 0:
+        del axes.lines[1:]
+    else:
+        axes.set_title('Calibrant Error')
+        axes.set_xlabel('Calibrant Concentration')
+        axes.set_ylabel('Error from fitted concentration')
+        axes.plot([0, max(cal)], [0, 0], lw=1.25, linestyle='--', alpha=0.7, zorder=2, color='#000000')
+        axes.grid(alpha=0.4, zorder=1)
+
+    for i, x in enumerate(flags):
+        if x == 1:
+            colour = "#12ba66"
+            size = 6
+            mark = 'o'
+        if x == 2 or x==4 or x == 91:
+            colour = '#63d0ff'
+            size = 14
+            mark = '+'
+        if x == 3 or x == 5 or x == 92:
+            colour = "#d11b1b"
+            size = 14
+            mark = '+'
+        try:
+            axes.plot(cal[i], cal_error[i], marker=mark, mfc=colour, linewidth=0, markersize=size,
+                       color=colour, alpha=0.8)
+        except IndexError:
+            pass
+
+    axes.plot([0, max(cal)], [analyte_error, analyte_error], color='#5AD3E2', lw=1.25)
+    axes.plot([0, max(cal)], [(-1*analyte_error), (-1*analyte_error)], color='#5AD3E2', lw=1.25)
+
+    axes.plot([0, max(cal)], [(2*analyte_error), (2*analyte_error)], color='#C689C8', lw=1.25)
+    axes.plot([0, max(cal)], [(-2 * analyte_error), (-2 * analyte_error)], color='#C689C8', lw=1.25)
+
+    fig.set_tight_layout(tight=True)
+
+def basedrift_correction_plot(COLORS, fig, axes1, axes2, type, indexes, correction, medians, flags):
+    with mpl.rc_context(rc=COLORS):
+        if len(axes1.lines) > 0:
+            del axes1.lines[:]
+            del axes2.lines[:]
+        else:
+            axes1.set_title('%s Peak Height' % type)
+            axes1.set_xlabel('Peak Number')
+            axes1.set_ylabel('Raw Peak Height (A/D)')
+            axes1.grid(alpha=0.4, zorder=1)
+            axes2.set_title('%s Correction Percentage' % type)
+            axes2.set_xlabel('Peak Number')
+            axes2.set_ylabel('Percentage of Top Cal (%)')
+            axes2.grid(alpha=0.4, zorder=1)
+
+        axes1.plot(indexes, medians, mfc='none', linewidth=1.25, linestyle=':', color="#8C8C8C", alpha=0.9)
+        for i, x in enumerate(flags):
+            if x == 1:
+                colour = "#12ba66"
+                size = 14
+                mark = 'o'
+            elif x == 3:
+                colour = '#63d0ff'
+                size = 16
+                mark = '+'
+            elif x == 2:
+                colour = "#d11b1b"
+                size = 16
+                mark = '+'
+            else:
+                colour = "#d11b1b"
+                size = 19
+                mark = 'o'
+            axes1.plot(indexes[i], medians[i], linewidth=1.25, linestyle=':', mfc='none', mec=colour,
+                       marker=mark, markersize=size, color="#25543b")
+
+            axes1.set_ylim(min(medians) * 0.975, max(medians) * 1.025)
+
+        axes2.plot(indexes, correction, lw=1.25, marker='s', ms=8, mfc='none', color='#6986e5')
+        fig.set_tight_layout(tight=True)
+
+
 class calibrationCurve(QWidget):
     def __init__(self, nutrient, caladvals, calconcs, fit, rsq, flags):
         super().__init__()
@@ -174,7 +273,7 @@ class calibrationCurve(QWidget):
         self.nutrient = nutrient
         self.caladvals = caladvals
         self.calconcs = calconcs
-        self.fit = fit
+        #self.fit = fit
         self.rsq = rsq
         self.flags = flags
 
@@ -198,8 +297,8 @@ class calibrationCurve(QWidget):
         self.mainplot.set_ylabel('A/D Value')
 
         cattle = list(set(self.caladvals))
-        self.mainplot.plot(self.fit(cattle[0:]), cattle[0:], linewidth=0.5, marker='.', color='#292b2d',
-                           markersize=7, mew=0.5, mec="#295263", mfc='none')
+        #self.mainplot.plot(self.fit(cattle[0:]), cattle[0:], linewidth=0.5, marker='.', color='#292b2d',
+        #                   markersize=7, mew=0.5, mec="#295263", mfc='none')
 
         for i, x in enumerate(self.flags):
             if x == 1:

@@ -1,14 +1,13 @@
-import logging, json
-import numpy as np
-import statistics, time
+import logging
 import sqlite3
-from scipy.interpolate import interp1d
-from scipy.stats import linregress
-from pylab import polyfit
+import statistics
+import time
 from collections import defaultdict
-from processing.algo.Structures import WorkingData, CalibratedData
-import processing.readdata.ReadSealNutrients as rsn
+import numpy as np
+from pylab import polyfit
+from scipy.interpolate import interp1d
 
+# TODO: need small sub routine for resetting values on a RE-process
 
 def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_nutrient):
     st = time.time()
@@ -32,7 +31,6 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     qc_cup_ids = [processing_parameters['nutrientprocessing']['qcsamplenames'][x] for x in
                   processing_parameters['nutrientprocessing']['qcsamplenames'].keys()]
 
-
     # ----------- Match peaks to CHD data ---------------------------------------------------------------------
     # Match the SLK peak start data to the CHD A/D data
     w_d.window_values, w_d.time_values = get_peak_values(slk_data.peak_starts[current_nutrient],
@@ -42,73 +40,67 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     w_d.quality_flag = flag_null_samples(slk_data.cup_types, null_cup_type, w_d.quality_flag)
     w_d.quality_flag = flag_hashed_samples(slk_data.peak_starts[current_nutrient], w_d.quality_flag)
 
-    #w_d = matchup_peaks(slk_data, chd_data, processing_parameters, current_nutrient, w_d)
-
+    # w_d = matchup_peaks(slk_data, chd_data, processing_parameters, current_nutrient, w_d)
 
     # ----------- Check peaks for peak shape - apply quality control -------------------------------------------
     w_d.quality_flag = peak_shape_qc(w_d.window_values, w_d.quality_flag)
 
-
     # ----------- Calculate the peak window medians for all peaks ----------------------------------------------
     w_d.raw_window_medians = window_medians(w_d.window_values)
-
 
     # ----------- Find the baseline peaks - apply baseline correction ------------------------------------------
     w_d.baseline_indexes = find_cup_indexes(baseline_cup_type, slk_data.cup_types)
     w_d.baseline_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.baseline_indexes]
     w_d.baseline_medians, w_d.baseline_indexes = organise_basedrift_medians(w_d.baseline_indexes,
                                                                             w_d.raw_window_medians)
+    w_d.baseline_flags = get_basedrift_flags(w_d.baseline_indexes, w_d.quality_flag)
     w_d.corr_window_medians = baseline_correction(w_d.baseline_indexes, w_d.baseline_medians, baseline_corr_type,
                                                   w_d.raw_window_medians)
-
 
     # ----------  Find carryover peaks - apply carryover correction ---------------------------------------------
     w_d.high_index, w_d.low_indexes = find_carryover_indexes(high_cup_type, low_cup_type, slk_data.cup_types)
     w_d.corr_window_medians, w_d.carryover_coefficient = carryover_correction(w_d.high_index, w_d.low_indexes,
                                                                               w_d.corr_window_medians)
 
-
     # ----------- Find drift peaks - apply drift correction -----------------------------------------------------
     w_d.drift_indexes = find_cup_indexes(drift_cup_type, slk_data.cup_types)
     w_d.drift_medians, w_d.drift_indexes = organise_basedrift_medians(w_d.drift_indexes, w_d.corr_window_medians)
+    w_d.drift_flags = get_basedrift_flags(w_d.drift_indexes, w_d.quality_flag)
+    w_d.drift_corr_percent = get_basedrift_corr_percent(w_d.drift_medians, statistics.mean(w_d.drift_medians[1:-1]))
     w_d.corr_window_medians = drift_correction(w_d.drift_indexes, w_d.drift_medians, drift_corr_type,
                                                w_d.corr_window_medians)
-
 
     # ----------- Find calibrant peaks --------------------------------------------------------------------------
     w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type, slk_data.cup_types)
 
-
     # ----------- Prepare calibrants and various paramters ------------------------------------------------------
     w_d.calibrant_medians = get_calibrant_medians(w_d.calibrant_indexes, w_d.corr_window_medians)
+    # Side note for baseline plot - get highest cal median and determine a percentage corr from that
+    w_d.baseline_corr_percent = get_basedrift_corr_percent(w_d.baseline_medians, max(w_d.calibrant_medians))
     w_d.calibrant_concs = get_calibrant_concentrations(w_d.calibrant_indexes, slk_data.calibrants[current_nutrient])
     w_d.calibrant_flags = get_calibrant_flags(w_d.calibrant_indexes, w_d.quality_flag)
     w_d.calibrant_zero_mean = get_calibrant_zero_mean(w_d.corr_window_medians, slk_data.sample_ids, cal_zero_label)
-    w_d.calibrant_medians = remove_calibrant_zero(w_d.calibrant_medians, w_d.calibrant_zero_mean)
+    w_d.calibrant_medians_minuszero = remove_calibrant_zero(w_d.calibrant_medians, w_d.calibrant_zero_mean)
     w_d.calibrant_weightings = get_calibrant_weightings(w_d.calibrant_concs)
-
 
     # ------------ Create calibration ---------------------------------------------------------------------------
     w_d.calibration_coefficients, w_d.calibrant_flags, w_d.calibrants_weightings, \
-    w_d.calibrant_residuals = create_calibration(cal_type, w_d.calibrant_medians, w_d.calibrant_concs,
+    w_d.calibrant_residuals = create_calibration(cal_type, w_d.calibrant_medians_minuszero, w_d.calibrant_concs,
                                                  w_d.calibrant_weightings, cal_error_limit, w_d.calibrant_flags)
-
 
     # ------------ Apply calibration ----------------------------------------------------------------------------
     w_d.calculated_concentrations = apply_calibration(cal_type, w_d.corr_window_medians, w_d.calibration_coefficients)
 
-
     # ------------ Apply dilution factors -----------------------------------------------------------------------
     mdl_indexes = find_cup_indexes(mdl_cup, slk_data.sample_ids)
     w_d.calculated_concentrations = apply_dilution(mdl_indexes, w_d.dilution_factor, w_d.calculated_concentrations)
-
 
     # ----- Find duplicates and flag if outside analyte tolerance ------------------------------------------------
     duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
     sample_duplicate_indexes = find_duplicate_samples(duplicate_indexes, slk_data.sample_ids, slk_data.cup_types,
                                                       sample_cup_type, qc_cup_ids)
     w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes, w_d.calculated_concentrations,
-                                                     w_d.quality_flag, cal_error_limit)
+                                                 w_d.quality_flag, cal_error_limit)
 
     print('Proc time: ' + str((time.time()) - st))
 
@@ -116,13 +108,16 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
 
 def get_peak_values(peak_starts, ad_data, window_size, window_start):
-
     window_end = int(window_start) + int(window_size)
     # This looks ugly, but it is 10x faster than an expanded for if else statement to accomplish the same thing
-    window_values = [[ad_data[ind] for ind in list(range((int(p_s)+int(window_start)),(int(p_s)+window_end)))] if p_s[0] != '#'
-                     else [ad_data[ind] for ind in list(range((int(p_s[1:])+int(window_start)), (int(p_s)+window_end)))] for p_s in peak_starts[:-1]]
-    time_values = [[ind for ind in list(range((int(p_s) + int(window_start)), (int(p_s)+window_end)))] if p_s[0] != '#'
-                    else [ind for ind in list( range((int(p_s[1:]) + int(window_start)), (int(p_s)+window_end)))] for p_s in peak_starts[:-1]]
+    window_values = [
+        [ad_data[ind] for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))] if p_s[0] != '#'
+        else [ad_data[ind] for ind in list(range((int(p_s[1:]) + int(window_start)), (int(p_s) + window_end)))] for p_s
+        in peak_starts[:-1]]
+    time_values = [
+        [ind for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))] if p_s[0] != '#'
+        else [ind for ind in list(range((int(p_s[1:]) + int(window_start)), (int(p_s) + window_end)))] for p_s in
+        peak_starts[:-1]]
     return window_values, time_values
 
 
@@ -164,7 +159,6 @@ def peak_shape_qc(window_values, quality_flags):
 
 
 def window_medians(window_values):
-
     window_medians_temp_array = np.array(window_values)
 
     window_medians_temp_array = np.median(window_medians_temp_array, axis=1)
@@ -196,7 +190,6 @@ def find_carryover_indexes(high_cup_name, low_cup_name, analysis_cups):
 
 
 def organise_basedrift_medians(relevant_indexes, window_medians):
-
     medians = [window_medians[x] for x in relevant_indexes]
 
     if relevant_indexes[0] != 0:
@@ -210,9 +203,19 @@ def organise_basedrift_medians(relevant_indexes, window_medians):
 
     return medians, relevant_indexes
 
+def get_basedrift_flags(relevant_indexes, quality_flags):
+
+    flags = [quality_flags[x] for x in relevant_indexes]
+
+    return flags
+
+def get_basedrift_corr_percent(medians, comparator): # For baseline - use top cal, for drift - use mean drift
+
+    corr_percent = [(x / comparator) * 100 for x in medians]
+
+    return corr_percent
 
 def baseline_correction(baseline_indexes, baseline_medians, correction_type, window_medians):
-
     if correction_type == 'Piecewise':
 
         baseline_interpolation = interp1d(baseline_indexes, baseline_medians)
@@ -231,8 +234,9 @@ def carryover_correction(high_index, low_indexes, window_medians):
     low_medians = [window_medians[x] for x in low_indexes]
     carryover_coefficient = (low_medians[0] - low_medians[1]) / (high_median[0] - low_medians[0])
 
-    new_window_medians = [float(x - (window_medians[i-1] * carryover_coefficient)) if i > 0 else x for i, x in enumerate(window_medians)]
-    #new_window_medians = [x - ((x-1) * carryover_coefficient) for x in window_medians]
+    new_window_medians = [float(x - (window_medians[i - 1] * carryover_coefficient)) if i > 0 else x for i, x in
+                          enumerate(window_medians)]
+    # new_window_medians = [x - ((x-1) * carryover_coefficient) for x in window_medians]
     return new_window_medians, carryover_coefficient
 
 
@@ -246,7 +250,6 @@ def find_drift_indexes(drift_cup_name, analysis_cups):
 
 
 def drift_correction(drift_indexes, drift_medians, correction_type, window_medians):
-
     if correction_type == 'Piecewise':
         drift_mean = statistics.mean(drift_medians[1:-1])
 
@@ -265,48 +268,44 @@ def drift_correction(drift_indexes, drift_medians, correction_type, window_media
 
 
 def get_calibrant_medians(calibrant_indexes, window_medians):
-
     calibrant_medians = [window_medians[ind] for ind in calibrant_indexes]
 
     return calibrant_medians
 
 
 def get_calibrant_concentrations(calibrant_indexes, nominal_concentrations):
-
     calibrant_concs = [float(nominal_concentrations[ind]) for ind in calibrant_indexes]
 
     return calibrant_concs
 
 
 def get_calibrant_flags(calibrant_indexes, quality_flags):
-
     calibrant_flags = [quality_flags[ind] for ind in calibrant_indexes]
 
     return calibrant_flags
 
 
 def get_calibrant_zero_mean(window_medians, sample_ids, cal_zero_label):
-
-    calibrant_zero_mean = statistics.mean(median for ind, median in enumerate(window_medians) if sample_ids[ind] == cal_zero_label)
+    calibrant_zero_mean = statistics.mean(
+        median for ind, median in enumerate(window_medians) if sample_ids[ind] == cal_zero_label)
 
     return calibrant_zero_mean
 
 
 def remove_calibrant_zero(calibrant_medians, cal_zero_mean):
-
     calibrants_minus_zero = [(cal_median - cal_zero_mean) for cal_median in calibrant_medians]
 
     return calibrants_minus_zero
 
 
 def get_calibrant_weightings(calibrant_concentrations):
-
     calibration_weightings = [2 if x == 0.0 else 1 for x in calibrant_concentrations]
 
     return calibration_weightings
 
 
-def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, calibrant_weightings, calibrant_error, calibrant_flags):
+def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, calibrant_weightings, calibrant_error,
+                       calibrant_flags):
     repeat_calibration = True
     calibration_iteration = 0
     # TODO: Massive todo I've fcked this up royally, it works and works well, but it is not clean at all.
@@ -343,7 +342,8 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
 
         max_residual_index = int(np.argmax(np.abs(np.array(calibrant_residuals))))
 
-        if abs(calibrant_residuals[max_residual_index]) > (2 * calibrant_error) and flags_to_fit[max_residual_index] != 92:
+        if abs(calibrant_residuals[max_residual_index]) > (2 * calibrant_error) and flags_to_fit[
+            max_residual_index] != 92:
             repeat_calibration = True
             weightings_to_fit[max_residual_index] = 0
             flags_to_fit[max_residual_index] = 91
@@ -355,7 +355,8 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
             calibrant_flags[original_indexes[max_residual_index]] = 91
             calibrant_weightings[original_indexes[max_residual_index]] = 0
 
-        if calibrant_error < abs(calibrant_residuals[max_residual_index]) < (2 * calibrant_error) and flags_to_fit[max_residual_index] != 6:
+        if calibrant_error < abs(calibrant_residuals[max_residual_index]) < (2 * calibrant_error) and flags_to_fit[
+            max_residual_index] != 6:
             repeat_calibration = True
             weightings_to_fit[max_residual_index] = 0.5
             flags_to_fit[max_residual_index] = 92
@@ -370,7 +371,8 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
 
 def apply_calibration(cal_type, window_medians, calibration_coefficients):
     if cal_type == 'Linear':
-        calculated_concentrations = [(x * calibration_coefficients[0]) + calibration_coefficients[1] for x in window_medians]
+        calculated_concentrations = [(x * calibration_coefficients[0]) + calibration_coefficients[1] for x in
+                                     window_medians]
 
         return calculated_concentrations
 
@@ -386,6 +388,7 @@ def apply_dilution(mdl_indexes, dilution_factors, calculated_concentrations):
     calculated_concentrations = list(cc_2)
 
     return calculated_concentrations
+
 
 def find_duplicate_indexes(sample_ids):
     tally = defaultdict(list)
@@ -414,7 +417,7 @@ def determine_duplicate_error(duplicate_samples, calculated_concentrations, qual
         tested_concentrations = [calculated_concentrations[i] for i in sample_indexes[1]]
         for i, conc in enumerate(tested_concentrations):
             if i > 0:
-                difference = conc - tested_concentrations[i-1]
+                difference = conc - tested_concentrations[i - 1]
                 if difference > analyte_tolerance:
                     for ind in sample_indexes[1]:
                         quality_flags[ind] = 8
@@ -423,12 +426,12 @@ def determine_duplicate_error(duplicate_samples, calculated_concentrations, qual
 
 
 def reset_calibrant_flags(quality_flags):
-
     for i, x in enumerate(quality_flags):
         if x in [91, 92]:
             quality_flags[i] = 1
 
     return quality_flags
+
 
 def pack_data(slk_data, working_data, database):
     conn = sqlite3.connect(database)
@@ -441,7 +444,6 @@ def pack_data(slk_data, working_data, database):
                         working_data.calculated_concentrations, slk_data.survey, slk_data.deployment,
                         slk_data.rosette_position, working_data.quality_flag, working_data.dilution_factor,
                         slk_data.epoch_timestamps))
-
 
     c.executemany('INSERT OR REPLACE INTO %sData VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)' % working_data.analyte)
 
@@ -489,6 +491,7 @@ def populate_nutrient_survey(database, params, sample_id):
 
     return deployments, rosette_positions, survey
 
+
 # TODO: Finding a nutrient survey needs fixing, this is messy and does not account for all cases!
 def determine_nutrient_survey(database, params, sample_id):
     conn = sqlite3.connect(database)
@@ -510,17 +513,19 @@ def determine_nutrient_survey(database, params, sample_id):
                                 if depformatlength > 0:
                                     deployment = sample_id[0:depformatlength]
                                     rosettepos = sample_id[depformatlength:(depformatlength + rpformatlength)]
-    
+
                                     return deployment, rosettepos, survey
                             else:
                                 print('TODO pull dep/rp from logsheet instead')
                                 # TODO: pull dep/rp from logsheet option
                     else:  # Sample id has more than just numbers in it
-                        if params['surveyparams'][surv]['seal']['decodesampleid']:  # Decode the sample ID, needs a prefisurv too
+                        if params['surveyparams'][surv]['seal'][
+                            'decodesampleid']:  # Decode the sample ID, needs a prefisurv too
                             surveyprefisurv = params['surveyparams'][surv]['seal']['surveyprefisurv']
                             if len(params['surveyparams'][surv]['seal'][
                                        'surveyprefisurv']) > 0:  # Check theres actually a prefisurv
-                                sampleprefisurv = sample_id[0:len(params['surveyparams'][surv]['seal']['surveyprefisurv'])]
+                                sampleprefisurv = sample_id[
+                                                  0:len(params['surveyparams'][surv]['seal']['surveyprefisurv'])]
                                 if surveyprefisurv == sampleprefisurv:
                                     survey = surv
                                 else:
@@ -533,11 +538,10 @@ def determine_nutrient_survey(database, params, sample_id):
                                     if depformatlength > 0:
                                         deployment = sample_id[len(survey):depformatlength]
                                         rosettepos = sample_id[len(survey) + depformatlength:]
-    
+
                                         return deployment, rosettepos, survey
                                 else:
                                     rosettepos = int(sample_id[len(surveyprefisurv):])
                                     deployment = surv
                                     survey = surv
                                     return deployment, rosettepos, survey
-    

@@ -311,7 +311,23 @@ QCheckBox {
 QTabWidget QWidget {
     font: 14px;
     color: white;
+    background-color: #191919;
+    border: 1px #000000;
+}
+QTabWidget:pane {
+    background-color: #191919;
 }   
+QTabBar:tab {
+    background-color: #333333;
+}
+QTabBar:tab:selected {
+    background-color: #666666;
+}
+QTabBar:tab:hover {
+    border: 2px solid #666666;
+}
+
+
 
 
 /* --------------------------------- QLineEdit -----------
