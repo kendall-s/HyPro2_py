@@ -63,6 +63,8 @@ class WorkingData:
         self.calibrant_flags = []
         self.calibration_coefficients = []
 
+        self.qc_present = []
+
 class SLKData:
     def __init__(self, run):
         self.run = run

@@ -173,8 +173,7 @@ class rmnsPlot(QWidget):
                     91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 """
 
-def calibration_curve_plot(style, fig, axes, cal_medians, cal_concs, flags, reproc_count):
-
+def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, reproc_count):
     if len(axes.lines) > 0:
         del axes.lines[:]
     else:
@@ -183,10 +182,10 @@ def calibration_curve_plot(style, fig, axes, cal_medians, cal_concs, flags, repr
         axes.set_ylabel('A/D Medians')
         axes.grid(alpha=0.4, zorder=1)
 
-    axes.plot(cal_medians, cal_concs, label=reproc_count)
+    axes.plot(cal_medians, cal_concs, label=reproc_count, marker='o', mfc='none', lw=0.5)
     fig.set_tight_layout(tight=True)
 
-def calibration_error_plot(style, fig, axes, cal, cal_error, analyte_error, flags):
+def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
 
     if len(axes.lines) > 0:
         del axes.lines[1:]
@@ -224,46 +223,59 @@ def calibration_error_plot(style, fig, axes, cal, cal_error, analyte_error, flag
 
     fig.set_tight_layout(tight=True)
 
-def basedrift_correction_plot(COLORS, fig, axes1, axes2, type, indexes, correction, medians, flags):
-    with mpl.rc_context(rc=COLORS):
-        if len(axes1.lines) > 0:
-            del axes1.lines[:]
-            del axes2.lines[:]
+def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medians, flags):
+    if len(axes1.lines) > 0:
+        del axes1.lines[:]
+        del axes2.lines[:]
+    else:
+        axes1.set_title('%s Peak Height' % type)
+        axes1.set_xlabel('Peak Number')
+        axes1.set_ylabel('Raw Peak Height (A/D)')
+        axes1.grid(alpha=0.4, zorder=1)
+        axes2.set_title('%s Correction Percentage' % type)
+        axes2.set_xlabel('Peak Number')
+        axes2.set_ylabel('Percentage of Top Cal (%)')
+        axes2.grid(alpha=0.4, zorder=1)
+
+    axes1.plot(indexes, medians, mfc='none', linewidth=1.25, linestyle=':', color="#8C8C8C", alpha=0.9)
+    for i, x in enumerate(flags):
+        if x == 1:
+            colour = "#12ba66"
+            size = 14
+            mark = 'o'
+        elif x == 3:
+            colour = '#63d0ff'
+            size = 16
+            mark = '+'
+        elif x == 2:
+            colour = "#d11b1b"
+            size = 16
+            mark = '+'
         else:
-            axes1.set_title('%s Peak Height' % type)
-            axes1.set_xlabel('Peak Number')
-            axes1.set_ylabel('Raw Peak Height (A/D)')
-            axes1.grid(alpha=0.4, zorder=1)
-            axes2.set_title('%s Correction Percentage' % type)
-            axes2.set_xlabel('Peak Number')
-            axes2.set_ylabel('Percentage of Top Cal (%)')
-            axes2.grid(alpha=0.4, zorder=1)
+            colour = "#d11b1b"
+            size = 19
+            mark = 'o'
+        axes1.plot(indexes[i], medians[i], linewidth=1.25, linestyle=':', mfc='none', mec=colour,
+                   marker=mark, markersize=size, color="#25543b")
 
-        axes1.plot(indexes, medians, mfc='none', linewidth=1.25, linestyle=':', color="#8C8C8C", alpha=0.9)
-        for i, x in enumerate(flags):
-            if x == 1:
-                colour = "#12ba66"
-                size = 14
-                mark = 'o'
-            elif x == 3:
-                colour = '#63d0ff'
-                size = 16
-                mark = '+'
-            elif x == 2:
-                colour = "#d11b1b"
-                size = 16
-                mark = '+'
-            else:
-                colour = "#d11b1b"
-                size = 19
-                mark = 'o'
-            axes1.plot(indexes[i], medians[i], linewidth=1.25, linestyle=':', mfc='none', mec=colour,
-                       marker=mark, markersize=size, color="#25543b")
+        axes1.set_ylim(min(medians) * 0.975, max(medians) * 1.025)
 
-            axes1.set_ylim(min(medians) * 0.975, max(medians) * 1.025)
+    axes2.plot(indexes, correction, lw=1.25, marker='s', ms=8, mfc='none', color='#6986e5')
+    fig.set_tight_layout(tight=True)
 
-        axes2.plot(indexes, correction, lw=1.25, marker='s', ms=8, mfc='none', color='#6986e5')
-        fig.set_tight_layout(tight=True)
+def rmns_plot(fig, axes, indexes, concentrations, flags, rmns):
+    if len(axes.lines) > 0:
+        del axes.lines[:]
+
+    else:
+        axes.set_title(rmns)
+        axes.set_xlabel('Peak Number')
+        axes.set_ylabel('Raw Peak Height (A/D)')
+        axes.grid(alpha=0.4, zorder=1)
+
+
+    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o')
+
 
 
 class calibrationCurve(QWidget):

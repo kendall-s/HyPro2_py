@@ -56,8 +56,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                             'grid.color': '#000000', 'lines.color': '#191919', 'figure.frameon': False}
         else:
             self.COLORS = {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
-                           'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#191919',
-                           'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False}
+                           'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
+                           'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
+                           'text.color': '#F5F5F5'}
 
         self.w_d = WorkingData(file)
 
@@ -83,7 +84,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             qc_cups = self.processing_parameters['nutrientprocessing']['qcsamplenames']
             self.create_custom_qc_tabs(self.slk_data.sample_ids, qc_cups)
 
-            self.plot_data()
+            self.plot_standard_data()
+            self.plot_custom_data()
             print('QCTabs: ' + str(time.time() - st))
         else:
             sys.exit()
@@ -99,7 +101,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             fileMenu = mainMenu.addMenu('File')
             editMenu = mainMenu.addMenu('Edit')
 
-            self.analysistraceLabel = QLabel('Analysis Trace:')
+            self.analysistraceLabel = QLabel('<b>Analysis Trace:</b>')
             self.analysistraceLabel.setProperty('headertext', True)
 
             tracelabelframe = QFrame()
@@ -120,7 +122,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             traceframeshadow.setXOffset(3)
             traceframe.setGraphicsEffect(traceframeshadow)
 
-            self.qctabsLabel = QLabel('QC Charts:',)
+            self.qctabsLabel = QLabel('<b>QC Charts:</b>',)
             self.qctabsLabel.setProperty('headertext', True)
 
             qclabelframe = QFrame()
@@ -273,7 +275,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.main_trace.set_ylabel('A/D Value')
 
             self.main_trace.plot(range(len(chd_data.ad_data[current_nutrient])), chd_data.ad_data[current_nutrient],
-                                 linewidth = 0.75, label='trace', color='#F5F5F5')
+                                 linewidth = 1, label='trace', color='#F5F5F5')
 
             self.main_trace.set_xlim(0, len(chd_data.ad_data[current_nutrient]))
             self.main_trace.set_ylim(0, max(chd_data.ad_data[current_nutrient])*1.1)
@@ -373,9 +375,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
             self.draw_data(self.chd_data, self.w_d, self.current_nutrient)
-            self.tracecanvas.draw()
+            thread1 = Thread(target=self.tracecanvas.draw())
+            thread1.start()
 
-            self.plot_data()
+            #self.plot_data()
+            thread = Thread(target=self.plot_standard_data())
+            thread.start()
+            thread.join()
+            thread1.join()
 
         if event.key() == 81:
             if self.auto_size.isChecked():
@@ -455,42 +462,65 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def create_custom_qc_tabs(self, sample_ids, qc_samps):
         self.qc_tabs_in_existence = []
+        self.rmns_plots = []
         sample_ids_set = set(sample_ids)
         with mpl.rc_context(rc=self.COLORS):
             for qc in qc_samps:
-                #print(qc_samps[qc])
                 if not qc == 'driftsample':
                     if any(qc_samps[qc] in s_id for s_id in sample_ids_set):
-                        setattr(self, "{}".format(qc + str('_tab')), QWidget())
-                        self.qctabs.addTab(getattr(self, "{}".format(qc + str('_tab'))), str(qc_samps[qc]))
-                        setattr(self, "{}".format(qc + str('_lout')), QVBoxLayout())
-                        getattr(self, "{}".format(qc + str('_tab'))).setLayout(getattr(self, "{}".format(qc + str('_lout'))))
-                        setattr(self, "{}".format(qc + str('_fig')), plt.figure())
-                        setattr(self, "{}".format(qc + str('_canvas')), FigureCanvas(getattr(self, "{}".format(qc + str('_fig')))))
-                        setattr(self, "{}".format(qc + str('_plot')), getattr(self, "{}".format(qc + str('_fig'))).add_subplot(111))
-                        getattr(self, "{}".format(qc + str('_lout'))).addWidget(getattr(self, "{}".format(qc + str('_canvas'))))
-                        self.qc_tabs_in_existence.append(qc)
+                        qc_name = ''.join(i for i in qc_samps[qc].replace(" ", "") if not i.isdigit())
+                        setattr(self, "{}".format(qc_name + '_tab'), QWidget())
+                        self.qctabs.addTab(getattr(self, "{}".format(qc_name + '_tab')), str(qc_samps[qc]))
+                        setattr(self, "{}".format(qc_name + '_lout'), QVBoxLayout())
+                        getattr(self, "{}".format(qc_name + '_tab')).setLayout(getattr(self, "{}".format(qc_name + '_lout')))
+                        setattr(self, "{}".format(qc_name + '_fig'), plt.figure())
+                        setattr(self, "{}".format(qc_name + '_canvas'), FigureCanvas(getattr(self, "{}".format(qc_name + '_fig'))))
+                        if qc == 'rmns':
+                            rmns_list = [x for x in sample_ids_set if qc_samps[qc] in x]
+                            for i, rmns in enumerate(rmns_list):
+                                rmns_name = ''.join(i for i in rmns.replace(" ", "") if not i.isdigit())
+                                setattr(self, (rmns_name+'_plot'), getattr(self, "{}".format(qc_name+'_fig')).add_subplot(len(rmns_list), 1, i+1))
+                                self.rmns_plots.append(rmns_name)
 
-    def plot_data(self):
-        print(self.COLORS)
-        qcp.calibration_curve_plot(self.COLORS, self.cal_curve_fig, self.cal_curve_plot,
+                        else:
+                            setattr(self, "{}".format(qc_name + str('_plot')), getattr(self, "{}".format(qc_name + '_fig')).add_subplot(111))
+                        getattr(self, "{}".format(qc_name + str('_lout'))).addWidget(getattr(self, "{}".format(qc_name + str('_canvas'))))
+                        self.qc_tabs_in_existence.append(qc_name)
+
+    def plot_standard_data(self):
+        qcp.calibration_curve_plot(self.cal_curve_fig, self.cal_curve_plot,
                                    self.w_d.calibrant_medians, self.w_d.calibrant_concs, self.w_d.calibrant_flags, 1)
         self.cal_curve_canvas.draw()
         analyte_error = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['calerror']
-        qcp.calibration_error_plot(self.COLORS, self.cal_error_fig, self.cal_error_plot,
+        qcp.calibration_error_plot(self.cal_error_fig, self.cal_error_plot,
                                    self.w_d.calibrant_concs, self.w_d.calibrant_residuals, analyte_error,
                              self.w_d.calibrant_flags)
         self.cal_error_canvas.draw()
-        qcp.basedrift_correction_plot(self.COLORS, self.baseline_fig, self.baseline_plot,
+        qcp.basedrift_correction_plot(self.baseline_fig, self.baseline_plot,
                                       self.baseline_plot2, 'Baseline', self.w_d.baseline_indexes,
                                      self.w_d.baseline_corr_percent, self.w_d.baseline_medians, self.w_d.baseline_flags)
         self.baseline_canvas.draw()
 
-        qcp.basedrift_correction_plot(self.COLORS, self.drift_fig, self.drift_plot,
+        qcp.basedrift_correction_plot(self.drift_fig, self.drift_plot,
                                       self.drift_plot2, 'Drift', self.w_d.drift_indexes,
                                       self.w_d.drift_corr_percent, self.w_d.drift_medians, self.w_d.drift_flags)
         self.drift_canvas.draw()
 
+    def plot_custom_data(self):
+        for qc in self.qc_tabs_in_existence:
+            if qc.lower() == 'rmns':
+                for rmns in self.rmns_plots:
+                    plot = getattr(self, "{}".format(rmns + '_plot'))
+                    concs = getattr(self.w_d, "{}".format(rmns + '_concentrations'))
+                    indexes = getattr(self.w_d, "{}".format(rmns + '_indexes'))
+                    flags = getattr(self.w_d, "{}".format(rmns + '_flags'))
+
+                    qcp.rmns_plot(self.RMNS_fig, plot, indexes, concs, flags, rmns)
+                getattr(self, "{}".format(qc + '_fig')).set_tight_layout(tight=True)
+                getattr(self, "{}".format(qc + '_canvas')).draw()
+
+            else:
+                pass
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

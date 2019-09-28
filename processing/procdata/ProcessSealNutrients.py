@@ -30,6 +30,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     sample_cup_type = processing_parameters['nutrientprocessing']['cupnames']['sample']
     qc_cup_ids = [processing_parameters['nutrientprocessing']['qcsamplenames'][x] for x in
                   processing_parameters['nutrientprocessing']['qcsamplenames'].keys()]
+    qc_cups = processing_parameters['nutrientprocessing']['qcsamplenames']
 
     # ----------- Match peaks to CHD data ---------------------------------------------------------------------
     # Match the SLK peak start data to the CHD A/D data
@@ -91,9 +92,11 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     # ------------ Apply calibration ----------------------------------------------------------------------------
     w_d.calculated_concentrations = apply_calibration(cal_type, w_d.corr_window_medians, w_d.calibration_coefficients)
 
+
     # ------------ Apply dilution factors -----------------------------------------------------------------------
     mdl_indexes = find_cup_indexes(mdl_cup, slk_data.sample_ids)
     w_d.calculated_concentrations = apply_dilution(mdl_indexes, w_d.dilution_factor, w_d.calculated_concentrations)
+
 
     # ----- Find duplicates and flag if outside analyte tolerance ------------------------------------------------
     duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
@@ -101,6 +104,18 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
                                                       sample_cup_type, qc_cup_ids)
     w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes, w_d.calculated_concentrations,
                                                  w_d.quality_flag, cal_error_limit)
+
+
+    # ------ Pull out the data for the QC samples that were measured ---------------------------------------------
+    w_d.qc_present = find_qc_present(qc_cups, slk_data.sample_ids)
+    for qc in w_d.qc_present:
+        indexes = get_qc_index(qc, slk_data.sample_ids)
+        medians, flags = get_qc_data(indexes, w_d.calculated_concentrations, w_d.quality_flag)
+        qc_name = ''.join(i for i in qc.replace(" ", "") if not i.isdigit())
+        setattr(w_d, "{}".format(qc_name + '_indexes'), indexes)
+        setattr(w_d, "{}".format(qc_name + '_concentrations'), medians)
+        setattr(w_d, "{}".format(qc_name + '_flags'), flags)
+
 
     print('Proc time: ' + str((time.time()) - st))
 
@@ -545,3 +560,28 @@ def determine_nutrient_survey(database, params, sample_id):
                                     deployment = surv
                                     survey = surv
                                     return deployment, rosettepos, survey
+
+def find_qc_present(qc_cups, sample_ids):
+    qc_present = []
+    sample_ids_set = set(sample_ids)
+    for qc in qc_cups:
+        if any(qc_cups[qc] in s_id for s_id in sample_ids_set):
+            if not qc == 'driftsample':
+                if qc == 'rmns':
+                    [qc_present.append(x) for x in sample_ids_set if qc_cups[qc] in x]
+                else:
+                    qc_present.append(qc_cups[qc])
+    return qc_present
+
+def get_qc_index(qc, sample_ids):
+    indexes = []
+    for i, s_id in enumerate(sample_ids):
+        if qc in s_id:
+            indexes.append(i)
+    return indexes
+
+def get_qc_data(indexes, medians, flags):
+    qc_medians = [medians[x] for x in indexes]
+    qc_flags = [flags[x] for x in indexes]
+
+    return qc_medians, qc_flags

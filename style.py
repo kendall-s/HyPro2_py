@@ -311,7 +311,7 @@ QCheckBox {
 QTabWidget QWidget {
     font: 14px;
     color: white;
-    background-color: #191919;
+    background-color: #202020;
     border: 1px #000000;
 }
 QTabWidget:pane {
