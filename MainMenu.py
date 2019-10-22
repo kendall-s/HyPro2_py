@@ -14,7 +14,6 @@ from dialogs.OpenProject import openProject
 from dialogs.ImportProject import importProject
 from processing.ProcessingMenu import Processingmenu
 from dialogs.RMNSDialog import rmnsDialog
-from dialogs.ValveControl import valveControl
 # from MapPlotting import mapPlotting these are currently disabled ..
 # from TriaxusPlotting import triaxusPlotting
 import hyproicons
@@ -333,10 +332,6 @@ class Mainmenu(QMainWindow):
         manualMenu = QAction(QIcon(':/assets/roundinfo.svg'), 'Manual', self)
         manualMenu.triggered.connect(self.showmanual)
         helpMenu.addAction(manualMenu)
-
-        valveControlMenu = QAction(QIcon(':/assets/valve.svg'), 'Valve Control', self)
-        valveControlMenu.triggered.connect(self.valvecontrol)
-        toolMenu.addAction(valveControlMenu)
 
         headerlogo = QLabel(self)
         headerlogo.setPixmap(QPixmap(':/assets/2dropsshadow.ico').scaled(32, 32, Qt.KeepAspectRatio))
@@ -757,10 +752,6 @@ class Mainmenu(QMainWindow):
         os.system('start ' + file)
         print('showmanul')
 
-    # Largely unused, but can be used to control a vici valve
-    def valvecontrol(self):
-        self.valveControl = valveControl()
-        self.valveControl.show()
 
     # Not working currently
     def mapplot(self):

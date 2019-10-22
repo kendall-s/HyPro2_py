@@ -715,8 +715,9 @@ class initNutrientData(QMainWindow):
             # Does a baseline correction based on the type specified for the nutrient
             if self.params['nutrientprocessing']['processingpars'][nutrient]['baseCorrType'] == 'Piecewise':
                 # Interpolates the correction factor between each of the drifts to apply across the run
+
                 baseinterp = interp1d(baseindexes, baseadmedians)
-                # baseinterp = 1
+
                 self.basecorrectedmedians = [x - baseinterp(windowadmedians.index(x)) for x in
                                              windowadmedians]
                 self.basepeakstarts = [0]
@@ -812,7 +813,7 @@ class initNutrientData(QMainWindow):
                 if self.params['nutrientprocessing']['processingpars'][nutrient]['driftCorrType'] == 'Piecewise':
                     # Interpolates the correction factor between each of the drifts to apply across the run
                     driftinterp = interp1d(self.driftindexes, self.driftcorrbuffer)
-                    # driftinterp = 1
+
                     self.driftcorrectedmedians = [x * driftinterp(carryovercorrectedmedians.index(x)) for x in
                                                   carryovercorrectedmedians]
 

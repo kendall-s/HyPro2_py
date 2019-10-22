@@ -199,8 +199,8 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         currprojectframe.setProperty('sideHeaderFrame', True)
         # Shadow graphics parameters
         currprojectframeshadow = QtWidgets.QGraphicsDropShadowEffect()
+
         currprojectframeshadow.setBlurRadius(5)
-        currprojectframeshadow.setColor(QtGui.QColor('#183666'))
         currprojectframeshadow.setYOffset(1)
         currprojectframeshadow.setXOffset(2)
 
@@ -215,7 +215,6 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         topperframe.setProperty('topBarFrame', True)
         topperframeshadow = QtWidgets.QGraphicsDropShadowEffect()
         topperframeshadow.setBlurRadius(5)
-        topperframeshadow.setColor(QtGui.QColor('#e1e6ea'))
         topperframeshadow.setYOffset(2)
         topperframeshadow.setXOffset(3)
         topperframe.setGraphicsEffect(topperframeshadow)
@@ -224,7 +223,6 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         outputboxframe.setProperty('dashboardFrame', True)
         outputboxframeshadow = QtWidgets.QGraphicsDropShadowEffect()
         outputboxframeshadow.setBlurRadius(5)
-        outputboxframeshadow.setColor(QtGui.QColor('#e1e6ea'))
         outputboxframeshadow.setYOffset(2)
         outputboxframeshadow.setXOffset(3)
         outputboxframe.setGraphicsEffect(outputboxframeshadow)

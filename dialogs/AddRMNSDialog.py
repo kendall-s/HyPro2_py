@@ -132,7 +132,7 @@ class addrmnsDialog(hyproDialogTemplate):
 
     def addrmns(self):
         # Add rmns to database, got to confirm that it makes sense though
-        if self.rmnsLotEdit.text() == '' or self.rmnsLotEdit.text().isspace():
+        if self.rmnslotedit.text() == '' or self.rmnslotedit.text().isspace():
 
             messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Error...',
                                      ('Please add a RMNS Lot, otherwise how will I know what these numbers are...'),
@@ -144,7 +144,7 @@ class addrmnsDialog(hyproDialogTemplate):
         else:
             if self.validator.Acceptable:
                 try:
-                    lot = self.rmnsLotEdit.text()
+                    lot = self.rmnslotedit.text()
                     nox = self.noxconc.text()
                     noxu = self.noxuconc.text()
                     nit = self.nitriteconc.text()
@@ -166,7 +166,7 @@ class addrmnsDialog(hyproDialogTemplate):
                     conn.close()
 
                     messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Success',
-                                             ('RMNS Lot: ' + self.rmnsLotEdit.text() + ' successfully added to HyPro'),
+                                             ('RMNS Lot: ' + self.rmnslotedit.text() + ' successfully added to HyPro'),
                                              buttons=QtWidgets.QMessageBox.Ok, parent=self)
                     messagebox.setIconPixmap(QPixmap(':/assets/success.svg'))
                     messagebox.setFont(QFont('Segoe UI'))

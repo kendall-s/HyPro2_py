@@ -6,10 +6,12 @@ from PyQt5.QtCore import Qt, QSize
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from pylab import *
+import matplotlib as mpl
 import processing.plotting.QCPlots as qcp
 import sys, logging, traceback
 import json
 import hyproicons
+import style
 import processing.procdata.ProcessSealNutrients as psn
 import processing.readdata.ReadSealNutrients as rsn
 from processing.algo.HyproComplexities import load_proc_settings, match_click_to_peak
@@ -46,19 +48,16 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.project = project
         self.database = database
 
+        self.pan_count = 10000
 
         with open('C:/HyPro/hyprosettings.json', 'r') as file:
             params = json.loads(file.read())
 
         if params['theme'] == 'normal':
-            self.COLORS = {'axes.edgecolor': '#000000', 'xtick.color': '#000000', 'ytick.color': '#000000',
-                           'axes.facecolor': '#FFFFFF', 'axes.labelcolor': '#000000', 'figure.facecolor': '#FFFFFF',
-                            'grid.color': '#000000', 'lines.color': '#191919', 'figure.frameon': False}
+            plt.style.use(style.mplstyle['normal'])
         else:
-            self.COLORS = {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
-                           'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
-                           'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
-                           'text.color': '#F5F5F5'}
+            plt.style.use(style.mplstyle['dark'])
+
 
         self.w_d = WorkingData(file)
 
@@ -72,31 +71,33 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         if interactive:
             self.init_ui()
 
-            thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient))
-            thread.start()
-            thread.join()
-
-
-            st = time.time()
-
             self.create_standard_qc_tabs()
-
             qc_cups = self.processing_parameters['nutrientprocessing']['qcsamplenames']
             self.create_custom_qc_tabs(self.slk_data.sample_ids, qc_cups)
 
-            self.plot_standard_data()
-            self.plot_custom_data()
-            print('QCTabs: ' + str(time.time() - st))
+            self.interactive_routine()
+
         else:
             sys.exit()
 
+
+    def interactive_routine(self):
+        thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient))
+        thread.start()
+        thread.join()
+
+        st = time.time()
+
+        self.plot_standard_data()
+        self.plot_custom_data()
+        print('QCTabs: ' + str(time.time() - st))
 
     def init_ui(self):
         try:
             self.setFont(QFont('Segoe UI'))
             self.setWindowModality(Qt.WindowModal)
             self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)
-
+            self.showMaximized()
             mainMenu = self.menuBar()
             fileMenu = mainMenu.addMenu('File')
             editMenu = mainMenu.addMenu('Edit')
@@ -105,7 +106,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.analysistraceLabel.setProperty('headertext', True)
 
             tracelabelframe = QFrame()
-            tracelabelframe.setProperty('headerframe', True)
+            tracelabelframe.setProperty('nutrientHeadFrame', True)
             tracelabelframeshadow = QtWidgets.QGraphicsDropShadowEffect()
             tracelabelframeshadow.setBlurRadius(6)
             tracelabelframeshadow.setColor(QtGui.QColor('#e1e6ea'))
@@ -114,7 +115,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             tracelabelframe.setGraphicsEffect(tracelabelframeshadow)
 
             traceframe = QFrame()
-            traceframe.setProperty('dashboardframe', True)
+            traceframe.setProperty('nutrientFrame', True)
             traceframeshadow = QtWidgets.QGraphicsDropShadowEffect()
             traceframeshadow.setBlurRadius(6)
             traceframeshadow.setColor(QtGui.QColor('#e1e6ea'))
@@ -126,7 +127,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.qctabsLabel.setProperty('headertext', True)
 
             qclabelframe = QFrame()
-            qclabelframe.setProperty('headerframe', True)
+            qclabelframe.setProperty('nutrientHeadFrame', True)
             qclabelframeshadow = QtWidgets.QGraphicsDropShadowEffect()
             qclabelframeshadow.setBlurRadius(6)
             qclabelframeshadow.setColor(QtGui.QColor('#e1e6ea'))
@@ -137,7 +138,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.qctabs = QTabWidget()
 
             qctabsframe = QFrame()
-            qctabsframe.setProperty('dashboardframe', True)
+            qctabsframe.setProperty('nutrientFrame', True)
             qctabsframeshadow = QtWidgets.QGraphicsDropShadowEffect()
             qctabsframeshadow.setBlurRadius(6)
             qctabsframeshadow.setColor(QtGui.QColor('#e1e6ea'))
@@ -148,7 +149,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             buttonsframe = QFrame()
             buttonsframe.setFixedHeight(60)
             #buttonsframe.setFixedWidth(300)
-            buttonsframe.setProperty('buttonsframe', True)
+            buttonsframe.setProperty('nutrientButtonFrame', True)
 
             self.auto_size = QCheckBox('Auto zoom')
 
@@ -156,42 +157,42 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             leftonxaxis.clicked.connect(self.move_camera_left)
             leftonxaxis.setIcon(QIcon(':/assets/greenleftarrow.svg'))
             leftonxaxis.setIconSize(QSize(33, 33))
-            leftonxaxis.setProperty('icons', True)
+            leftonxaxis.setProperty('nutrientControls', True)
             leftonxaxis.setFixedWidth(50)
 
             rightonxaxis = QPushButton()
             rightonxaxis.clicked.connect(self.move_camera_right)
             rightonxaxis.setIcon(QIcon(':/assets/greenrightarrow.svg'))
             rightonxaxis.setIconSize(QSize(33, 33))
-            rightonxaxis.setProperty('icons', True)
+            rightonxaxis.setProperty('nutrientControls', True)
             rightonxaxis.setFixedWidth(50)
 
             zoomin = QPushButton()
             zoomin.clicked.connect(self.zoom_in)
             zoomin.setIcon(QIcon(':/assets/zoomin.svg'))
             zoomin.setIconSize(QSize(33, 33))
-            zoomin.setProperty('icons', True)
+            zoomin.setProperty('nutrientControls', True)
             zoomin.setFixedWidth(50)
 
             zoomout = QPushButton()
             zoomout.clicked.connect(self.zoom_out)
             zoomout.setIcon(QIcon(':/assets/zoomout.svg'))
             zoomout.setIconSize(QSize(33, 33))
-            zoomout.setProperty('icons', True)
+            zoomout.setProperty('nutrientControls', True)
             zoomout.setFixedWidth(50)
 
             zoomfit = QPushButton()
             zoomfit.clicked.connect(self.zoom_fit)
             zoomfit.setIcon(QIcon(':/assets/expand.svg'))
             zoomfit.setIconSize(QSize(33, 33))
-            zoomfit.setProperty('icons', True)
+            zoomfit.setProperty('nutrientControls', True)
             zoomfit.setFixedWidth(50)
 
             self.underwayfile = QCheckBox('Find Lat/Longs')
 
             okcanframe = QFrame()
             okcanframe.setMinimumHeight(40)
-            okcanframe.setProperty('dashboardframe2', True)
+            okcanframe.setProperty('nutrientFrame2', True)
             okcanframeshadow = QtWidgets.QGraphicsDropShadowEffect()
             okcanframeshadow.setBlurRadius(6)
             okcanframeshadow.setColor(QtGui.QColor('#e1e6ea'))
@@ -203,24 +204,23 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             okbut.setFixedHeight(25)
             okbut.setFixedWidth(100)
             okbut.clicked.connect(self.proceed)
-            okbut.setProperty('icons', True)
+            okbut.setProperty('nutrientControls', True)
 
             cancelbut = QPushButton('Cancel')
             cancelbut.clicked.connect(self.cancel)
-            cancelbut.setProperty('icons', True)
+            cancelbut.setProperty('nutrientControls', True)
             cancelbut.setFixedHeight(25)
             cancelbut.setFixedWidth(95)
 
             # Initialise the trace figure for plotting to
-            with mpl.rc_context(rc=self.COLORS):
-                self.tracefigure = plt.figure(figsize=(6, 4))
-                self.tracefigure.set_tight_layout(tight=True)
-                #self.tracefigure.set_facecolor('#f9fcff')
-                self.tracecanvas = FigureCanvas(self.tracefigure)
-                self.tracecanvas.setParent(self)
-                self.tracetoolbar = NavigationToolbar(self.tracecanvas, self)
-                self.tracetoolbar.locLabel.hide()
-                self.main_trace = self.tracefigure.add_subplot(111)
+            self.tracefigure = plt.figure(figsize=(6, 4))
+            self.tracefigure.set_tight_layout(tight=True)
+            #self.tracefigure.set_facecolor('#f9fcff')
+            self.tracecanvas = FigureCanvas(self.tracefigure)
+            self.tracecanvas.setParent(self)
+            self.tracetoolbar = NavigationToolbar(self.tracecanvas, self)
+            self.tracetoolbar.locLabel.hide()
+            self.main_trace = self.tracefigure.add_subplot(111)
 
             # Setting everything into the layout
             self.grid_layout.addWidget(tracelabelframe, 0, 0, 1, 11)
@@ -253,7 +253,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.grid_layout.addWidget(okbut, 20, 12, 1, 2, Qt.AlignJustify)
             self.grid_layout.addWidget(cancelbut, 20, 13, 1, 2, Qt.AlignJustify)
 
-
             # Connect the mouse interaction to the trace plot so we can click and select peaks on it
             clicker = self.tracefigure.canvas.mpl_connect("button_press_event", self.on_click)
 
@@ -275,7 +274,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.main_trace.set_ylabel('A/D Value')
 
             self.main_trace.plot(range(len(chd_data.ad_data[current_nutrient])), chd_data.ad_data[current_nutrient],
-                                 linewidth = 1, label='trace', color='#F5F5F5')
+                                 linewidth = 0.9, label='trace')
 
             self.main_trace.set_xlim(0, len(chd_data.ad_data[current_nutrient]))
             self.main_trace.set_ylim(0, max(chd_data.ad_data[current_nutrient])*1.1)
@@ -292,6 +291,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.baseline = self.main_trace.plot(w_d.baseline_peak_starts[:], w_d.baseline_medians[1:-1], linewidth=1, color="#d69f20", label='baseline')
         self.main_trace.plot(w_d.drift_peak_starts[:], w_d.raw_drift_medians[:], linewidth=1, label='drift')
 
+        self.tracecanvas.draw()
         ft = time.time()
 
         print('Draw time: ' + str(ft-st))
@@ -314,7 +314,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.main_trace.cla()
         self.tracecanvas.draw()
 
-        self.store_data(self.w_d)
+        self.store_data()
 
         index = self.slk_data.active_nutrients.index(self.current_nutrient)
         try:
@@ -329,8 +329,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     # Manages the clicking
     def on_click(self, event):
+        event2 = event
         tb = get_current_fig_manager().toolbar
-        if event.button == 1 and event.inaxes and tb.mode == '':
+        if event.button == 3 and event.inaxes and tb.mode == '':
             x_axis_time = int(event.xdata)
             exists, peak_index = match_click_to_peak(x_axis_time, self.slk_data, self.current_nutrient)
             if exists:
@@ -341,17 +342,63 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                    self.w_d.calculated_concentrations[peak_index],
                                                    self.w_d.quality_flag[peak_index],
                                                    self.w_d.dilution_factor[peak_index], 'Trace')
-                self.peak_display.setStart.connect(lambda: self.movepeakstart(x_axis_time, peak_index))
+                self.peak_display.setStart.connect(lambda: self.move_peak_start(x_axis_time, peak_index))
+                self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_axis_time, peak_index))
 
 
-    def movepeakstart(self, x, i):
+    def move_peak_start(self, x_axis_time, peak_index):
+        picked_peak_start = int(self.slk_data.peak_starts[self.current_nutrient][peak_index])
+        win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
+        win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
 
-        thread = Thread(target=self.process_data, args=(self.current_nutrient, self.slk_data, self.chd_data, self.w_d))
-        thread.start()
+        if x_axis_time < (picked_peak_start + win_start + win_length):
+
+            if x_axis_time > (picked_peak_start + win_start):
+                window_start_time = x_axis_time - picked_peak_start
+                new_window_length = win_length - (x_axis_time - (picked_peak_start+win_start))
+                self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = window_start_time
+                self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'] = new_window_length
+
+            if x_axis_time < (picked_peak_start + win_start):
+                window_start_time = x_axis_time - picked_peak_start
+                new_window_length = win_length + ((picked_peak_start+win_start) - x_axis_time)
+                self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = window_start_time
+                self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'] = new_window_length
+
+            if x_axis_time < picked_peak_start:
+                time_offset = picked_peak_start - x_axis_time
+                adjusted_peak_starts = [p_s - time_offset for p_s in self.slk_data.peak_starts]
+                self.slk_data.peak_starts = adjusted_peak_starts
+
+            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                              self.current_nutrient)
+            self.interactive_routine()
+
+    def move_peak_end(self, x_axis_time, peak_index):
+
+        picked_peak_start = int(self.slk_data.peak_starts[self.current_nutrient][peak_index])
+        win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
+        win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
+
+        if x_axis_time > (picked_peak_start + win_start):
+
+            window_end = picked_peak_start + win_start + win_length
+
+            if x_axis_time > window_end:
+                window_end_increase = x_axis_time - window_end
+                self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'] = win_length + window_end_increase
+            if window_end > x_axis_time:
+                window_end_decrease = window_end - x_axis_time
+                self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'] = win_length - window_end_decrease
+
+            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                              self.current_nutrient)
+            self.interactive_routine()
+
 
     # Manages the key pressing
     def keyPressEvent(self, event):
-        #print(event.key())
+        print(event.key())
         if event.key() == 65: # A
             self.move_camera_left()
         if event.key() == 68: # D
@@ -362,9 +409,44 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.zoom_out()
         if event.key() == 83: # S
             self.zoom_fit()
+        if event.key() == 78: # N
+            curr_tab = self.qctabs.currentIndex()
+            if curr_tab == (len(self.qctabs)-1):
+                self.qctabs.setCurrentIndex(0)
+            else:
+                self.qctabs.setCurrentIndex(curr_tab+1)
+        if event.key() == 90: # Z
+            ws = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
+            ws = ws - 2
+            self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = ws
+            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                              self.current_nutrient)
+            self.interactive_routine()
+        if event.key() == 67: # C
+            ws = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][
+                'windowStart']
+            ws = ws + 2
+            self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][
+                'windowStart'] = ws
+            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                              self.current_nutrient)
+            self.draw_data(self.chd_data, self.w_d, self.current_nutrient)
+            thread1 = Thread(target=self.tracecanvas.draw())
+            thread1.start()
+
+            # self.plot_data()
+            thread2 = Thread(target=self.plot_standard_data())
+            thread2.start()
+
+            thread3 = Thread(target=self.plot_custom_data())
+            thread3.start()
+
+            thread1.join()
+            thread2.join()
+            thread3.join()
         if event.key() == 82: # R Imitates changing peak windows etc, for testing optimisation of processing and draw
 
-            random_modifier = np.random.randint(low=10, high=50)
+            random_modifier = np.random.randint(low=15, high=45)
             random_modifier2 = np.random.randint(low=2, high=30)
             print(random_modifier)
             print(random_modifier2)
@@ -379,10 +461,15 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             thread1.start()
 
             #self.plot_data()
-            thread = Thread(target=self.plot_standard_data())
-            thread.start()
-            thread.join()
+            thread2 = Thread(target=self.plot_standard_data())
+            thread2.start()
+
+            thread3 = Thread(target=self.plot_custom_data())
+            thread3.start()
+
             thread1.join()
+            thread2.join()
+            thread3.join()
 
         if event.key() == 81:
             if self.auto_size.isChecked():
@@ -392,7 +479,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def move_camera_left(self):
         xmin, xmax = self.main_trace.get_xbound()
-        ten_percent = (xmax-xmin) * 0.1
+        ten_percent = (xmax-xmin) * 0.065
         if xmin > 0 - 100:
             self.main_trace.set_xlim(xmin - ten_percent, xmax - ten_percent)
             self.tracecanvas.draw()
@@ -401,7 +488,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def move_camera_right(self):
         xmin, xmax = self.main_trace.get_xbound()
-        ten_percent = (xmax - xmin) * 0.1
+        ten_percent = (xmax - xmin) * 0.065
         if xmax < len(self.chd_data.ad_data[self.current_nutrient]) + 100:
             self.main_trace.set_xlim(xmin + ten_percent, xmax + ten_percent)
             self.tracecanvas.draw()
@@ -444,52 +531,51 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def create_standard_qc_tabs(self):
         standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'baseline': 'Baseline Corr', 'drift': 'Drift Corr'}
-        with mpl.rc_context(rc=self.COLORS):
-            for qc in standard_tabs:
-                setattr(self, "{}".format(qc + str('_tab')), QWidget())
-                self.qctabs.addTab(getattr(self, "{}".format(qc + str('_tab'))), str(standard_tabs[qc]))
-                setattr(self, "{}".format(qc + str('_lout')), QVBoxLayout())
-                getattr(self, "{}".format(qc + str('_tab'))).setLayout(getattr(self, "{}".format(qc + str('_lout'))))
-                setattr(self, "{}".format(qc + str('_fig')), plt.figure())
-                setattr(self, "{}".format(qc + str('_canvas')), FigureCanvas(getattr(self, "{}".format(qc + str('_fig')))))
-                if qc == 'baseline' or qc == 'drift':
-                    setattr(self, "{}".format(qc + str('_plot')),getattr(self, "{}".format(qc + str('_fig'))).add_subplot(211))
-                    setattr(self, "{}".format(qc + str('_plot2')),getattr(self, "{}".format(qc + str('_fig'))).add_subplot(212))
-                else:
-                    setattr(self, "{}".format(qc + str('_plot')), getattr(self, "{}".format(qc + str('_fig'))).add_subplot(111))
-                getattr(self, "{}".format(qc + str('_lout'))).addWidget(getattr(self, "{}".format(qc + str('_canvas'))))
+        for qc in standard_tabs:
+            setattr(self, "{}".format(qc + str('_tab')), QWidget())
+            self.qctabs.addTab(getattr(self, "{}".format(qc + str('_tab'))), str(standard_tabs[qc]))
+            setattr(self, "{}".format(qc + str('_lout')), QVBoxLayout())
+            getattr(self, "{}".format(qc + str('_tab'))).setLayout(getattr(self, "{}".format(qc + str('_lout'))))
+            setattr(self, "{}".format(qc + str('_fig')), plt.figure())
+            setattr(self, "{}".format(qc + str('_canvas')), FigureCanvas(getattr(self, "{}".format(qc + str('_fig')))))
+            if qc == 'baseline' or qc == 'drift':
+                setattr(self, "{}".format(qc + str('_plot')),getattr(self, "{}".format(qc + str('_fig'))).add_subplot(211))
+                setattr(self, "{}".format(qc + str('_plot2')),getattr(self, "{}".format(qc + str('_fig'))).add_subplot(212))
+            else:
+                setattr(self, "{}".format(qc + str('_plot')), getattr(self, "{}".format(qc + str('_fig'))).add_subplot(111))
+            getattr(self, "{}".format(qc + str('_lout'))).addWidget(getattr(self, "{}".format(qc + str('_canvas'))))
 
 
     def create_custom_qc_tabs(self, sample_ids, qc_samps):
         self.qc_tabs_in_existence = []
         self.rmns_plots = []
         sample_ids_set = set(sample_ids)
-        with mpl.rc_context(rc=self.COLORS):
-            for qc in qc_samps:
-                if not qc == 'driftsample':
-                    if any(qc_samps[qc] in s_id for s_id in sample_ids_set):
-                        qc_name = ''.join(i for i in qc_samps[qc].replace(" ", "") if not i.isdigit())
-                        setattr(self, "{}".format(qc_name + '_tab'), QWidget())
-                        self.qctabs.addTab(getattr(self, "{}".format(qc_name + '_tab')), str(qc_samps[qc]))
-                        setattr(self, "{}".format(qc_name + '_lout'), QVBoxLayout())
-                        getattr(self, "{}".format(qc_name + '_tab')).setLayout(getattr(self, "{}".format(qc_name + '_lout')))
-                        setattr(self, "{}".format(qc_name + '_fig'), plt.figure())
-                        setattr(self, "{}".format(qc_name + '_canvas'), FigureCanvas(getattr(self, "{}".format(qc_name + '_fig'))))
-                        if qc == 'rmns':
-                            rmns_list = [x for x in sample_ids_set if qc_samps[qc] in x]
-                            for i, rmns in enumerate(rmns_list):
-                                rmns_name = ''.join(i for i in rmns.replace(" ", "") if not i.isdigit())
-                                setattr(self, (rmns_name+'_plot'), getattr(self, "{}".format(qc_name+'_fig')).add_subplot(len(rmns_list), 1, i+1))
-                                self.rmns_plots.append(rmns_name)
+        for qc in qc_samps:
+            if not qc == 'driftsample':
+                if any(qc_samps[qc] in s_id for s_id in sample_ids_set if s_id[0:4].lower() != 'test'):
+                    qc_name = ''.join(i for i in qc_samps[qc].replace(" ", "") if not i.isdigit())
+                    setattr(self, "{}".format(qc_name + '_tab'), QWidget())
+                    self.qctabs.addTab(getattr(self, "{}".format(qc_name + '_tab')), str(qc_samps[qc]))
+                    setattr(self, "{}".format(qc_name + '_lout'), QVBoxLayout())
+                    getattr(self, "{}".format(qc_name + '_tab')).setLayout(getattr(self, "{}".format(qc_name + '_lout')))
+                    setattr(self, "{}".format(qc_name + '_fig'), plt.figure())
+                    setattr(self, "{}".format(qc_name + '_canvas'), FigureCanvas(getattr(self, "{}".format(qc_name + '_fig'))))
+                    if qc == 'rmns':
+                        rmns_list = [x for x in sample_ids_set if qc_samps[qc] in x and x[0:4].lower() != 'test']
+                        for i, rmns in enumerate(rmns_list):
+                            rmns_name = ''.join(i for i in rmns.replace(" ", "") if not i.isdigit())
+                            setattr(self, (rmns_name+'_plot'), getattr(self, "{}".format(qc_name+'_fig')).add_subplot(len(rmns_list), 1, i+1))
+                            self.rmns_plots.append(rmns_name)
 
-                        else:
-                            setattr(self, "{}".format(qc_name + str('_plot')), getattr(self, "{}".format(qc_name + '_fig')).add_subplot(111))
-                        getattr(self, "{}".format(qc_name + str('_lout'))).addWidget(getattr(self, "{}".format(qc_name + str('_canvas'))))
-                        self.qc_tabs_in_existence.append(qc_name)
+                    else:
+                        setattr(self, "{}".format(qc_name + str('_plot')), getattr(self, "{}".format(qc_name + '_fig')).add_subplot(111))
+                    getattr(self, "{}".format(qc_name + str('_lout'))).addWidget(getattr(self, "{}".format(qc_name + str('_canvas'))))
+                    self.qc_tabs_in_existence.append(qc_name)
 
     def plot_standard_data(self):
         qcp.calibration_curve_plot(self.cal_curve_fig, self.cal_curve_plot,
-                                   self.w_d.calibrant_medians, self.w_d.calibrant_concs, self.w_d.calibrant_flags, 1)
+                                   self.w_d.calibrant_medians, self.w_d.calibrant_concs,
+                                   self.w_d.calibrant_flags, self.w_d.calibration_coefficients)
         self.cal_curve_canvas.draw()
         analyte_error = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['calerror']
         qcp.calibration_error_plot(self.cal_error_fig, self.cal_error_plot,
@@ -498,7 +584,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.cal_error_canvas.draw()
         qcp.basedrift_correction_plot(self.baseline_fig, self.baseline_plot,
                                       self.baseline_plot2, 'Baseline', self.w_d.baseline_indexes,
-                                     self.w_d.baseline_corr_percent, self.w_d.baseline_medians, self.w_d.baseline_flags)
+                                      self.w_d.baseline_corr_percent, self.w_d.baseline_medians, self.w_d.baseline_flags)
         self.baseline_canvas.draw()
 
         qcp.basedrift_correction_plot(self.drift_fig, self.drift_plot,
@@ -515,15 +601,26 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     indexes = getattr(self.w_d, "{}".format(rmns + '_indexes'))
                     flags = getattr(self.w_d, "{}".format(rmns + '_flags'))
 
-                    qcp.rmns_plot(self.RMNS_fig, plot, indexes, concs, flags, rmns)
+                    qcp.rmns_plot(self.RMNS_fig, plot, indexes, concs, flags, rmns, self.current_nutrient)
                 getattr(self, "{}".format(qc + '_fig')).set_tight_layout(tight=True)
                 getattr(self, "{}".format(qc + '_canvas')).draw()
 
             else:
-                pass
+                if qc.lower() == 'mdl':
+                    qcp.mdl_plot(self.MDL_fig, self.MDL_plot, self.w_d.MDL_indexes, self.w_d.MDL_concentrations,
+                                 self.w_d.MDL_flags)
+
+                elif qc.lower() == 'bqc':
+                    qcp.bqc_plot(self.BQC_fig, self.BQC_plot, self.w_d.BQC_indexes, self.w_d.BQC_concentrations,
+                                 self.w_d.BQC_flags)
+
+                elif qc.lower() == 'intqc':
+                    #qcp.intqc_plot(self.IntQC_fig, self.IntQC_plot, self.w_d.)
+                    pass
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = processingNutrientsWindow('in2018_v01nut001.SLK', '', 'C:/Users/she384/Documents/HyPro_Dev', 'in2018_v01')
+    ex = processingNutrientsWindow('in2018_v01nut001.SLK', 'C:/Users/she384/Documents/HyPro_Dev/in2019_v05/-in2019_v05Data.db', 'C:/Users/she384/Documents/HyPro_Dev', 'in2018_v01')
     sys.exit(app.exec_())
 

@@ -1,18 +1,24 @@
-import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-import matplotlib as mpl
-from pylab import *
-from matplotlib.ticker import MaxNLocator
+import io
+import json
+import logging
+import sqlite3
+import statistics
+import traceback
+import numpy as np
+
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import QFont, QIcon, QImage
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QDesktopWidget, QApplication, QVBoxLayout, QAction, QLabel,
                              QFileDialog, QTabWidget, QGridLayout, QComboBox, QListWidget, QPushButton, QCheckBox)
-from PyQt5.QtGui import QFont, QIcon, QImage
-from PyQt5 import QtCore, QtWidgets
-import sqlite3, io, json, logging, traceback, statistics
-import hyproicons, style
-from dialogs.PlotSelectionDialog import plotSelection
-from dialogs.TraceSelectionDialog import traceSelection
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.ticker import MaxNLocator
+from pylab import *
 
+import style
+import hyproicons
+from dialogs.TraceSelectionDialog import traceSelection
 from processing.plotting.PlottingWindow import QMainPlotterTemplate
 
 mpl.rc('font', family = 'Segoe UI Symbol') # Cast Segoe UI font onto all plot text
@@ -173,16 +179,46 @@ class rmnsPlot(QWidget):
                     91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 """
 
-def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, reproc_count):
+def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients):
     if len(axes.lines) > 0:
         del axes.lines[:]
     else:
         axes.set_title('Calibration Curve')
         axes.set_xlabel('Calibrant Concentrations')
         axes.set_ylabel('A/D Medians')
-        axes.grid(alpha=0.4, zorder=1)
+        axes.grid(alpha=0.3, zorder=1)
 
-    axes.plot(cal_medians, cal_concs, label=reproc_count, marker='o', mfc='none', lw=0.5)
+    fit = np.poly1d(cal_coefficients)
+
+    axes.plot(cal_medians, [fit(x) for x in cal_medians], lw=1, marker='.', ms=4)
+
+    for i, flag in enumerate(flags):
+        if flag == 1:
+            colour = "#12ba66"
+            size = 14
+            mark = 'o'
+            lab = 'Good'
+        elif flag == 2:
+            colour = '#63d0ff'
+            size = 16
+            mark = '+'
+            lab = 'Suspect'
+        elif flag == 3 or flag == 5:
+            colour = "#d11b1b"
+            size = 16
+            mark = '+'
+            lab = 'Bad'
+        else:
+            colour = "#d11b1b"
+            size = 19
+            mark = 'o'
+            lab = 'Bad'
+        axes.plot(cal_medians[i], cal_concs[i], marker=mark, color=colour, ms=size, lw=0, mfc='none', label=lab)
+
+    handles, labels = axes.get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    axes.legend(by_label.values(), by_label.keys())
+    #axes.plot(cal_medians, cal_concs, marker='o', mfc='none', lw=0, ms=11)
     fig.set_tight_layout(tight=True)
 
 def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
@@ -194,24 +230,27 @@ def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
         axes.set_xlabel('Calibrant Concentration')
         axes.set_ylabel('Error from fitted concentration')
         axes.plot([0, max(cal)], [0, 0], lw=1.25, linestyle='--', alpha=0.7, zorder=2, color='#000000')
-        axes.grid(alpha=0.4, zorder=1)
+        axes.grid(alpha=0.3, zorder=1)
 
     for i, x in enumerate(flags):
         if x == 1:
             colour = "#12ba66"
             size = 6
             mark = 'o'
+            lab = 'Good'
         if x == 2 or x==4 or x == 91:
             colour = '#63d0ff'
             size = 14
             mark = '+'
+            lab = 'Suspect'
         if x == 3 or x == 5 or x == 92:
             colour = "#d11b1b"
             size = 14
             mark = '+'
+            lab = 'Bad'
         try:
             axes.plot(cal[i], cal_error[i], marker=mark, mfc=colour, linewidth=0, markersize=size,
-                       color=colour, alpha=0.8)
+                       color=colour, alpha=0.8, label = lab)
         except IndexError:
             pass
 
@@ -220,6 +259,10 @@ def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
 
     axes.plot([0, max(cal)], [(2*analyte_error), (2*analyte_error)], color='#C689C8', lw=1.25)
     axes.plot([0, max(cal)], [(-2 * analyte_error), (-2 * analyte_error)], color='#C689C8', lw=1.25)
+
+    handles, labels = axes.get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    axes.legend(by_label.values(), by_label.keys())
 
     fig.set_tight_layout(tight=True)
 
@@ -231,11 +274,11 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
         axes1.set_title('%s Peak Height' % type)
         axes1.set_xlabel('Peak Number')
         axes1.set_ylabel('Raw Peak Height (A/D)')
-        axes1.grid(alpha=0.4, zorder=1)
+        axes1.grid(alpha=0.3, zorder=1)
         axes2.set_title('%s Correction Percentage' % type)
         axes2.set_xlabel('Peak Number')
         axes2.set_ylabel('Percentage of Top Cal (%)')
-        axes2.grid(alpha=0.4, zorder=1)
+        axes2.grid(alpha=0.3, zorder=1)
 
     axes1.plot(indexes, medians, mfc='none', linewidth=1.25, linestyle=':', color="#8C8C8C", alpha=0.9)
     for i, x in enumerate(flags):
@@ -263,19 +306,84 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
     axes2.plot(indexes, correction, lw=1.25, marker='s', ms=8, mfc='none', color='#6986e5')
     fig.set_tight_layout(tight=True)
 
-def rmns_plot(fig, axes, indexes, concentrations, flags, rmns):
+def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
+    nut_column = {'phosphate': 1, 'silicate': 3, 'nitrate': 5, 'nitrite': 7, 'ammonia': 9}
+    if len(axes.lines) == 1:
+        del axes.lines[:]
+    elif len(axes.lines) > 0:
+        del axes.lines[7:]
+    else:
+        conn = sqlite3.connect('C:/HyPro/Settings/hypro.db')
+        c = conn.cursor()
+        c.execute('SELECT * from rmnsData')
+        rmns_data = c.fetchall()
+
+        current_rmns = [x for x in rmns_data if x[0] in rmns]
+        if current_rmns:
+            conc = current_rmns[0][nut_column[nutrient]]
+            axes.plot([min(indexes), max(indexes)], [conc]*2, lw=1, linestyle='--', color='#8B8B8B', label='Certified Value')
+            axes.plot([min(indexes), max(indexes)], [conc*1.01]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
+            axes.plot([min(indexes), max(indexes)], [conc*0.99]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
+            axes.plot([min(indexes), max(indexes)], [conc*1.02]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
+            axes.plot([min(indexes), max(indexes)], [conc*0.98]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
+            axes.plot([min(indexes), max(indexes)], [conc*1.03]*2, lw=1, color= '#E54580', label = '3% Concentration Error')
+            axes.plot([min(indexes), max(indexes)], [conc*0.97]*2, lw=1, color= '#e56969', label = '3% Concentration Error')
+
+
+        else:
+            axes.annotate('No RMNS values found', [0.05, 0.05], xycoords='axes fraction')
+
+        axes.set_title(rmns)
+        axes.set_xlabel('Peak Number')
+        axes.set_ylabel('Raw Peak Height (A/D)')
+        axes.grid(alpha=0.3, zorder=1)
+
+    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o')
+    axes.set_ylim(min(concentrations) * 0.975, max(concentrations) * 1.025)
+
+    handles, labels = axes.get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    axes.legend(by_label.values(), by_label.keys())
+
+
+def mdl_plot(fig, axes, indexes, concentrations, flags):
     if len(axes.lines) > 0:
         del axes.lines[:]
 
     else:
-        axes.set_title(rmns)
+        axes.set_title('MDL')
         axes.set_xlabel('Peak Number')
-        axes.set_ylabel('Raw Peak Height (A/D)')
-        axes.grid(alpha=0.4, zorder=1)
+        axes.set_ylabel('Concentration (uM)')
+        axes.grid(alpha=0.3, zorder=2)
+
+    mdl = 3 * statistics.stdev(concentrations)
+    axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl,3)), ms=10, mfc='none')
+    axes.set_ylim(min(concentrations)*0.99, max(concentrations)*1.01)
+
+    axes.legend()
+
+    fig.set_tight_layout(tight=True)
 
 
-    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o')
+def bqc_plot(fig, axes, indexes, concentrations, flags):
+    if len(axes.lines) > 0:
+        del axes.lines[:]
+    else:
+        axes.set_title('BQC')
+        axes.set_xlabel('Peak Number')
+        axes.set_ylabel('Concentration (uM)')
+        axes.grid(alpha=0.3, zorder=2)
 
+    mean_bqc = statistics.mean(concentrations)
+
+    axes.plot(indexes, [mean_bqc]*4, lw=1, linestyle='--', label = 'Run Mean: ' + str(round(mean_bqc, 3)))
+
+    axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', mfc='none')
+    axes.set_ylim(min(concentrations)*0.99, max(concentrations)*1.01)
+
+    axes.legend()
+
+    fig.set_tight_layout(tight=True)
 
 
 class calibrationCurve(QWidget):

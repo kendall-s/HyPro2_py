@@ -1,10 +1,36 @@
+import matplotlib as mpl
+
+mplstyle = {'normal': {'axes.edgecolor': '#000000', 'xtick.color': '#000000', 'ytick.color': '#000000',
+                  'axes.facecolor': '#F9FCFF', 'axes.labelcolor': '#000000', 'figure.facecolor': '#F9FCFF',
+                  'grid.color': '#000000', 'figure.frameon': False, 'axes.prop_cycle': mpl.cycler(color=['#191919'])},
+       'dark': {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
+                'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
+                'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
+                'text.color': '#F5F5F5', 'axes.prop_cycle': mpl.cycler(color=['#F5F5F5']),
+                'legend.facecolor': '#191919'}}
+
+
 stylesheet = {'normal': """
 /* -------------------------------- QMainWindow-----------
 
 ---------------------------------------------------------- */
-QMainWindow[ProcessingMenu = true]{
+QMainWindow[ProcessingMenu = true] {
     background-color: #ebeff2;
     border: 0px;
+}
+
+QMainWindow[NutrientProcessing = true] {
+    background-color: #ebeff2;
+    border: 0px;
+    
+}
+
+
+/* ---------------------------- QGraphicsDropShadow ------
+
+---------------------------------------------------------- */
+QGraphicsDropShadow {
+    color: #e1e6ea;
 }
 
 
@@ -14,18 +40,23 @@ QMainWindow[ProcessingMenu = true]{
 QLabel {
     font: 14px;
 }
-QLabel[dashboardText=true]{
+QLabel[dashboardText=true] {
     color: #222222;
     font: 14px;
     font-weight: bold;  
 }
 QLabel[sideHeaderHeading=true] {   
     font: 22px;
-    color: #ffffff;
+    color: #FFFFFF;
 }
 QLabel[sideBarText=true] {
     font: 14px;
-    color: #ffffff;
+    color: #FFFFFF;
+}
+QLabel[nutrientHeader=true] {
+    font: 22px;
+    color: #FFFFFF;
+
 }
 
 
@@ -58,7 +89,21 @@ QPushButton[sideBarButton=true]:pressed {
     color: #6bb7ff;
     border-radius: 1px;
 }
-
+QPushButton[nutrientControls=true] {
+    color: #222222;
+    border: 1px solid #EDEDED;
+    border-radius: 5px;
+    font: 15px;
+}
+QPushButton[nutrientControls=true]:hover {
+    border: 2px solid #C7E6FF;
+    background-color: #E0F0FF;
+}
+QPushButton[nutrientControls=true]:pressed {
+    border: 1px solid #8F98A9;
+    background-color: #78C6FF;
+    border-style: inset;
+}
 
 /* ---------------------------------- QComboBox ---------
 
@@ -85,13 +130,6 @@ QCheckBox[sideBarCheckbox=true] {
 }
 
 
-/* ---------------------------------- QTabWidget ---------
-
----------------------------------------------------------- */
-QTabWidget QWidget {
-    font: 14px;
-}
-
 
 /* --------------------------------- QLineEdit -----------
 
@@ -107,6 +145,18 @@ QLineEdit {
 QListWidget {
     font: 14px;
 }
+
+
+/* --------------------------------- QTabWidget ----------
+
+---------------------------------------------------------- */
+QTabWidget QWidget {
+    font: 14px;
+    color: #000000;
+    background-color: #F9FCFF;
+    border: 0px #000000;
+}
+
 
 /* --------------------------------- QTableWidget ---------
 
@@ -136,19 +186,32 @@ QPlainTextEdit{
 QFrame[dashboardFrame=true] {
     background-color: #f7faff;
 }
-QFrame[sideBarFrame=true]{
+QFrame[sideBarFrame=true] {
     background-color: #4e546c;
     border-radius: 1px;
 }
-QFrame[topBarFrame=true]{
+QFrame[topBarFrame=true] {
     background-color: #ddeaff;
 }
-QFrame[sideHeaderFrame=true]{
+QFrame[sideHeaderFrame=true] {
     background-color: #555c78;
     border-radius: 1px;
 }
-            
-
+QFrame[nutrientFrame=true] {
+    background-color: #F9FCFF;
+}
+QFrame[nutrientFrame2=true] {
+    background-color: #F9FCFF;
+    padding: 20px;
+}
+QFrame[nutrientHeadFrame=true] {
+    background-color: #DDEAFF;
+}
+QFrame[nutrientButtonFrame=true] {
+    background-color:#F9FCFF;
+    border: 1px solid #DDEAFF;
+    border-radius: 3px;
+}
 
 
 /* --------------------------------- QScrollBar ---------
@@ -221,6 +284,14 @@ QTitleBar {
 ---------------------------------------------------------- */
 QMainWindow {
     background-color: #202020;
+}
+
+
+/* ---------------------------- QGraphicsDropShadow ------
+
+---------------------------------------------------------- */
+QGraphicsDropShadow {
+    color: #191919;
 }
 
 

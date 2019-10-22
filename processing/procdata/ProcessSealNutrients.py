@@ -5,7 +5,6 @@ import time
 from collections import defaultdict
 import numpy as np
 from pylab import polyfit
-from scipy.interpolate import interp1d
 
 # TODO: need small sub routine for resetting values on a RE-process
 
@@ -163,8 +162,12 @@ def peak_shape_qc(window_values, quality_flags):
     for i, x in enumerate(first_slopes):
         if abs(x) > 0.005:
             quality_flags[i] = 5
-        if abs(second_slopes[i]) > 0.009:
+        elif abs(x) > 0.005 and quality_flags[i] == 5:
+            quality_flags[i] = 1
+        elif abs(second_slopes[i]) > 0.009:
             quality_flags[i] = 5
+        elif abs(second_slopes[i]) < 0.009 and quality_flags[i] == 5:
+            quality_flags[i] = 1
 
     for i, x in enumerate(window_values):
         if np.median(x) < 3800:
@@ -233,9 +236,9 @@ def get_basedrift_corr_percent(medians, comparator): # For baseline - use top ca
 def baseline_correction(baseline_indexes, baseline_medians, correction_type, window_medians):
     if correction_type == 'Piecewise':
 
-        baseline_interpolation = interp1d(baseline_indexes, baseline_medians)
+        baseline_interpolation = list(np.interp(range(len(window_medians)), baseline_indexes, baseline_medians))
 
-        new_window_medians = [x - baseline_interpolation(i) for i, x in enumerate(window_medians)]
+        new_window_medians = [x - baseline_interpolation[i] for i, x in enumerate(window_medians)]
 
         return new_window_medians
 
@@ -272,11 +275,12 @@ def drift_correction(drift_indexes, drift_medians, correction_type, window_media
         for x in drift_medians:
             drift_calculated.append(drift_mean / x)
 
-        drift_interpolation = interp1d(drift_indexes, drift_calculated)
+        drift_interpolation = np.interp(range(len(window_medians)), drift_indexes, drift_medians)
 
-        new_window_medians = [x * drift_interpolation(i) for i, x in enumerate(window_medians)]
+        new_window_medians = [x * drift_interpolation[i] for i, x in enumerate(window_medians)]
 
         return new_window_medians
+
     else:
         logging.info('Drift correction not applied')
         return window_medians
@@ -450,6 +454,7 @@ def reset_calibrant_flags(quality_flags):
 
 def pack_data(slk_data, working_data, database):
     conn = sqlite3.connect(database)
+    print(database)
     c = conn.cursor()
 
     run_list = [working_data.run for x in slk_data.sample_ids]
@@ -460,7 +465,7 @@ def pack_data(slk_data, working_data, database):
                         slk_data.rosette_position, working_data.quality_flag, working_data.dilution_factor,
                         slk_data.epoch_timestamps))
 
-    c.executemany('INSERT OR REPLACE INTO %sData VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)' % working_data.analyte)
+    c.executemany('INSERT OR REPLACE INTO %sData VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)' % working_data.analyte, package)
 
     c.commit()
 
@@ -469,7 +474,7 @@ def pack_data(slk_data, working_data, database):
                         working_data.calibrant_zero_mean, working_data.carryover_coefficient,
                         working_data.calibration_coefficients[0], working_data.calibration_coefficients[1]))
 
-    c.executemany('INSERT OR REPLACE INTO nutrientHeader VALUES(?,?,?,?,?,?,?,?,?)')
+    c.executemany('INSERT OR REPLACE INTO nutrientHeader VALUES(?,?,?,?,?,?,?,?,?)', package)
 
     c.commit()
 
@@ -478,12 +483,14 @@ def pack_data(slk_data, working_data, database):
                         working_data.calibrant_concentrations, working_data.calibrant_weightings,
                         working_data.calibrant_residuals, working_data.calibrant_flags))
 
-    c.executemany('INSERT OR REPLACE INTO nutrientCalibrants VALUES(?,?,?,?,?,?,?,?,?)')
+    c.executemany('INSERT OR REPLACE INTO nutrientCalibrants VALUES(?,?,?,?,?,?,?,?,?)', package)
 
     c.commit()
 
     package = tuple(zip(working_data.analyte, working_data.run, working_data.baseline_indexes,
                         working_data.baseline_peak_starts, working_data.baseline_medians))
+
+
 
 
 def populate_nutrient_survey(database, params, sample_id):
@@ -511,55 +518,58 @@ def populate_nutrient_survey(database, params, sample_id):
 def determine_nutrient_survey(database, params, sample_id):
     conn = sqlite3.connect(database)
     c = conn.cursor()
+
+    if sample_id[0:3].lower() == 'test':
+        return 'Test', 'Test', 'Test'
+
     surveys = list(params['surveyparams'].keys())
     for surv in surveys:
-        if 'seal' == 'seal':
-            if params['surveyparams'][surv]['seal']['activated']:
-                if params['surveyparams'][surv]['seal']['usesampleid']:
-                    return 'usingID', 'usingID', 'usingID'
-                else:
-                    if str(sample_id).isdigit():  # CTD sample is only numbers in name
-                        if params['surveyparams'][surv]['seal']['matchlogsheet']:
-                            survey = surv
-                            if params['surveyparams'][surv]['seal']['decodedepfromid']:
+        if params['surveyparams'][surv]['seal']['activated']:
+            if params['surveyparams'][surv]['seal']['usesampleid']:
+                return 'usingID', 'usingID', 'usingID'
+            else:
+                if str(sample_id).isdigit():  # CTD sample is only numbers in name
+                    if params['surveyparams'][surv]['seal']['matchlogsheet']:
+                        survey = surv
+                        if params['surveyparams'][surv]['seal']['decodedepfromid']:
+                            depformat = params['surveyparams'][surv]['seal']['depformat']
+                            depformatlength = depformat.count('D')
+                            rpformatlength = depformat.count('B')
+                            if depformatlength > 0:
+                                deployment = sample_id[0:depformatlength]
+                                rosettepos = sample_id[depformatlength:(depformatlength + rpformatlength)]
+
+                                return deployment, rosettepos, survey
+                        else:
+                            print('TODO pull dep/rp from logsheet instead')
+                            # TODO: pull dep/rp from logsheet option
+                else:  # Sample id has more than just numbers in it
+                    if params['surveyparams'][surv]['seal'][
+                        'decodesampleid']:  # Decode the sample ID, needs a prefisurv too
+                        surveyprefisurv = params['surveyparams'][surv]['seal']['surveyprefisurv']
+                        if len(params['surveyparams'][surv]['seal'][
+                                   'surveyprefisurv']) > 0:  # Check theres actually a prefisurv
+                            sampleprefisurv = sample_id[
+                                              0:len(params['surveyparams'][surv]['seal']['surveyprefisurv'])]
+                            if surveyprefisurv == sampleprefisurv:
+                                survey = surv
+                            else:
+                                logging.error('Sample: ' + str(sample_id) + ' does not match esurvisting surveys.')
+                                break
+                            if params['surveyparams'][surv]['seal']['decodedepfromid']:  # Decode a dep/rp
                                 depformat = params['surveyparams'][surv]['seal']['depformat']
                                 depformatlength = depformat.count('D')
                                 rpformatlength = depformat.count('B')
                                 if depformatlength > 0:
-                                    deployment = sample_id[0:depformatlength]
-                                    rosettepos = sample_id[depformatlength:(depformatlength + rpformatlength)]
+                                    deployment = sample_id[len(survey):depformatlength]
+                                    rosettepos = sample_id[len(survey) + depformatlength:]
 
                                     return deployment, rosettepos, survey
                             else:
-                                print('TODO pull dep/rp from logsheet instead')
-                                # TODO: pull dep/rp from logsheet option
-                    else:  # Sample id has more than just numbers in it
-                        if params['surveyparams'][surv]['seal'][
-                            'decodesampleid']:  # Decode the sample ID, needs a prefisurv too
-                            surveyprefisurv = params['surveyparams'][surv]['seal']['surveyprefisurv']
-                            if len(params['surveyparams'][surv]['seal'][
-                                       'surveyprefisurv']) > 0:  # Check theres actually a prefisurv
-                                sampleprefisurv = sample_id[
-                                                  0:len(params['surveyparams'][surv]['seal']['surveyprefisurv'])]
-                                if surveyprefisurv == sampleprefisurv:
-                                    survey = surv
-                                else:
-                                    logging.error('Sample: ' + str(sample_id) + ' does not match esurvisting surveys.')
-                                    break
-                                if params['surveyparams'][surv]['seal']['decodedepfromid']:  # Decode a dep/rp
-                                    depformat = params['surveyparams'][surv]['seal']['depformat']
-                                    depformatlength = depformat.count('D')
-                                    rpformatlength = depformat.count('B')
-                                    if depformatlength > 0:
-                                        deployment = sample_id[len(survey):depformatlength]
-                                        rosettepos = sample_id[len(survey) + depformatlength:]
-
-                                        return deployment, rosettepos, survey
-                                else:
-                                    rosettepos = int(sample_id[len(surveyprefisurv):])
-                                    deployment = surv
-                                    survey = surv
-                                    return deployment, rosettepos, survey
+                                rosettepos = int(sample_id[len(surveyprefisurv):])
+                                deployment = surv
+                                survey = surv
+                                return deployment, rosettepos, survey
 
 def find_qc_present(qc_cups, sample_ids):
     qc_present = []
