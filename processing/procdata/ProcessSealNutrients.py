@@ -7,8 +7,21 @@ import numpy as np
 from pylab import polyfit
 
 # TODO: need small sub routine for resetting values on a RE-process
+# TODO: There may be a double up on functions that find flags and medians between drift/baseline and calibrants
 
 def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_nutrient):
+    '''
+    Function that runs through all the steps of processing a nutrient run, it is broken up as much as possible
+    to make each individual calculation function as manageable and testable as possible
+    :param slk_data:
+    :param chd_data:
+    :param w_d:
+    :param processing_parameters:
+    :param current_nutrient:
+    :return: w_d
+    '''
+
+
     st = time.time()
 
     # ----------- Read in latest configurable processing parameters (in order of use) ------------------------
@@ -122,6 +135,16 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
 
 def get_peak_values(peak_starts, ad_data, window_size, window_start):
+    '''
+    Gets the peak height values from the A/D data for each point included in the peak window
+    Pulls out the time values as well, which are required for plotting on the interactive screen
+    :param peak_starts:
+    :param ad_data:
+    :param window_size:
+    :param window_start:
+    :return:
+    '''
+
     window_end = int(window_start) + int(window_size)
     # This looks ugly, but it is 10x faster than an expanded for if else statement to accomplish the same thing
     window_values = [
@@ -136,18 +159,38 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
 
 
 def flag_hashed_samples(peak_starts, quality_flags):
-    quality_flags = [quality_flags[i] if x[0] != '#' else 3 for i, x in enumerate(peak_starts)]
+    '''
+    If a peak start value begins with a HASH(#) then it should be flagged as bad
+    :param peak_starts:
+    :param quality_flags:
+    :return: quality_flags
+    '''
 
+    quality_flags = [quality_flags[i] if x[0] != '#' else 3 for i, x in enumerate(peak_starts)]
     return quality_flags
 
 
 def flag_null_samples(analysis_cups, null_cup, quality_flags):
+    '''
+    To better differentiate the NULL peaks in a run, they are flagged bad so that in interactive processing
+    they appear as a Red peak window. This is fine to do as NULL peaks are never samples
+    :param analysis_cups:
+    :param null_cup:
+    :param quality_flags:
+    :return: quality_flags
+    '''
     quality_flags = [quality_flags[i] if x != null_cup else 3 for i, x in enumerate(analysis_cups)]
 
     return quality_flags
 
 
 def peak_shape_qc(window_values, quality_flags):
+    '''
+    Apply a QC on the peak shape to determine if it is of an acceptable shape
+    :param window_values:
+    :param quality_flags:
+    :return:
+    '''
     first_slopes = []
     second_slopes = []
 
@@ -177,6 +220,11 @@ def peak_shape_qc(window_values, quality_flags):
 
 
 def window_medians(window_values):
+    '''
+    Calculates the window medians for each peak window
+    :param window_values:
+    :return: window_medians
+    '''
     window_medians_temp_array = np.array(window_values)
 
     window_medians_temp_array = np.median(window_medians_temp_array, axis=1)
@@ -187,15 +235,29 @@ def window_medians(window_values):
 
 
 def find_cup_indexes(specified_cup, analysis_cups):
+    '''
+    Finds the indexes of a cup type of interest, e.g. indexes of DRIF returns peak indexes for Drift samples
+    :param specified_cup:
+    :param analysis_cups:
+    :return: clean_indexes
+    '''
     a_c = np.array(analysis_cups)
 
-    drift_indexes = np.where(a_c == specified_cup)
+    indexes = np.where(a_c == specified_cup)
 
-    clean_indexes = [x for x in drift_indexes[0]]
+    clean_indexes = [x for x in indexes[0]]
     return clean_indexes
 
 
 def find_carryover_indexes(high_cup_name, low_cup_name, analysis_cups):
+    '''
+    Finds the indexes for the carryover samples, has to be slightly different to accomodate both
+    :param high_cup_name:
+    :param low_cup_name:
+    :param analysis_cups:
+    :return:
+    '''
+    # TODO: could get rid of this function and just use find_cup_indexes twice for both of the carryover samples...
     a_c = np.array(analysis_cups)
 
     high_index = np.where(a_c == high_cup_name)
@@ -208,6 +270,13 @@ def find_carryover_indexes(high_cup_name, low_cup_name, analysis_cups):
 
 
 def organise_basedrift_medians(relevant_indexes, window_medians):
+    '''
+    Due to how nutrient runs are processed, an additional baseline or drift needs to be added to the start and end,
+    this function completes that task
+    :param relevant_indexes:
+    :param window_medians:
+    :return: medians, indexes
+    '''
     medians = [window_medians[x] for x in relevant_indexes]
 
     if relevant_indexes[0] != 0:
@@ -222,18 +291,40 @@ def organise_basedrift_medians(relevant_indexes, window_medians):
     return medians, relevant_indexes
 
 def get_basedrift_flags(relevant_indexes, quality_flags):
+    '''
+    Finds and returns flags, used for the baseline and drifts
+    :param relevant_indexes:
+    :param quality_flags:
+    :return:
+    '''
 
     flags = [quality_flags[x] for x in relevant_indexes]
 
     return flags
 
-def get_basedrift_corr_percent(medians, comparator): # For baseline - use top cal, for drift - use mean drift
+def get_basedrift_corr_percent(medians, comparator):
+    '''
+    Calculates the correction percent after applying a drift/baseline correction
+    Baseline comparator is the top cal
+    Drift comparator is the mean of all drifts
+    :param medians:
+    :param comparator:
+    :return: corr
+    '''
 
-    corr_percent = [(x / comparator) * 100 for x in medians]
+    correction_percent = [(x / comparator) * 100 for x in medians]
 
-    return corr_percent
+    return correction_percent
 
 def baseline_correction(baseline_indexes, baseline_medians, correction_type, window_medians):
+    '''
+    Applies the baseline correction to the all the run peaks
+    :param baseline_indexes:
+    :param baseline_medians:
+    :param correction_type:
+    :param window_medians:
+    :return: window_medians
+    '''
     if correction_type == 'Piecewise':
 
         baseline_interpolation = list(np.interp(range(len(window_medians)), baseline_indexes, baseline_medians))
@@ -248,6 +339,13 @@ def baseline_correction(baseline_indexes, baseline_medians, correction_type, win
 
 
 def carryover_correction(high_index, low_indexes, window_medians):
+    '''
+    Applies the carryover correction across all the run peaks
+    :param high_index:
+    :param low_indexes:
+    :param window_medians:
+    :return:
+    '''
     high_median = [window_medians[x] for x in high_index]
     low_medians = [window_medians[x] for x in low_indexes]
     carryover_coefficient = (low_medians[0] - low_medians[1]) / (high_median[0] - low_medians[0])
@@ -259,6 +357,7 @@ def carryover_correction(high_index, low_indexes, window_medians):
 
 
 def find_drift_indexes(drift_cup_name, analysis_cups):
+    # TODO: Can I delete this ?
     a_c = np.array(analysis_cups)
 
     drift_indexes = np.where(a_c == drift_cup_name)
@@ -268,6 +367,14 @@ def find_drift_indexes(drift_cup_name, analysis_cups):
 
 
 def drift_correction(drift_indexes, drift_medians, correction_type, window_medians):
+    '''
+    Applies the drift correction across all the run peaks
+    :param drift_indexes:
+    :param drift_medians:
+    :param correction_type:
+    :param window_medians:
+    :return: window_medians
+    '''
     if correction_type == 'Piecewise':
         drift_mean = statistics.mean(drift_medians[1:-1])
 
@@ -287,24 +394,49 @@ def drift_correction(drift_indexes, drift_medians, correction_type, window_media
 
 
 def get_calibrant_medians(calibrant_indexes, window_medians):
+    '''
+    Finds and returns the peak height medians for the calibrants
+    :param calibrant_indexes:
+    :param window_medians:
+    :return:
+    '''
     calibrant_medians = [window_medians[ind] for ind in calibrant_indexes]
 
     return calibrant_medians
 
 
 def get_calibrant_concentrations(calibrant_indexes, nominal_concentrations):
+    '''
+    Finds and returns the nominal concentrations for the calibrants, i.e. their expected concentrations
+    :param calibrant_indexes:
+    :param nominal_concentrations:
+    :return:
+    '''
     calibrant_concs = [float(nominal_concentrations[ind]) for ind in calibrant_indexes]
 
     return calibrant_concs
 
 
 def get_calibrant_flags(calibrant_indexes, quality_flags):
+    '''
+    Finds and returns the flags for the calibrants
+    :param calibrant_indexes:
+    :param quality_flags:
+    :return:
+    '''
     calibrant_flags = [quality_flags[ind] for ind in calibrant_indexes]
 
     return calibrant_flags
 
 
 def get_calibrant_zero_mean(window_medians, sample_ids, cal_zero_label):
+    '''
+    Calculates the mean height for cal 0 and returns it
+    :param window_medians:
+    :param sample_ids:
+    :param cal_zero_label:
+    :return:
+    '''
     calibrant_zero_mean = statistics.mean(
         median for ind, median in enumerate(window_medians) if sample_ids[ind] == cal_zero_label)
 
@@ -312,12 +444,23 @@ def get_calibrant_zero_mean(window_medians, sample_ids, cal_zero_label):
 
 
 def remove_calibrant_zero(calibrant_medians, cal_zero_mean):
+    '''
+    Removes the calibrant 0 mean height from all other calibrants
+    :param calibrant_medians:
+    :param cal_zero_mean:
+    :return:
+    '''
     calibrants_minus_zero = [(cal_median - cal_zero_mean) for cal_median in calibrant_medians]
 
     return calibrants_minus_zero
 
 
 def get_calibrant_weightings(calibrant_concentrations):
+    '''
+    Calculates the weightings for calibrants in preparation for making a calibration curve
+    :param calibrant_concentrations:
+    :return:
+    '''
     calibration_weightings = [2 if x == 0.0 else 1 for x in calibrant_concentrations]
 
     return calibration_weightings
@@ -325,9 +468,21 @@ def get_calibrant_weightings(calibrant_concentrations):
 
 def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, calibrant_weightings, calibrant_error,
                        calibrant_flags):
+    '''
+    Completes a iterative calibration that checks if the calibrants fall within the specified limits, otherwise
+    the calibrants are flagged and not used and a recalibration takes place. This goes until all calibrants are within
+    specification, or there is only 30% left.
+    :param cal_type:
+    :param calibrant_medians:
+    :param calibrant_concentrations:
+    :param calibrant_weightings:
+    :param calibrant_error:
+    :param calibrant_flags:
+    :return:
+    '''
     repeat_calibration = True
     calibration_iteration = 0
-    # TODO: Massive todo I've fcked this up royally, it works and works well, but it is not clean at all.
+    # TODO: Massive todo I've f'd this up royally, it works and works well, but it is not clean at all.
     # Subset on if the flag isn't bad
     medians_to_fit = [x for i, x in enumerate(calibrant_medians) if calibrant_flags[i] in [1, 2, 4, 6]]
     concs_to_fit = [x for i, x in enumerate(calibrant_concentrations) if calibrant_flags[i] in [1, 2, 4, 6]]
@@ -389,6 +544,13 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
 
 
 def apply_calibration(cal_type, window_medians, calibration_coefficients):
+    '''
+    Applies the calibration to calculate the concentrations of all peaks
+    :param cal_type:
+    :param window_medians:
+    :param calibration_coefficients:
+    :return:
+    '''
     if cal_type == 'Linear':
         calculated_concentrations = [(x * calibration_coefficients[0]) + calibration_coefficients[1] for x in
                                      window_medians]
@@ -397,6 +559,13 @@ def apply_calibration(cal_type, window_medians, calibration_coefficients):
 
 
 def apply_dilution(mdl_indexes, dilution_factors, calculated_concentrations):
+    '''
+    Calculates the concentration before dilution
+    :param mdl_indexes:
+    :param dilution_factors:
+    :param calculated_concentrations:
+    :return:
+    '''
     cc = np.array(calculated_concentrations)
     df = np.array(dilution_factors[:-1])
     mdl_concs = cc[mdl_indexes]
@@ -410,6 +579,11 @@ def apply_dilution(mdl_indexes, dilution_factors, calculated_concentrations):
 
 
 def find_duplicate_indexes(sample_ids):
+    '''
+    Determines if there are duplicate samples and returns their indexes
+    :param sample_ids:
+    :return:
+    '''
     tally = defaultdict(list)
 
     for i, item in enumerate(sample_ids):
@@ -432,6 +606,14 @@ def find_duplicate_samples(duplicate_indexes, sample_ids, cup_types, sample_cup_
 
 
 def determine_duplicate_error(duplicate_samples, calculated_concentrations, quality_flags, analyte_tolerance):
+    '''
+    Determine the error between the duplicate samples, if outside tolerance level then flag
+    :param duplicate_samples:
+    :param calculated_concentrations:
+    :param quality_flags:
+    :param analyte_tolerance:
+    :return:
+    '''
     for sample_indexes in duplicate_samples:
         tested_concentrations = [calculated_concentrations[i] for i in sample_indexes[1]]
         for i, conc in enumerate(tested_concentrations):
@@ -445,6 +627,12 @@ def determine_duplicate_error(duplicate_samples, calculated_concentrations, qual
 
 
 def reset_calibrant_flags(quality_flags):
+    '''
+    Reset the calibrant flags on an interactive processing update, essentially removes the flags put in place from the
+    calibration reoutine
+    :param quality_flags:
+    :return:
+    '''
     for i, x in enumerate(quality_flags):
         if x in [91, 92]:
             quality_flags[i] = 1
@@ -491,8 +679,6 @@ def pack_data(slk_data, working_data, database):
                         working_data.baseline_peak_starts, working_data.baseline_medians))
 
 
-
-
 def populate_nutrient_survey(database, params, sample_id):
     deployments = []
     rosette_positions = []
@@ -516,6 +702,14 @@ def populate_nutrient_survey(database, params, sample_id):
 
 # TODO: Finding a nutrient survey needs fixing, this is messy and does not account for all cases!
 def determine_nutrient_survey(database, params, sample_id):
+    '''
+    Algorithm for determining the survey of a sample, just has a lot of different checks that need to take place to
+    account for all cases
+    :param database:
+    :param params:
+    :param sample_id:
+    :return: deployment, rosette, survey
+    '''
     conn = sqlite3.connect(database)
     c = conn.cursor()
 
@@ -572,6 +766,12 @@ def determine_nutrient_survey(database, params, sample_id):
                                 return deployment, rosettepos, survey
 
 def find_qc_present(qc_cups, sample_ids):
+    '''
+    Determine what QC samples are in the analysis
+    :param qc_cups:
+    :param sample_ids:
+    :return:
+    '''
     qc_present = []
     sample_ids_set = set(sample_ids)
     for qc in qc_cups:
@@ -584,6 +784,12 @@ def find_qc_present(qc_cups, sample_ids):
     return qc_present
 
 def get_qc_index(qc, sample_ids):
+    '''
+    Get the index of the QC samples
+    :param qc:
+    :param sample_ids:
+    :return:
+    '''
     indexes = []
     for i, s_id in enumerate(sample_ids):
         if qc in s_id:
@@ -591,6 +797,13 @@ def get_qc_index(qc, sample_ids):
     return indexes
 
 def get_qc_data(indexes, medians, flags):
+    '''
+    Get the data for the QC samples
+    :param indexes:
+    :param medians:
+    :param flags:
+    :return:
+    '''
     qc_medians = [medians[x] for x in indexes]
     qc_flags = [flags[x] for x in indexes]
 
