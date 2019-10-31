@@ -48,26 +48,29 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.project = project
         self.database = database
 
-        self.pan_count = 10000
-
         with open('C:/HyPro/hyprosettings.json', 'r') as file:
             params = json.loads(file.read())
 
+        # Load up theme for window
         if params['theme'] == 'normal':
             plt.style.use(style.mplstyle['normal'])
         else:
             plt.style.use(style.mplstyle['dark'])
 
-
+        # Holds all the calculation data
         self.w_d = WorkingData(file)
 
+        # Pull out the data from the files in the directory
         self.slk_data, self.chd_data, self.w_d, self.current_nutrient = rsn.get_data_routine(self.file_path,
                                                                                              self.w_d,
                                                                                              self.processing_parameters,
                                                                                              self.database)
+        # Process the data and return calculated values
         self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                           self.current_nutrient)
 
+        # If interactive processing is activated on the Processing Menu window, then continue to plot everything up
+        # Otherwise store data and exit without drawing or creating any UI elements
         if interactive:
             self.init_ui()
 
@@ -78,10 +81,15 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.interactive_routine()
 
         else:
+            # TODO: Store data if not interactive processing
             sys.exit()
 
 
     def interactive_routine(self):
+        '''
+        Routine called everytime the data has been reprocessed, this will redraw all as necessary.
+        :return:
+        '''
         thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient))
         thread.start()
         thread.join()
@@ -93,6 +101,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         print('QCTabs: ' + str(time.time() - st))
 
     def init_ui(self):
+        '''
+        Initialises all the GUI elements required for the nutrient processing window
+        :return:
+        '''
         try:
             self.setFont(QFont('Segoe UI'))
             self.setWindowModality(Qt.WindowModal)
@@ -263,12 +275,18 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         except Exception:
             print(traceback.print_exc())
 
-
     def draw_data(self, chd_data, w_d, current_nutrient):
+        '''
+        Draws the relevant data to the figures that are already intialised in init_ui. Removes lines on each call of
+        this function so that memory and performance are preserved.
+        :param chd_data:
+        :param w_d:
+        :param current_nutrient:
+        :return:
+        '''
         st = time.time()
 
         if len(self.main_trace.lines) == 0:
-            #self.main_trace.set_facecolor('#fcfdff')
             self.main_trace.grid(alpha=0.1)
             self.main_trace.set_xlabel('Time (s)')
             self.main_trace.set_ylabel('A/D Value')
@@ -294,21 +312,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.tracecanvas.draw()
         ft = time.time()
 
-        print('Draw time: ' + str(ft-st))
 
+        print('Draw time: ' + str(ft-st))
         print(str(len(self.main_trace.lines)) + str(' Lines on Main Trace'))
 
-    def create_plot_tabs(self):
-
-        self.calibrant_curve_tab()
-        self.calibrant_error_tab()
-        self.baseline_correction_tab()
-        self.drift_correction_tab()
-
     def store_data(self):
+       # TODO: Make storing data function
         pass
         psn.pack_data(self.slk_data, self.w_d, self.database)
-
 
     def proceed(self):
         self.main_trace.cla()
@@ -327,8 +338,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     def cancel(self):
         self.close()
 
-    # Manages the clicking
     def on_click(self, event):
+        '''
+        Handles mouse clicks into the plot
+        :param event:
+        :return:
+        '''
         event2 = event
         tb = get_current_fig_manager().toolbar
         if event.button == 3 and event.inaxes and tb.mode == '':
@@ -345,8 +360,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 self.peak_display.setStart.connect(lambda: self.move_peak_start(x_axis_time, peak_index))
                 self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_axis_time, peak_index))
 
-
     def move_peak_start(self, x_axis_time, peak_index):
+        '''
+        Moves the peak window start point to where ever the user clicked on the screen
+        :param x_axis_time:
+        :param peak_index:
+        :return:
+        '''
         picked_peak_start = int(self.slk_data.peak_starts[self.current_nutrient][peak_index])
         win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
         win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
@@ -375,7 +395,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.interactive_routine()
 
     def move_peak_end(self, x_axis_time, peak_index):
-
+        '''
+        Moves the peak end after a user has clicked into a spot on the trace and pressed move end
+        :param x_axis_time:
+        :param peak_index:
+        :return:
+        '''
         picked_peak_start = int(self.slk_data.peak_starts[self.current_nutrient][peak_index])
         win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
         win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
@@ -395,34 +420,42 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                               self.current_nutrient)
             self.interactive_routine()
 
-
-    # Manages the key pressing
     def keyPressEvent(self, event):
+        '''
+        Handles keyboard button presses and completes functions accordingly
+        :param event:
+        :return:
+        '''
         print(event.key())
-        if event.key() == 65: # A
+        if event.key() == 65: # Assign A to move left
             self.move_camera_left()
-        if event.key() == 68: # D
+        if event.key() == 68: # Assign D to move right
             self.move_camera_right()
-        if event.key() == 87: # W
+        if event.key() == 87: # Assign W to zoom in
             self.zoom_in()
-        if event.key() == 88: # X
+        if event.key() == 88: # Assign X to zoom out
             self.zoom_out()
-        if event.key() == 83: # S
+        if event.key() == 83: # Assign S to zoom fit
             self.zoom_fit()
-        if event.key() == 78: # N
+        if event.key() == 81: # Assign Q to auto zoom toggle
+            if self.auto_size.isChecked():
+                self.auto_size.setChecked(False)
+            else:
+                self.auto_size.setChecked(True)
+        if event.key() == 78: # Assign N to iterate through tabs
             curr_tab = self.qctabs.currentIndex()
             if curr_tab == (len(self.qctabs)-1):
                 self.qctabs.setCurrentIndex(0)
             else:
                 self.qctabs.setCurrentIndex(curr_tab+1)
-        if event.key() == 90: # Z
+        if event.key() == 90: # Assign Z to shift peak window left
             ws = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
             ws = ws - 2
             self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = ws
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
             self.interactive_routine()
-        if event.key() == 67: # C
+        if event.key() == 67: # Assign C to shift peak window right
             ws = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][
                 'windowStart']
             ws = ws + 2
@@ -431,19 +464,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
             self.draw_data(self.chd_data, self.w_d, self.current_nutrient)
-            thread1 = Thread(target=self.tracecanvas.draw())
-            thread1.start()
-
-            # self.plot_data()
-            thread2 = Thread(target=self.plot_standard_data())
-            thread2.start()
-
-            thread3 = Thread(target=self.plot_custom_data())
-            thread3.start()
-
-            thread1.join()
-            thread2.join()
-            thread3.join()
+            self.interactive_routine()
+        # Below is only meant to be used for DEVELOPMENT PURPOSES, used to inject random values into peak picking
+        # to check how the software responds, used to check speed of processing and robustness
         if event.key() == 82: # R Imitates changing peak windows etc, for testing optimisation of processing and draw
 
             random_modifier = np.random.randint(low=15, high=45)
@@ -457,45 +480,41 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
             self.draw_data(self.chd_data, self.w_d, self.current_nutrient)
-            thread1 = Thread(target=self.tracecanvas.draw())
-            thread1.start()
-
-            #self.plot_data()
-            thread2 = Thread(target=self.plot_standard_data())
-            thread2.start()
-
-            thread3 = Thread(target=self.plot_custom_data())
-            thread3.start()
-
-            thread1.join()
-            thread2.join()
-            thread3.join()
-
-        if event.key() == 81:
-            if self.auto_size.isChecked():
-                self.autosize.setChecked(False)
-            else:
-                self.auto_size.setChecked(True)
+            self.interactive_routine()
 
     def move_camera_left(self):
+        '''
+        Shifts the camera to the left on a button press, happy balance of movement seems to be 6.5% of the current
+        X axis range. Also will dynamically zoom to the tallest peak if the Auto Zoom checkbox is ticked
+        :return:
+        '''
+
         xmin, xmax = self.main_trace.get_xbound()
-        ten_percent = (xmax-xmin) * 0.065
+        movement_amount = (xmax-xmin) * 0.065
         if xmin > 0 - 100:
-            self.main_trace.set_xlim(xmin - ten_percent, xmax - ten_percent)
+            self.main_trace.set_xlim(xmin - movement_amount, xmax - movement_amount)
             self.tracecanvas.draw()
         if self.auto_size.isChecked():
             self.zoom_fit()
 
     def move_camera_right(self):
+        '''
+        Shifts the camera to the right on a button press. See shift camera left for more detail
+        :return:
+        '''
         xmin, xmax = self.main_trace.get_xbound()
-        ten_percent = (xmax - xmin) * 0.065
+        movement_amount = (xmax - xmin) * 0.065
         if xmax < len(self.chd_data.ad_data[self.current_nutrient]) + 100:
-            self.main_trace.set_xlim(xmin + ten_percent, xmax + ten_percent)
+            self.main_trace.set_xlim(xmin + movement_amount, xmax + movement_amount)
             self.tracecanvas.draw()
         if self.auto_size.isChecked():
             self.zoom_fit()
 
     def zoom_in(self):
+        '''
+        Zooms in on the plot, zooms on both the X and Y
+        :return:
+        '''
         ymin, ymax = self.main_trace.get_ybound()
         xmin, xmax = self.main_trace.get_xbound()
         ytenpercent = ymax * 0.1
@@ -506,6 +525,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.tracecanvas.draw()
 
     def zoom_out(self):
+        '''
+        Zooms out on the plot, zooms out on both the X and Y
+        :return:
+        '''
         ymin, ymax = self.main_trace.get_ybound()
         xmin, xmax = self.main_trace.get_xbound()
         ytenpercent = ymax * 0.1
@@ -519,17 +542,24 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.tracecanvas.draw()
 
     def zoom_fit(self):
-        try:
-            ymin, ymax = self.main_trace.get_ybound()
-            xmin, xmax = self.main_trace.get_xbound()
-            maxheight = max(self.chd_data.ad_data[self.current_nutrient][int(xmin): int(xmax)])
-            self.main_trace.set_ylim(ymin, maxheight * 1.02)
-            self.tracecanvas.draw()
-        except Exception as e:
-            print(e)
-
+        '''
+        Used to zoom to the height of the tallest peak in the current view, adds a little extra so the top isn't
+        in line with the plot top
+        :return:
+        '''
+        # Used to zoom to the tallest peak plus a little extra so it isn't touch the top
+        ymin, ymax = self.main_trace.get_ybound()
+        xmin, xmax = self.main_trace.get_xbound()
+        maxheight = max(self.chd_data.ad_data[self.current_nutrient][int(xmin): int(xmax)])
+        self.main_trace.set_ylim(ymin, maxheight * 1.02)
+        self.tracecanvas.draw()
 
     def create_standard_qc_tabs(self):
+        '''
+        This function creates all the QTabs that hold the QC plots which are integral to the correct processing of
+        an analysis, this includes Drift, Baseline, Calibration curve and calibration errors
+        :return:
+        '''
         standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'baseline': 'Baseline Corr', 'drift': 'Drift Corr'}
         for qc in standard_tabs:
             setattr(self, "{}".format(qc + str('_tab')), QWidget())
@@ -545,8 +575,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 setattr(self, "{}".format(qc + str('_plot')), getattr(self, "{}".format(qc + str('_fig'))).add_subplot(111))
             getattr(self, "{}".format(qc + str('_lout'))).addWidget(getattr(self, "{}".format(qc + str('_canvas'))))
 
-
     def create_custom_qc_tabs(self, sample_ids, qc_samps):
+        '''
+        Creates all the QTabs for holding the QC plots which come from samples that may or may not be present in an
+        analytical run, this includes RMNS, MDL, internal QC or BQC
+        :param sample_ids:
+        :param qc_samps:
+        :return:
+        '''
         self.qc_tabs_in_existence = []
         self.rmns_plots = []
         sample_ids_set = set(sample_ids)
@@ -573,6 +609,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     self.qc_tabs_in_existence.append(qc_name)
 
     def plot_standard_data(self):
+        '''
+        Small function that houses all the calls to the plotting of the standard QC tab plots
+        :return:
+        '''
         qcp.calibration_curve_plot(self.cal_curve_fig, self.cal_curve_plot,
                                    self.w_d.calibrant_medians, self.w_d.calibrant_concs,
                                    self.w_d.calibrant_flags, self.w_d.calibration_coefficients)
@@ -593,6 +633,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.drift_canvas.draw()
 
     def plot_custom_data(self):
+        '''
+        Small function to house the calls to the QC tab plots for samples that may or may not be present in the run
+        :return:
+        '''
+        # Iterate through the confirmed samples in the run
         for qc in self.qc_tabs_in_existence:
             if qc.lower() == 'rmns':
                 for rmns in self.rmns_plots:

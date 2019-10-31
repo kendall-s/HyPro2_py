@@ -217,7 +217,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         topperframeshadow.setBlurRadius(5)
         topperframeshadow.setYOffset(2)
         topperframeshadow.setXOffset(3)
-        topperframe.setGraphicsEffect(topperframeshadow)
+        #topperframe.setGraphicsEffect(topperframeshadow)
 
         outputboxframe = QFrame(self)
         outputboxframe.setProperty('dashboardFrame', True)
@@ -225,7 +225,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         outputboxframeshadow.setBlurRadius(5)
         outputboxframeshadow.setYOffset(2)
         outputboxframeshadow.setXOffset(3)
-        outputboxframe.setGraphicsEffect(outputboxframeshadow)
+        #outputboxframe.setGraphicsEffect(outputboxframeshadow)
 
         outputboxlabel = QLabel(' Output: ')
         outputboxlabel.setProperty('dashboardText', True)
@@ -240,7 +240,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         sidebarframe.setProperty('sideBarFrame', True)
         sidebarframeshadow = QtWidgets.QGraphicsDropShadowEffect()
         sidebarframeshadow.setBlurRadius(5)
-        sidebarframeshadow.setColor(QtGui.QColor('#183666'))
+        #sidebarframeshadow.setColor(QtGui.QColor('#183666'))
         sidebarframeshadow.setYOffset(1)
         sidebarframeshadow.setXOffset(2)
         # sidebarframe.setGraphicsEffect(sidebarframeshadow)

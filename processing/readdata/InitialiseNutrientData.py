@@ -35,7 +35,7 @@ class initNutrientData(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         # keys for nutrients
-        self.nutrients = ['nitrate', 'phosphate', 'silicate', 'nitrite', 'ammonia']
+        self.nutrients = ['phosphate', 'nitrate', 'silicate', 'nitrite', 'ammonia']
         self.channels = {'phosphate': 0, 'silicate': 0, 'nitrate': 0, 'nitrite': 0, 'ammonia': 0}
 
         self.file = file

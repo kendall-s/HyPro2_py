@@ -31,6 +31,7 @@ QMainWindow[NutrientProcessing = true] {
 ---------------------------------------------------------- */
 QGraphicsDropShadow {
     color: #e1e6ea;
+   
 }
 
 
@@ -496,6 +497,7 @@ QScrollBar:add-page:vertical {
 QScrollBar:sub-page:vertical {
     background: none;
 }
+
 
 /* -------------------------------- QPlainTextEdit---------
 
