@@ -5,8 +5,8 @@ from PyQt5.QtGui import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from pylab import *
-from scipy.stats import linregress
-from scipy.interpolate import interp1d
+#from scipy.stats import linregress
+#from scipy.interpolate import interp1d
 import processing.plotting.QCPlots as qcp
 import processing.RefreshFunction
 import numpy

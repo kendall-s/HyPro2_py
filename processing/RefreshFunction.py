@@ -1,7 +1,8 @@
 import os, sqlite3, logging, json, traceback
-from processing.readdata import InitialiseCTDData, InitialiseNutrientData, InitialiseSampleSheet
+from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
+from processing.procdata.InteractiveNutrientsProcessing import processingNutrientsWindow
 
 # TODO: there is potentially a small bug that occurs when refresh of multiple files and then they dont process
 
@@ -82,12 +83,9 @@ class refreshFunction():
                                 neglen = -(len(self.params['analysisparams']['seal']['runFormat']) + 4)
                                 if file[: neglen] == self.params['analysisparams']['seal']['filePrefix']:
                                     logging.info('Nutrient file - ' + file + ' found. Not yet in database.')
-                                    self.initnutrientdata = InitialiseNutrientData.initNutrientData(file,
-                                                                                                    self.db,
-                                                                                                    self.currpath,
-                                                                                                    self.currproject,
-                                                                                                    self.interactive,
-                                                                                                    False)
+                                    self.initnutrientdata = processingNutrientsWindow(file,self.db,
+                                                                                      self.currpath, self.currproject,
+                                                                                      self.interactive, False)
                                     procfile = True
                                     break
                                 else:
@@ -159,11 +157,10 @@ class refreshFunction():
                                         if folder == 'Nutrients':
                                             logging.info(
                                                 'Nutrient file - ' + file + ' has been updated. It will be reprocessed.')
-                                            self.initnutrientdata = InitialiseNutrientData.initNutrientData(file, self.db,
-                                                                                                            self.currpath,
-                                                                                                            self.currproject,
-                                                                                                            self.interactive,
-                                                                                                            False)
+                                            self.initnutrientdata = processingNutrientsWindow(file, self.db,
+                                                                                              self.currpath,
+                                                                                              self.currproject,
+                                                                                              self.interactive, False)
                                             procfile = True
                                             break
                                         if folder == 'Salinity':

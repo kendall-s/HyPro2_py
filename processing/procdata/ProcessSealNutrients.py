@@ -6,7 +6,15 @@ import statistics
 import time
 from collections import defaultdict
 
-import numpy as np
+from numpy import array as nparray
+from numpy import median as npmedian
+from numpy import where as npwhere
+from numpy import interp as npinterp
+from numpy import poly1d as nppoly1d
+from numpy import argmax as npargmax
+from numpy import abs as npabs
+from numpy import mean as npmean
+
 import xarray as xr
 from pylab import polyfit
 
@@ -197,10 +205,10 @@ def peak_shape_qc(window_values, quality_flags):
     second_slopes = []
 
     for x in window_values:
-        median = np.median(x)
+        median = npmedian(x)
         normalised = [y / median for y in x]
 
-        fit = np.polyfit(range(len(x)), normalised, 2)
+        fit = polyfit(range(len(x)), normalised, 2)
         first_slopes.append(fit[0])
         second_slopes.append(fit[1])
 
@@ -215,7 +223,7 @@ def peak_shape_qc(window_values, quality_flags):
             quality_flags[i] = 1
 
     for i, x in enumerate(window_values):
-        if np.median(x) < 3800:
+        if npmedian(x) < 3800:
             quality_flags[i] = 1
 
     return quality_flags
@@ -227,9 +235,9 @@ def window_medians(window_values):
     :param window_values:
     :return: window_medians
     """
-    window_medians_temp_array = np.array(window_values)
+    window_medians_temp_array = nparray(window_values)
 
-    window_medians_temp_array = np.median(window_medians_temp_array, axis=1)
+    window_medians_temp_array = npmedian(window_medians_temp_array, axis=1)
 
     window_medians = list(window_medians_temp_array)
 
@@ -243,9 +251,9 @@ def find_cup_indexes(specified_cup, analysis_cups):
     :param analysis_cups:
     :return: clean_indexes
     """
-    a_c = np.array(analysis_cups)
+    a_c = nparray(analysis_cups)
 
-    indexes = np.where(a_c == specified_cup)
+    indexes = npwhere(a_c == specified_cup)
 
     clean_indexes = [int(x) for x in indexes[0]]
     return clean_indexes
@@ -260,10 +268,10 @@ def find_carryover_indexes(high_cup_name, low_cup_name, analysis_cups):
     :return:
     """
     # TODO: could get rid of this function and just use find_cup_indexes twice for both of the carryover samples...
-    a_c = np.array(analysis_cups)
+    a_c = nparray(analysis_cups)
 
-    high_index = np.where(a_c == high_cup_name)
-    low_indexes = np.where(a_c == low_cup_name)
+    high_index = npwhere(a_c == high_cup_name)
+    low_indexes = npwhere(a_c == low_cup_name)
 
     clean_high = [x for x in high_index[0]]
     clean_low = [x for x in low_indexes[0]]
@@ -332,7 +340,7 @@ def baseline_correction(baseline_indexes, baseline_medians, correction_type, win
     """
     if correction_type == 'Piecewise':
 
-        baseline_interpolation = list(np.interp(range(len(window_medians)), baseline_indexes, baseline_medians))
+        baseline_interpolation = list(npinterp(range(len(window_medians)), baseline_indexes, baseline_medians))
 
         new_window_medians = [x - baseline_interpolation[i] for i, x in enumerate(window_medians)]
 
@@ -363,9 +371,9 @@ def carryover_correction(high_index, low_indexes, window_medians):
 
 def find_drift_indexes(drift_cup_name, analysis_cups):
     # TODO: Can I delete this ?
-    a_c = np.array(analysis_cups)
+    a_c = nparray(analysis_cups)
 
-    drift_indexes = np.where(a_c == drift_cup_name)
+    drift_indexes = npwhere(a_c == drift_cup_name)
 
     clean_indexes = [x for x in drift_indexes[0]]
     return clean_indexes
@@ -387,7 +395,7 @@ def drift_correction(drift_indexes, drift_medians, correction_type, window_media
         for x in drift_medians:
             drift_calculated.append(drift_mean / x)
 
-        drift_interpolation = np.interp(range(len(window_medians)), drift_indexes, drift_calculated)
+        drift_interpolation = npinterp(range(len(window_medians)), drift_indexes, drift_calculated)
 
         new_window_medians = [x * drift_interpolation[i] for i, x in enumerate(window_medians)]
 
@@ -502,7 +510,7 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
         if cal_type == 'Linear':
             cal_coefficients = polyfit(medians_to_fit, concs_to_fit, 1, w=weightings_to_fit)
 
-            fp = np.poly1d(cal_coefficients)
+            fp = nppoly1d(cal_coefficients)
             y_fitted = [fp(x) for x in calibrant_medians]
 
             cal_coefficients = list(cal_coefficients)
@@ -521,7 +529,7 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
             cal_residual = x - fp(medians_to_fit[i])
             calibrant_residuals.append(cal_residual)
 
-        max_residual_index = int(np.argmax(np.abs(np.array(calibrant_residuals))))
+        max_residual_index = int(npargmax(npabs(nparray(calibrant_residuals))))
 
         if abs(calibrant_residuals[max_residual_index]) > (2 * calibrant_error) and flags_to_fit[
             max_residual_index] != 92:
@@ -573,10 +581,10 @@ def apply_dilution(mdl_indexes, dilution_factors, calculated_concentrations):
     :param calculated_concentrations:
     :return:
     """
-    cc = np.array(calculated_concentrations)
-    df = np.array(dilution_factors[:-1])
+    cc = nparray(calculated_concentrations)
+    df = nparray(dilution_factors[:-1])
     mdl_concs = cc[mdl_indexes]
-    mdl = np.mean(mdl_concs)
+    mdl = npmean(mdl_concs)
 
     cc_2 = cc * df - (df - 1) * mdl
 

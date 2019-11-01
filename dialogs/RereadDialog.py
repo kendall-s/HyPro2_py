@@ -2,9 +2,10 @@ from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QMessageBox, QListW
 import sqlite3, re
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
-from processing.readdata import InitialiseCTDData, InitialiseNutrientData, InitialiseSampleSheet
+from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
+from processing.procdata.InteractiveNutrientsProcessing import processingNutrientsWindow
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
 
@@ -113,9 +114,8 @@ class rereadDialog(hyproDialogTemplate):
                                                              self.interactive, True)
 
             if filetype == 'Nutrients':
-                self.initnutrientdata = InitialiseNutrientData.initNutrientData(selectedfile, self.db, self.currpath,
-                                                                                self.currproject, self.interactive,
-                                                                                True)
+                self.initnutrientdata = processingNutrientsWindow(selectedfile, self.db, self.currpath,
+                                                                  self.currproject, self.interactive, True)
             if filetype == 'Salinity':
                 self.initsaltdata = processingSalinityWindow(selectedfile, self.db, self.currpath, self.currproject,
                                                              self.interactive, True)
