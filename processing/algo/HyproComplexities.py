@@ -2,6 +2,7 @@ import sqlite3, logging, traceback, json
 
 # This file contains some more of the complicated functions that are required for hypro, namely determining a survey..
 
+# TODO: delete determine survey, split this into the processing scripts of each analyte
 def determineSurvey(database, params, analyte, sampleid, bottleid = None):
     try:
         #print(sampleid)
@@ -141,6 +142,13 @@ def determineSurvey(database, params, analyte, sampleid, bottleid = None):
 
 
 def match_click_to_peak(x_time, slk_data, current_nutrient):
+    '''
+    Finds the closest peak to where was clicked on the trace, returns the index of this peak
+    :param x_time:
+    :param slk_data:
+    :param current_nutrient:
+    :return:
+    '''
     for i, x in enumerate(slk_data.peak_starts[current_nutrient]):
         if i < len(slk_data.peak_starts[current_nutrient]):
             if x[1] == '#':

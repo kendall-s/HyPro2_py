@@ -48,8 +48,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.project = project
         self.database = database
 
-        with open('C:/HyPro/hyprosettings.json', 'r') as file:
-            params = json.loads(file.read())
+        with open('C:/HyPro/hyprosettings.json', 'r') as temp:
+            params = json.loads(temp.read())
 
         # Load up theme for window
         if params['theme'] == 'normal':
@@ -86,10 +86,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
 
     def interactive_routine(self):
-        '''
+        """
         Routine called everytime the data has been reprocessed, this will redraw all as necessary.
         :return:
-        '''
+        """
         thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient))
         thread.start()
         thread.join()
@@ -101,10 +101,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         print('QCTabs: ' + str(time.time() - st))
 
     def init_ui(self):
-        '''
+        """
         Initialises all the GUI elements required for the nutrient processing window
         :return:
-        '''
+        """
         try:
             self.setFont(QFont('Segoe UI'))
             self.setWindowModality(Qt.WindowModal)
@@ -200,7 +200,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             zoomfit.setProperty('nutrientControls', True)
             zoomfit.setFixedWidth(50)
 
-            self.underwayfile = QCheckBox('Find Lat/Longs')
+            self.find_lat_lons = QCheckBox('Find Lat/Longs')
 
             okcanframe = QFrame()
             okcanframe.setMinimumHeight(40)
@@ -258,7 +258,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.grid_layout.addWidget(zoomin, 19, 6, 2, 1, Qt.AlignHCenter)
             self.grid_layout.addWidget(zoomout, 19, 7, 2, 1, Qt.AlignHCenter)
 
-            self.grid_layout.addWidget(self.underwayfile, 19, 0, Qt.AlignCenter)
+            self.grid_layout.addWidget(self.find_lat_lons, 19, 0, Qt.AlignCenter)
 
             self.grid_layout.addWidget(okcanframe, 20, 11, 1, 5)
 
@@ -276,14 +276,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             print(traceback.print_exc())
 
     def draw_data(self, chd_data, w_d, current_nutrient):
-        '''
+        """
         Draws the relevant data to the figures that are already intialised in init_ui. Removes lines on each call of
         this function so that memory and performance are preserved.
         :param chd_data:
         :param w_d:
         :param current_nutrient:
         :return:
-        '''
+        """
         st = time.time()
 
         if len(self.main_trace.lines) == 0:
@@ -319,7 +319,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     def store_data(self):
        # TODO: Make storing data function
         pass
-        psn.pack_data(self.slk_data, self.w_d, self.database)
+        #psn.pack_data(self.slk_data, self.w_d, self.database)
 
     def proceed(self):
         self.main_trace.cla()
@@ -327,10 +327,19 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         self.store_data()
 
+        # If the matching lat/lons check box is active assume the file is a underway one. Pull out samples and
+        # find the latitude and longitudes that correspond
+        if self.find_lat_lons.isChecked:
+            complete = psn.match_lat_lons_routine(self.path, self.project, self.database, self.current_nutrient,
+                                                  self.processing_parameters, self.w_d, self.slk_data)
+
         index = self.slk_data.active_nutrients.index(self.current_nutrient)
         try:
             self.current_nutrient = self.slk_data.active_nutrients[index+1]
-            self.process_data(self.file_path, '', self.path, self.project, self.current_nutrient, self.slk_data, self.chd_data)
+            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                              self.current_nutrient)
+            self.interactive_routine()
+           
         except IndexError:
             print('Processing completed')
             self.close()
@@ -339,11 +348,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.close()
 
     def on_click(self, event):
-        '''
+        """
         Handles mouse clicks into the plot
         :param event:
         :return:
-        '''
+        """
         event2 = event
         tb = get_current_fig_manager().toolbar
         if event.button == 3 and event.inaxes and tb.mode == '':
@@ -361,12 +370,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_axis_time, peak_index))
 
     def move_peak_start(self, x_axis_time, peak_index):
-        '''
+        """
         Moves the peak window start point to where ever the user clicked on the screen
         :param x_axis_time:
         :param peak_index:
         :return:
-        '''
+        """
         picked_peak_start = int(self.slk_data.peak_starts[self.current_nutrient][peak_index])
         win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
         win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
@@ -395,12 +404,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.interactive_routine()
 
     def move_peak_end(self, x_axis_time, peak_index):
-        '''
+        """
         Moves the peak end after a user has clicked into a spot on the trace and pressed move end
         :param x_axis_time:
         :param peak_index:
         :return:
-        '''
+        """
         picked_peak_start = int(self.slk_data.peak_starts[self.current_nutrient][peak_index])
         win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
         win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
@@ -421,11 +430,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.interactive_routine()
 
     def keyPressEvent(self, event):
-        '''
+        """
         Handles keyboard button presses and completes functions accordingly
         :param event:
         :return:
-        '''
+        """
         print(event.key())
         if event.key() == 65: # Assign A to move left
             self.move_camera_left()
@@ -483,11 +492,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.interactive_routine()
 
     def move_camera_left(self):
-        '''
+        """
         Shifts the camera to the left on a button press, happy balance of movement seems to be 6.5% of the current
         X axis range. Also will dynamically zoom to the tallest peak if the Auto Zoom checkbox is ticked
         :return:
-        '''
+        """
 
         xmin, xmax = self.main_trace.get_xbound()
         movement_amount = (xmax-xmin) * 0.065
@@ -498,10 +507,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.zoom_fit()
 
     def move_camera_right(self):
-        '''
+        """
         Shifts the camera to the right on a button press. See shift camera left for more detail
         :return:
-        '''
+        """
         xmin, xmax = self.main_trace.get_xbound()
         movement_amount = (xmax - xmin) * 0.065
         if xmax < len(self.chd_data.ad_data[self.current_nutrient]) + 100:
@@ -511,10 +520,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.zoom_fit()
 
     def zoom_in(self):
-        '''
+        """
         Zooms in on the plot, zooms on both the X and Y
         :return:
-        '''
+        """
         ymin, ymax = self.main_trace.get_ybound()
         xmin, xmax = self.main_trace.get_xbound()
         ytenpercent = ymax * 0.1
@@ -525,10 +534,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.tracecanvas.draw()
 
     def zoom_out(self):
-        '''
+        """
         Zooms out on the plot, zooms out on both the X and Y
         :return:
-        '''
+        """
         ymin, ymax = self.main_trace.get_ybound()
         xmin, xmax = self.main_trace.get_xbound()
         ytenpercent = ymax * 0.1
@@ -542,11 +551,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.tracecanvas.draw()
 
     def zoom_fit(self):
-        '''
+        """
         Used to zoom to the height of the tallest peak in the current view, adds a little extra so the top isn't
         in line with the plot top
         :return:
-        '''
+        """
         # Used to zoom to the tallest peak plus a little extra so it isn't touch the top
         ymin, ymax = self.main_trace.get_ybound()
         xmin, xmax = self.main_trace.get_xbound()
@@ -555,11 +564,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.tracecanvas.draw()
 
     def create_standard_qc_tabs(self):
-        '''
+        """
         This function creates all the QTabs that hold the QC plots which are integral to the correct processing of
         an analysis, this includes Drift, Baseline, Calibration curve and calibration errors
         :return:
-        '''
+        """
         standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'baseline': 'Baseline Corr', 'drift': 'Drift Corr'}
         for qc in standard_tabs:
             setattr(self, "{}".format(qc + str('_tab')), QWidget())
@@ -576,13 +585,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             getattr(self, "{}".format(qc + str('_lout'))).addWidget(getattr(self, "{}".format(qc + str('_canvas'))))
 
     def create_custom_qc_tabs(self, sample_ids, qc_samps):
-        '''
+        """
         Creates all the QTabs for holding the QC plots which come from samples that may or may not be present in an
         analytical run, this includes RMNS, MDL, internal QC or BQC
         :param sample_ids:
         :param qc_samps:
         :return:
-        '''
+        """
         self.qc_tabs_in_existence = []
         self.rmns_plots = []
         sample_ids_set = set(sample_ids)
@@ -609,10 +618,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     self.qc_tabs_in_existence.append(qc_name)
 
     def plot_standard_data(self):
-        '''
+        """
         Small function that houses all the calls to the plotting of the standard QC tab plots
         :return:
-        '''
+        """
         qcp.calibration_curve_plot(self.cal_curve_fig, self.cal_curve_plot,
                                    self.w_d.calibrant_medians, self.w_d.calibrant_concs,
                                    self.w_d.calibrant_flags, self.w_d.calibration_coefficients)
@@ -633,10 +642,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.drift_canvas.draw()
 
     def plot_custom_data(self):
-        '''
+        """
         Small function to house the calls to the QC tab plots for samples that may or may not be present in the run
         :return:
-        '''
+        """
         # Iterate through the confirmed samples in the run
         for qc in self.qc_tabs_in_existence:
             if qc.lower() == 'rmns':

@@ -25,7 +25,7 @@ class WorkingData:
         self.run = run
 
         self.channel = 0
-        self.analyte = 'Krill Me'
+        self.analyte = 'Gold'
 
         self.window_values = []
         self.time_values = []

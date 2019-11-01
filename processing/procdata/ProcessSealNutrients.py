@@ -1,16 +1,21 @@
+import calendar
 import logging
+import os
 import sqlite3
 import statistics
 import time
 from collections import defaultdict
+
 import numpy as np
+import xarray as xr
 from pylab import polyfit
+
 
 # TODO: need small sub routine for resetting values on a RE-process
 # TODO: There may be a double up on functions that find flags and medians between drift/baseline and calibrants
 
 def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_nutrient):
-    '''
+    """
     Function that runs through all the steps of processing a nutrient run, it is broken up as much as possible
     to make each individual calculation function as manageable and testable as possible
     :param slk_data:
@@ -19,8 +24,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     :param processing_parameters:
     :param current_nutrient:
     :return: w_d
-    '''
-
+    """
 
     st = time.time()
 
@@ -104,11 +108,9 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     # ------------ Apply calibration ----------------------------------------------------------------------------
     w_d.calculated_concentrations = apply_calibration(cal_type, w_d.corr_window_medians, w_d.calibration_coefficients)
 
-
     # ------------ Apply dilution factors -----------------------------------------------------------------------
     mdl_indexes = find_cup_indexes(mdl_cup, slk_data.sample_ids)
     w_d.calculated_concentrations = apply_dilution(mdl_indexes, w_d.dilution_factor, w_d.calculated_concentrations)
-
 
     # ----- Find duplicates and flag if outside analyte tolerance ------------------------------------------------
     duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
@@ -116,7 +118,6 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
                                                       sample_cup_type, qc_cup_ids)
     w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes, w_d.calculated_concentrations,
                                                  w_d.quality_flag, cal_error_limit)
-
 
     # ------ Pull out the data for the QC samples that were measured ---------------------------------------------
     w_d.qc_present = find_qc_present(qc_cups, slk_data.sample_ids)
@@ -128,14 +129,13 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
         setattr(w_d, "{}".format(qc_name + '_concentrations'), medians)
         setattr(w_d, "{}".format(qc_name + '_flags'), flags)
 
-
     print('Proc time: ' + str((time.time()) - st))
 
     return w_d
 
 
 def get_peak_values(peak_starts, ad_data, window_size, window_start):
-    '''
+    """
     Gets the peak height values from the A/D data for each point included in the peak window
     Pulls out the time values as well, which are required for plotting on the interactive screen
     :param peak_starts:
@@ -143,7 +143,7 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
     :param window_size:
     :param window_start:
     :return:
-    '''
+    """
 
     window_end = int(window_start) + int(window_size)
     # This looks ugly, but it is 10x faster than an expanded for if else statement to accomplish the same thing
@@ -159,38 +159,38 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
 
 
 def flag_hashed_samples(peak_starts, quality_flags):
-    '''
+    """
     If a peak start value begins with a HASH(#) then it should be flagged as bad
     :param peak_starts:
     :param quality_flags:
     :return: quality_flags
-    '''
+    """
 
     quality_flags = [quality_flags[i] if x[0] != '#' else 3 for i, x in enumerate(peak_starts)]
     return quality_flags
 
 
 def flag_null_samples(analysis_cups, null_cup, quality_flags):
-    '''
+    """
     To better differentiate the NULL peaks in a run, they are flagged bad so that in interactive processing
     they appear as a Red peak window. This is fine to do as NULL peaks are never samples
     :param analysis_cups:
     :param null_cup:
     :param quality_flags:
     :return: quality_flags
-    '''
+    """
     quality_flags = [quality_flags[i] if x != null_cup else 3 for i, x in enumerate(analysis_cups)]
 
     return quality_flags
 
 
 def peak_shape_qc(window_values, quality_flags):
-    '''
+    """
     Apply a QC on the peak shape to determine if it is of an acceptable shape
     :param window_values:
     :param quality_flags:
     :return:
-    '''
+    """
     first_slopes = []
     second_slopes = []
 
@@ -220,11 +220,11 @@ def peak_shape_qc(window_values, quality_flags):
 
 
 def window_medians(window_values):
-    '''
+    """
     Calculates the window medians for each peak window
     :param window_values:
     :return: window_medians
-    '''
+    """
     window_medians_temp_array = np.array(window_values)
 
     window_medians_temp_array = np.median(window_medians_temp_array, axis=1)
@@ -235,12 +235,12 @@ def window_medians(window_values):
 
 
 def find_cup_indexes(specified_cup, analysis_cups):
-    '''
+    """
     Finds the indexes of a cup type of interest, e.g. indexes of DRIF returns peak indexes for Drift samples
     :param specified_cup:
     :param analysis_cups:
     :return: clean_indexes
-    '''
+    """
     a_c = np.array(analysis_cups)
 
     indexes = np.where(a_c == specified_cup)
@@ -250,13 +250,13 @@ def find_cup_indexes(specified_cup, analysis_cups):
 
 
 def find_carryover_indexes(high_cup_name, low_cup_name, analysis_cups):
-    '''
+    """
     Finds the indexes for the carryover samples, has to be slightly different to accomodate both
     :param high_cup_name:
     :param low_cup_name:
     :param analysis_cups:
     :return:
-    '''
+    """
     # TODO: could get rid of this function and just use find_cup_indexes twice for both of the carryover samples...
     a_c = np.array(analysis_cups)
 
@@ -270,13 +270,13 @@ def find_carryover_indexes(high_cup_name, low_cup_name, analysis_cups):
 
 
 def organise_basedrift_medians(relevant_indexes, window_medians):
-    '''
+    """
     Due to how nutrient runs are processed, an additional baseline or drift needs to be added to the start and end,
     this function completes that task
     :param relevant_indexes:
     :param window_medians:
     :return: medians, indexes
-    '''
+    """
     medians = [window_medians[x] for x in relevant_indexes]
 
     if relevant_indexes[0] != 0:
@@ -290,41 +290,44 @@ def organise_basedrift_medians(relevant_indexes, window_medians):
 
     return medians, relevant_indexes
 
+
 def get_basedrift_flags(relevant_indexes, quality_flags):
-    '''
+    """
     Finds and returns flags, used for the baseline and drifts
     :param relevant_indexes:
     :param quality_flags:
     :return:
-    '''
+    """
 
     flags = [quality_flags[x] for x in relevant_indexes]
 
     return flags
 
+
 def get_basedrift_corr_percent(medians, comparator):
-    '''
+    """
     Calculates the correction percent after applying a drift/baseline correction
     Baseline comparator is the top cal
     Drift comparator is the mean of all drifts
     :param medians:
     :param comparator:
     :return: corr
-    '''
+    """
 
     correction_percent = [(x / comparator) * 100 for x in medians]
 
     return correction_percent
 
+
 def baseline_correction(baseline_indexes, baseline_medians, correction_type, window_medians):
-    '''
+    """
     Applies the baseline correction to the all the run peaks
     :param baseline_indexes:
     :param baseline_medians:
     :param correction_type:
     :param window_medians:
     :return: window_medians
-    '''
+    """
     if correction_type == 'Piecewise':
 
         baseline_interpolation = list(np.interp(range(len(window_medians)), baseline_indexes, baseline_medians))
@@ -339,13 +342,13 @@ def baseline_correction(baseline_indexes, baseline_medians, correction_type, win
 
 
 def carryover_correction(high_index, low_indexes, window_medians):
-    '''
+    """
     Applies the carryover correction across all the run peaks
     :param high_index:
     :param low_indexes:
     :param window_medians:
     :return:
-    '''
+    """
     high_median = [window_medians[x] for x in high_index]
     low_medians = [window_medians[x] for x in low_indexes]
     carryover_coefficient = (low_medians[0] - low_medians[1]) / (high_median[0] - low_medians[0])
@@ -367,14 +370,14 @@ def find_drift_indexes(drift_cup_name, analysis_cups):
 
 
 def drift_correction(drift_indexes, drift_medians, correction_type, window_medians):
-    '''
+    """
     Applies the drift correction across all the run peaks
     :param drift_indexes:
     :param drift_medians:
     :param correction_type:
     :param window_medians:
     :return: window_medians
-    '''
+    """
     if correction_type == 'Piecewise':
         drift_mean = statistics.mean(drift_medians[1:-1])
 
@@ -394,49 +397,49 @@ def drift_correction(drift_indexes, drift_medians, correction_type, window_media
 
 
 def get_calibrant_medians(calibrant_indexes, window_medians):
-    '''
+    """
     Finds and returns the peak height medians for the calibrants
     :param calibrant_indexes:
     :param window_medians:
     :return:
-    '''
+    """
     calibrant_medians = [window_medians[ind] for ind in calibrant_indexes]
 
     return calibrant_medians
 
 
 def get_calibrant_concentrations(calibrant_indexes, nominal_concentrations):
-    '''
+    """
     Finds and returns the nominal concentrations for the calibrants, i.e. their expected concentrations
     :param calibrant_indexes:
     :param nominal_concentrations:
     :return:
-    '''
+    """
     calibrant_concs = [float(nominal_concentrations[ind]) for ind in calibrant_indexes]
 
     return calibrant_concs
 
 
 def get_calibrant_flags(calibrant_indexes, quality_flags):
-    '''
+    """
     Finds and returns the flags for the calibrants
     :param calibrant_indexes:
     :param quality_flags:
     :return:
-    '''
+    """
     calibrant_flags = [quality_flags[ind] for ind in calibrant_indexes]
 
     return calibrant_flags
 
 
 def get_calibrant_zero_mean(window_medians, sample_ids, cal_zero_label):
-    '''
+    """
     Calculates the mean height for cal 0 and returns it
     :param window_medians:
     :param sample_ids:
     :param cal_zero_label:
     :return:
-    '''
+    """
     calibrant_zero_mean = statistics.mean(
         median for ind, median in enumerate(window_medians) if sample_ids[ind] == cal_zero_label)
 
@@ -444,23 +447,23 @@ def get_calibrant_zero_mean(window_medians, sample_ids, cal_zero_label):
 
 
 def remove_calibrant_zero(calibrant_medians, cal_zero_mean):
-    '''
+    """
     Removes the calibrant 0 mean height from all other calibrants
     :param calibrant_medians:
     :param cal_zero_mean:
     :return:
-    '''
+    """
     calibrants_minus_zero = [(cal_median - cal_zero_mean) for cal_median in calibrant_medians]
 
     return calibrants_minus_zero
 
 
 def get_calibrant_weightings(calibrant_concentrations):
-    '''
+    """
     Calculates the weightings for calibrants in preparation for making a calibration curve
     :param calibrant_concentrations:
     :return:
-    '''
+    """
     calibration_weightings = [2 if x == 0.0 else 1 for x in calibrant_concentrations]
 
     return calibration_weightings
@@ -468,7 +471,7 @@ def get_calibrant_weightings(calibrant_concentrations):
 
 def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, calibrant_weightings, calibrant_error,
                        calibrant_flags):
-    '''
+    """
     Completes a iterative calibration that checks if the calibrants fall within the specified limits, otherwise
     the calibrants are flagged and not used and a recalibration takes place. This goes until all calibrants are within
     specification, or there is only 30% left.
@@ -479,7 +482,7 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
     :param calibrant_error:
     :param calibrant_flags:
     :return:
-    '''
+    """
     repeat_calibration = True
     calibration_iteration = 0
     # TODO: Massive todo I've f'd this up royally, it works and works well, but it is not clean at all.
@@ -544,13 +547,13 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
 
 
 def apply_calibration(cal_type, window_medians, calibration_coefficients):
-    '''
+    """
     Applies the calibration to calculate the concentrations of all peaks
     :param cal_type:
     :param window_medians:
     :param calibration_coefficients:
     :return:
-    '''
+    """
     if cal_type == 'Linear':
         calculated_concentrations = [(x * calibration_coefficients[0]) + calibration_coefficients[1] for x in
                                      window_medians]
@@ -559,13 +562,13 @@ def apply_calibration(cal_type, window_medians, calibration_coefficients):
 
 
 def apply_dilution(mdl_indexes, dilution_factors, calculated_concentrations):
-    '''
+    """
     Calculates the concentration before dilution
     :param mdl_indexes:
     :param dilution_factors:
     :param calculated_concentrations:
     :return:
-    '''
+    """
     cc = np.array(calculated_concentrations)
     df = np.array(dilution_factors[:-1])
     mdl_concs = cc[mdl_indexes]
@@ -579,11 +582,11 @@ def apply_dilution(mdl_indexes, dilution_factors, calculated_concentrations):
 
 
 def find_duplicate_indexes(sample_ids):
-    '''
+    """
     Determines if there are duplicate samples and returns their indexes
     :param sample_ids:
     :return:
-    '''
+    """
     tally = defaultdict(list)
 
     for i, item in enumerate(sample_ids):
@@ -606,14 +609,14 @@ def find_duplicate_samples(duplicate_indexes, sample_ids, cup_types, sample_cup_
 
 
 def determine_duplicate_error(duplicate_samples, calculated_concentrations, quality_flags, analyte_tolerance):
-    '''
+    """
     Determine the error between the duplicate samples, if outside tolerance level then flag
     :param duplicate_samples:
     :param calculated_concentrations:
     :param quality_flags:
     :param analyte_tolerance:
     :return:
-    '''
+    """
     for sample_indexes in duplicate_samples:
         tested_concentrations = [calculated_concentrations[i] for i in sample_indexes[1]]
         for i, conc in enumerate(tested_concentrations):
@@ -627,12 +630,12 @@ def determine_duplicate_error(duplicate_samples, calculated_concentrations, qual
 
 
 def reset_calibrant_flags(quality_flags):
-    '''
+    """
     Reset the calibrant flags on an interactive processing update, essentially removes the flags put in place from the
     calibration reoutine
     :param quality_flags:
     :return:
-    '''
+    """
     for i, x in enumerate(quality_flags):
         if x in [91, 92]:
             quality_flags[i] = 1
@@ -702,14 +705,14 @@ def populate_nutrient_survey(database, params, sample_id):
 
 # TODO: Finding a nutrient survey needs fixing, this is messy and does not account for all cases!
 def determine_nutrient_survey(database, params, sample_id):
-    '''
+    """
     Algorithm for determining the survey of a sample, just has a lot of different checks that need to take place to
     account for all cases
     :param database:
     :param params:
     :param sample_id:
     :return: deployment, rosette, survey
-    '''
+    """
     conn = sqlite3.connect(database)
     c = conn.cursor()
 
@@ -765,13 +768,14 @@ def determine_nutrient_survey(database, params, sample_id):
                                 survey = surv
                                 return deployment, rosettepos, survey
 
+
 def find_qc_present(qc_cups, sample_ids):
-    '''
+    """
     Determine what QC samples are in the analysis
     :param qc_cups:
     :param sample_ids:
     :return:
-    '''
+    """
     qc_present = []
     sample_ids_set = set(sample_ids)
     for qc in qc_cups:
@@ -783,28 +787,225 @@ def find_qc_present(qc_cups, sample_ids):
                     qc_present.append(qc_cups[qc])
     return qc_present
 
+
 def get_qc_index(qc, sample_ids):
-    '''
+    """
     Get the index of the QC samples
     :param qc:
     :param sample_ids:
     :return:
-    '''
+    """
     indexes = []
     for i, s_id in enumerate(sample_ids):
         if qc in s_id:
             indexes.append(i)
     return indexes
 
+
 def get_qc_data(indexes, medians, flags):
-    '''
+    """
     Get the data for the QC samples
     :param indexes:
     :param medians:
     :param flags:
     :return:
-    '''
+    """
     qc_medians = [medians[x] for x in indexes]
     qc_flags = [flags[x] for x in indexes]
 
     return qc_medians, qc_flags
+
+
+def generate_rvi_timestamps(epoch_date, length):
+    """
+    Generates time stamps for every point in the RV Investigator underway NetCDF
+    :param epoch_date:
+    :param length:
+    :return:
+    """
+    date_to_convert = epoch_date[-22:-3]
+    date_format = '%Y-%m-%d %H:%M:%S'
+    try:
+        epoch_seconds = float(epoch_date[0:8])
+    except ValueError:
+        epoch_seconds = float(epoch_date[0:7])
+
+    time_stamp = calendar.timegm(time.strptime(date_to_convert, date_format))
+
+    rvi_start_time = time_stamp + epoch_seconds
+
+    rvi_times = []
+    rvi_times.append(rvi_start_time)
+    for x in range(length):
+        rvi_times.append(rvi_times[x] + 5)
+
+    return rvi_times
+
+
+def match_lat_lons_routine(path, project, database, current_nut, parameters, working_data, slk_data):
+    """
+    This is the routine that handles the processing workflow of matching up underway data to the RV Investigator
+    merged underway instrument file. Completes te time matching, finding Latitude/Longitudes and then packages the
+    data to be stored in the database.
+    :param path:
+    :param project:
+    :param database:
+    :param current_nut:
+    :param parameters:
+    :param working_data:
+    :param slk_data:
+    :return:
+    """
+    rvi_uwy_path = path + '/' + project + 'uwy.nc'
+
+    if not os.path.isfile(rvi_uwy_path):
+        logging.error('There is no RV Investigator file with correct name. Make sure the name matches the project '
+                      'name and is suffixed with uwy, e.g. in2019_v01uwy.nc')
+        return False
+
+    rvi_uwy = xr.open_dataset(rvi_uwy_path)
+    epoch_date = rvi_uwy.Epoch
+
+    rvi_lon = rvi_uwy.longitude.values
+    rvi_lat = rvi_uwy.latitude.values
+
+    rvi_times = generate_rvi_timestamps(epoch_date, len(rvi_lon))
+
+    sample_times, sample_concs = extract_underway_samples(slk_data.cup_types, working_data.quality_flag,
+                                                          slk_data.epoch_timestamps,
+                                                          working_data.calculated_concentrations,
+                                                          parameters['nutrientprocessing']['cupnames']['sample'])
+
+    rvi_start, rvi_end = find_rvi_time_subset(sample_times, rvi_times)
+
+    matched_rvi_indexes = find_time_matches(rvi_start, rvi_end, rvi_times, sample_times)
+
+    matched_lats, matched_lons = find_location_matches(matched_rvi_indexes, rvi_lat, rvi_lon)
+
+    file = [working_data.run for x in sample_times]
+    packaged_underway_data = tuple(zip(matched_lats, matched_lons, sample_times, sample_concs, file))
+
+    store_underway_data(packaged_underway_data, database, current_nut)
+
+
+def extract_underway_samples(cup_types, quality_flags, time_stamps, concentrations, sample_name):
+    """
+    Finds the underway samples and pulls out the time stamps and the relevant concentrations from the run data
+    :param cup_types:
+    :param quality_flags:
+    :param time_stamps:
+    :param concentrations:
+    :param sample_name:
+    :return: sample_times, sample_concentrations
+    """
+
+
+    sample_times = []
+    sample_concs = []
+    for i, x in enumerate(cup_types):
+        if x == sample_name:
+            if quality_flags[i] == 1:
+                sample_times.append(time_stamps[i])
+                sample_concs.append(concentrations[i])
+
+    return sample_times, sample_concs
+
+
+def find_rvi_time_subset(sample_times, rvi_times):
+    """
+    Finds the time stamps in the RV Investigator underway file that intersect with the analysis timestamps
+    This is used to speed up the process of finding each time stamp by creating a small subset from the entire file
+    :param sample_times:
+    :param rvi_times:
+    :return:
+    """
+    sample_start_time = min(sample_times)
+    sample_end_time = max(sample_times)
+
+    rvi_time_start_index = 0
+    rvi_time_end_index = 0
+
+    for i, x in enumerate(rvi_times):
+        if abs(x - sample_start_time) < 3:
+            rvi_time_start_index = i
+        if abs(x - sample_end_time) < 4:
+            rvi_time_end_index = i
+            break
+
+    return rvi_time_start_index, rvi_time_end_index
+
+
+def find_time_matches(rvi_start_index, rvi_end_index, rvi_times, sample_times):
+    """
+    Finds the relevant indexes in the RV Investigator underway file where the time stamp matches the analysis time
+    stamp. Creates a list of index points to maintain the original index numbering for after the subsetting
+    :param rvi_start_index:
+    :param rvi_end_index:
+    :param rvi_times:
+    :param sample_times:
+    :return: matching_indexes
+    """
+
+    # A list of indexes is created so that it can be related back to the original file for pulling out the Lat/Lons
+    rvi_indexes = [i for i, x in enumerate(rvi_times)]
+
+    rvi_time_subset = rvi_times[rvi_start_index : rvi_end_index]
+    rvi_index_subset = rvi_indexes[rvi_start_index : rvi_end_index]
+
+    matched_rvi_indexes = []
+    for i, x in enumerate(rvi_time_subset):
+        for y in sample_times:
+            if abs(x - y) < 5: # Less than 5 because there is a RVI underway point every 5 seconds
+                matched_rvi_indexes.append(rvi_index_subset[i])
+                break
+
+    return matched_rvi_indexes
+
+
+def find_location_matches(matched_rvi_indexes, rvi_lats, rvi_lons):
+    """
+    Finds the latitude and longitude that matches the index of the underway timestamp which was matched up with the
+    analysis time stamp
+    :param matched_rvi_indexes:
+    :param rvi_lats:
+    :param rvi_lons:
+    :return:
+    """
+    matched_lats = [rvi_lats[x] for x in matched_rvi_indexes]
+    matched_lons = [rvi_lons[x] for x in matched_rvi_indexes]
+
+    return matched_lats, matched_lons
+
+
+def store_underway_data(packaged_data, database, current_nutrient):
+    """
+    Interfaces the sqlite database to store the data. Completes a check to see if data is already entered from another
+    analyte, i.e when there are multiple channels in one analysis. If there is already data from another analyte, 
+    it changes the database entry to update the data and not overwrite what is already entered. 
+    :param packaged_data: 
+    :param database: 
+    :param current_nutrient: 
+    :return: 
+    """
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+
+    file_check = packaged_data[0][4]
+
+    c.execute('SELECT * from underwayNutrients WHERE file=?', (file_check,))
+    check_data = c.fetchall()
+    if check_data:
+        # If some data from the other channel already in, then just update columns with this analytes data
+        # Little messy but it shall do
+        concs = [x[3] for x in packaged_data]
+        times = [x[2] for x in packaged_data]
+        shortened_data = tuple(zip(concs, times))
+        c.executemany('UPDATE underwayNutrients SET %s=? WHERE time=?' % current_nutrient, shortened_data)
+    else:
+        c.executemany('INSERT or REPLACE into underwayNutrients(latitude, longitude, time, %s, file) '
+                      'VALUES (?, ?, ?, ?, ?)' % current_nutrient, packaged_data)
+    
+    conn.commit()
+    conn.close()        
+    
+    logging.info('Underway data successfully matched with Investigator data. Correctly packaged and stored in database.')
