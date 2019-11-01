@@ -29,6 +29,8 @@ import cProfile
 class processingNutrientsWindow(hyproMainWindowTemplate):
 
     """
+    This is the class that handles the GUI interface for Nutrient processing
+
     Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad,
                     91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 
@@ -40,6 +42,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         # Set flagging colours
         self.FLAG_COLORS = {1: '#68C968', 2: '#3CB6C9', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#C9852B'}
+        self.FLAG_CONVERTER = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad',
+                               91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
 
         # Load in the processing parameters
         self.processing_parameters = load_proc_settings(path, project)
@@ -318,8 +322,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         print(str(len(self.main_trace.lines)) + str(' Lines on Main Trace'))
 
     def store_data(self):
-       # TODO: Make storing data function
-        pass
         psn.pack_data(self.slk_data, self.w_d, self.database)
 
     def proceed(self):
@@ -358,7 +360,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         """
         event2 = event
         tb = get_current_fig_manager().toolbar
-        if event.button == 3 and event.inaxes and tb.mode == '':
+        if event.button == 1 and event.inaxes and tb.mode == '':
             x_axis_time = int(event.xdata)
             exists, peak_index = match_click_to_peak(x_axis_time, self.slk_data, self.current_nutrient)
             if exists:
@@ -371,6 +373,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                    self.w_d.dilution_factor[peak_index], 'Trace')
                 self.peak_display.setStart.connect(lambda: self.move_peak_start(x_axis_time, peak_index))
                 self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_axis_time, peak_index))
+                self.peak_display.saveSig.connect(lambda: self.update_from_dialog(peak_index))
 
     def move_peak_start(self, x_axis_time, peak_index):
         """
@@ -565,6 +568,17 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         maxheight = max(self.chd_data.ad_data[self.current_nutrient][int(xmin): int(xmax)])
         self.main_trace.set_ylim(ymin, maxheight * 1.02)
         self.tracecanvas.draw()
+
+    def update_from_dialog(self, index):
+        self.slk_data.cup_types[index] = self.peak_display.peakcupline.text()
+        self.w_d.dilution_factor[index] = int(self.peak_display.dilutionline.text())
+        #TODO: Add validation check to these user editable fields
+        rev_flag_convert = {x : y for y, x in self.FLAG_CONVERTER.items()}
+        self.w_d.quality_flag[index] = rev_flag_convert[self.peak_display.flagbox.currentText()]
+
+        self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                          self.current_nutrient)
+        self.interactive_routine()
 
     def create_standard_qc_tabs(self):
         """

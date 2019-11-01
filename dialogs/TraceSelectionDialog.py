@@ -4,6 +4,12 @@ from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
 # Small GUI dialog that provides information and functionality when a peak is clicked on the trace of
 # nutrient processing
+"""
+Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad, 
+                91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
+"""
+
+
 class traceSelection(hyproDialogTemplate):
     setStart = pyqtSignal()
     setEnd = pyqtSignal()
@@ -13,6 +19,10 @@ class traceSelection(hyproDialogTemplate):
 
     def __init__(self, sampleid, cuptype, peaknumber, admedian, conc, flag, dil, type):
         super().__init__(550, 245, 'HyPro - Peak:')
+
+        self.flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad',
+                               91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
+
 
         self.sampleid = sampleid
         self.cuptype = cuptype
@@ -58,12 +68,7 @@ class traceSelection(hyproDialogTemplate):
         self.flagbox = QComboBox(self)
         self.flagbox.addItems(('Good', 'Suspect', 'Bad'))
 
-        if self.flag == 1:
-            self.flagbox.setCurrentText('Good')
-        if self.flag == 2:
-            self.flagbox.setCurrentText('Suspect')
-        if self.flag == 3:
-            self.flagbox.setCurrentText('Bad')
+        self.flagbox.setCurrentText(self.flag_converter[self.flag])
 
         dilutionlabel = QLabel('Dilution Factor: ')
 
@@ -127,8 +132,18 @@ class traceSelection(hyproDialogTemplate):
         self.show()
 
     def save(self):
-        self.saveSig.emit()
+        if self.any_change:
+            self.saveSig.emit()
+
         self.close()
+
+    def any_change(self):
+        cup = self.peakcupline.text()
+        dilution = self.dilutionline.text()
+        q_flag = self.flagbox.currentText()
+
+        if cup != self.cuptype or dilution != self.dil or q_flag != self.flag_converter[self.flag]:
+            return True
 
     def cancel(self):
         self.close()
