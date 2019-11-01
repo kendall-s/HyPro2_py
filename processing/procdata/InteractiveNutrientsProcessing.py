@@ -36,11 +36,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     def __init__(self, file, database, path, project, interactive=True, rereading=''):
         screenwidth = QDesktopWidget().availableGeometry().width()
         screenheight = QDesktopWidget().availableGeometry().height()
-        super().__init__((screenwidth * 0.85), (screenheight * 0.85),
-                         'HyPro - Process Nutrient Analysis')
+        super().__init__((screenwidth * 0.85), (screenheight * 0.85), 'HyPro - Process Nutrient Analysis')
 
+        # Set flagging colours
         self.FLAG_COLORS = {1: '#68C968', 2: '#3CB6C9', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#C9852B'}
 
+        # Load in the processing parameters
         self.processing_parameters = load_proc_settings(path, project)
 
         self.file_path = path + '/' + 'Nutrients' + '/' + file
@@ -48,9 +49,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.project = project
         self.database = database
 
+        # General HyPro settings, use for setting theme of window
         with open('C:/HyPro/hyprosettings.json', 'r') as temp:
             params = json.loads(temp.read())
-
         # Load up theme for window
         if params['theme'] == 'normal':
             plt.style.use(style.mplstyle['normal'])
@@ -114,7 +115,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             fileMenu = mainMenu.addMenu('File')
             editMenu = mainMenu.addMenu('Edit')
 
-            self.analysistraceLabel = QLabel('<b>Analysis Trace:</b>')
+            self.analysistraceLabel = QLabel('<b>Analysis Trace: </b>' + str(self.current_nutrient))
             self.analysistraceLabel.setProperty('headertext', True)
 
             tracelabelframe = QFrame()
@@ -306,8 +307,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         #self.main_trace.plot(w_d.time_values, w_d.window_values, linewidth=0.25, color='#68C968', marker='o')
 
-        self.baseline = self.main_trace.plot(w_d.baseline_peak_starts[:], w_d.baseline_medians[1:-1], linewidth=1, color="#d69f20", label='baseline')
-        self.main_trace.plot(w_d.drift_peak_starts[:], w_d.raw_drift_medians[:], linewidth=1, label='drift')
+        self.main_trace.plot(w_d.baseline_peak_starts[:], w_d.baseline_medians[1:-1], linewidth=1, color="#d69f20", label='baseline')
+        self.main_trace.plot(w_d.drift_peak_starts[:], w_d.raw_drift_medians[:], linewidth=1, color="#c6c600", label='drift')
 
         self.tracecanvas.draw()
         ft = time.time()
@@ -319,7 +320,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     def store_data(self):
        # TODO: Make storing data function
         pass
-        #psn.pack_data(self.slk_data, self.w_d, self.database)
+        psn.pack_data(self.slk_data, self.w_d, self.database)
 
     def proceed(self):
         self.main_trace.cla()
@@ -336,6 +337,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         index = self.slk_data.active_nutrients.index(self.current_nutrient)
         try:
             self.current_nutrient = self.slk_data.active_nutrients[index+1]
+            self.analysistraceLabel.setText('<b>Analysis Trace: </b>' + str(self.current_nutrient))
+            self.w_d.analyte = self.current_nutrient
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
             self.interactive_routine()

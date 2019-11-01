@@ -81,6 +81,8 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ----------- Find drift peaks - apply drift correction -----------------------------------------------------
     w_d.drift_indexes = find_cup_indexes(drift_cup_type, slk_data.cup_types)
+    w_d.drift_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.drift_indexes]
+    w_d.raw_drift_medians = [w_d.raw_window_medians[x] for x in w_d.drift_indexes]
     w_d.drift_medians, w_d.drift_indexes = organise_basedrift_medians(w_d.drift_indexes, w_d.corr_window_medians)
     w_d.drift_flags = get_basedrift_flags(w_d.drift_indexes, w_d.quality_flag)
     w_d.drift_corr_percent = get_basedrift_corr_percent(w_d.drift_medians, statistics.mean(w_d.drift_medians[1:-1]))
@@ -245,7 +247,7 @@ def find_cup_indexes(specified_cup, analysis_cups):
 
     indexes = np.where(a_c == specified_cup)
 
-    clean_indexes = [x for x in indexes[0]]
+    clean_indexes = [int(x) for x in indexes[0]]
     return clean_indexes
 
 
@@ -385,7 +387,7 @@ def drift_correction(drift_indexes, drift_medians, correction_type, window_media
         for x in drift_medians:
             drift_calculated.append(drift_mean / x)
 
-        drift_interpolation = np.interp(range(len(window_medians)), drift_indexes, drift_medians)
+        drift_interpolation = np.interp(range(len(window_medians)), drift_indexes, drift_calculated)
 
         new_window_medians = [x * drift_interpolation[i] for i, x in enumerate(window_medians)]
 
@@ -502,6 +504,8 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
 
             fp = np.poly1d(cal_coefficients)
             y_fitted = [fp(x) for x in calibrant_medians]
+
+            cal_coefficients = list(cal_coefficients)
 
         elif cal_type == 'Quadratic':
             pass
@@ -645,41 +649,54 @@ def reset_calibrant_flags(quality_flags):
 
 def pack_data(slk_data, working_data, database):
     conn = sqlite3.connect(database)
-    print(database)
     c = conn.cursor()
 
     run_list = [working_data.run for x in slk_data.sample_ids]
+    peak_number = [i for i, x in enumerate(slk_data.sample_ids)]
 
-    package = tuple(zip(run_list, slk_data.cup_types, slk_data.sample_ids, slk_data.cup_numbers,
+    package = tuple(zip(run_list, slk_data.cup_types, slk_data.sample_ids, peak_number,
                         working_data.raw_window_medians, working_data.corr_window_medians,
                         working_data.calculated_concentrations, slk_data.survey, slk_data.deployment,
                         slk_data.rosette_position, working_data.quality_flag, working_data.dilution_factor,
                         slk_data.epoch_timestamps))
 
     c.executemany('INSERT OR REPLACE INTO %sData VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)' % working_data.analyte, package)
+    conn.commit()
 
-    c.commit()
-
-    package = tuple(zip(working_data.analyte, working_data.run, working_data.channel,
+    package = (working_data.analyte, working_data.run, working_data.channel,
                         slk_data.gains[working_data.analyte], slk_data.bases[working_data.analyte],
-                        working_data.calibrant_zero_mean, working_data.carryover_coefficient,
-                        working_data.calibration_coefficients[0], working_data.calibration_coefficients[1]))
+                        working_data.carryover_coefficient, working_data.calibrant_zero_mean,
+                        working_data.calibration_coefficients[0], working_data.calibration_coefficients[1])
 
-    c.executemany('INSERT OR REPLACE INTO nutrientHeader VALUES(?,?,?,?,?,?,?,?,?)', package)
+    c.execute('INSERT OR REPLACE INTO nutrientHeader VALUES(?,?,?,?,?,?,?,?,?)', package)
+    conn.commit()
 
-    c.commit()
-
-    package = tuple(zip(working_data.analyte, working_data.run, working_data.calibrant_indexes,
+    anl = [working_data.analyte for x in working_data.calibrant_indexes]
+    run = [working_data.run for x in working_data.calibrant_indexes]
+    package = tuple(zip(anl, run, working_data.calibrant_indexes,
                         working_data.calibrant_medians, working_data.calibrant_medians_minuszero,
-                        working_data.calibrant_concentrations, working_data.calibrant_weightings,
+                        working_data.calibrant_concs, working_data.calibrant_weightings,
                         working_data.calibrant_residuals, working_data.calibrant_flags))
 
     c.executemany('INSERT OR REPLACE INTO nutrientCalibrants VALUES(?,?,?,?,?,?,?,?,?)', package)
+    conn.commit()
 
-    c.commit()
+    anl = [working_data.analyte for x in working_data.baseline_indexes]
+    run = [working_data.run for x in working_data.baseline_indexes]
+    package = tuple(zip(anl, run, working_data.baseline_indexes,
+                        working_data.baseline_medians, working_data.baseline_flags))
 
-    package = tuple(zip(working_data.analyte, working_data.run, working_data.baseline_indexes,
-                        working_data.baseline_peak_starts, working_data.baseline_medians))
+    c.executemany('INSERT OR REPLACE INTO nutrientBaselines VALUES(?,?,?,?,?)', package)
+    conn.commit()
+
+    anl = [working_data.analyte for x in working_data.drift_indexes]
+    run = [working_data.run for x in working_data.drift_indexes]
+    package = tuple(zip(anl, run, working_data.drift_indexes,
+                        working_data.drift_medians, working_data.drift_flags))
+    print(package)
+
+    c.executemany('INSERT OR REPLACE INTO nutrientDrifts VALUES (?,?,?,?,?)', package)
+    conn.commit()
 
 
 def populate_nutrient_survey(database, params, sample_id):
@@ -741,8 +758,7 @@ def determine_nutrient_survey(database, params, sample_id):
                             print('TODO pull dep/rp from logsheet instead')
                             # TODO: pull dep/rp from logsheet option
                 else:  # Sample id has more than just numbers in it
-                    if params['surveyparams'][surv]['seal'][
-                        'decodesampleid']:  # Decode the sample ID, needs a prefisurv too
+                    if params['surveyparams'][surv]['seal']['decodesampleid']:  # Decode the sample ID, needs a prefisurv too
                         surveyprefisurv = params['surveyparams'][surv]['seal']['surveyprefisurv']
                         if len(params['surveyparams'][surv]['seal'][
                                    'surveyprefisurv']) > 0:  # Check theres actually a prefisurv
@@ -815,6 +831,10 @@ def get_qc_data(indexes, medians, flags):
 
     return qc_medians, qc_flags
 
+
+#
+# Functions relevant to matching underway nutrient files to RVI merged underway data
+#
 
 def generate_rvi_timestamps(epoch_date, length):
     """

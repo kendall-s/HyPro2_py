@@ -138,7 +138,7 @@ def extract_slk_data(slk_path, processing_parameters):
 
         findx, findy = getIndex(data_hold,
                                 '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupNumbers'] + '"')
-        slk_data.cup_numbers = [row[findy][1:-1] for row in data_hold[findx + 1:]]
+        slk_data.cup_numbers = [row[findy][:] for row in data_hold[findx + 1:]]
 
         findx, findy = getIndex(data_hold,
                                 '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupTypes'] + '"')
