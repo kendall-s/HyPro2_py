@@ -504,56 +504,60 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
     flags_to_fit = [x for x in calibrant_flags]
 
     while repeat_calibration:
+        try:
+            calibration_iteration += 1
 
-        calibration_iteration += 1
+            if cal_type == 'Linear':
+                cal_coefficients = polyfit(medians_to_fit, concs_to_fit, 1, w=weightings_to_fit)
 
-        if cal_type == 'Linear':
-            cal_coefficients = polyfit(medians_to_fit, concs_to_fit, 1, w=weightings_to_fit)
+                fp = nppoly1d(cal_coefficients)
+                y_fitted = [fp(x) for x in calibrant_medians]
 
-            fp = nppoly1d(cal_coefficients)
-            y_fitted = [fp(x) for x in calibrant_medians]
+                cal_coefficients = list(cal_coefficients)
 
-            cal_coefficients = list(cal_coefficients)
+            elif cal_type == 'Quadratic':
+                pass
 
-        elif cal_type == 'Quadratic':
-            pass
+            else:
+                logging.error('ERROR: No calibration type specified for nutrient')
+                raise NameError('No calibration type could be applied')
 
-        else:
-            logging.error('ERROR: No calibration type specified for nutrient')
-            raise NameError('No calibration type could be applied')
-
-        repeat_calibration = False
-
-        calibrant_residuals = []
-        for i, x in enumerate(concs_to_fit):
-            cal_residual = x - fp(medians_to_fit[i])
-            calibrant_residuals.append(cal_residual)
-
-        max_residual_index = int(npargmax(npabs(nparray(calibrant_residuals))))
-
-        if abs(calibrant_residuals[max_residual_index]) > (2 * calibrant_error) and flags_to_fit[
-            max_residual_index] != 92:
-            repeat_calibration = True
-            weightings_to_fit[max_residual_index] = 0
-            flags_to_fit[max_residual_index] = 91
-            medians_to_fit.pop(max_residual_index)
-            concs_to_fit.pop(max_residual_index)
-            weightings_to_fit.pop(max_residual_index)
-            original_indexes.pop(max_residual_index)
-            flags_to_fit.pop(max_residual_index)
-            calibrant_flags[original_indexes[max_residual_index]] = 91
-            calibrant_weightings[original_indexes[max_residual_index]] = 0
-
-        if calibrant_error < abs(calibrant_residuals[max_residual_index]) < (2 * calibrant_error) and flags_to_fit[
-            max_residual_index] != 6:
-            repeat_calibration = True
-            weightings_to_fit[max_residual_index] = 0.5
-            flags_to_fit[max_residual_index] = 92
-            calibrant_flags[original_indexes[max_residual_index]] = 92
-            calibrant_weightings[original_indexes[max_residual_index]] = 0.5
-
-        if calibration_iteration > 7:
             repeat_calibration = False
+
+            calibrant_residuals = []
+            for i, x in enumerate(concs_to_fit):
+                cal_residual = x - fp(medians_to_fit[i])
+                calibrant_residuals.append(cal_residual)
+
+            max_residual_index = int(npargmax(npabs(nparray(calibrant_residuals))))
+
+            if abs(calibrant_residuals[max_residual_index]) > (2 * calibrant_error) and flags_to_fit[
+                max_residual_index] != 92:
+                repeat_calibration = True
+                weightings_to_fit[max_residual_index] = 0
+                flags_to_fit[max_residual_index] = 91
+
+                medians_to_fit.pop(max_residual_index)
+                concs_to_fit.pop(max_residual_index)
+                weightings_to_fit.pop(max_residual_index)
+                original_indexes.pop(max_residual_index)
+                flags_to_fit.pop(max_residual_index)
+
+                calibrant_flags[original_indexes[max_residual_index]] = 91
+                calibrant_weightings[original_indexes[max_residual_index]] = 0
+
+            if calibrant_error < abs(calibrant_residuals[max_residual_index]) < (2 * calibrant_error) and flags_to_fit[
+                max_residual_index] != 6:
+                repeat_calibration = True
+                weightings_to_fit[max_residual_index] = 0.5
+                flags_to_fit[max_residual_index] = 92
+                calibrant_flags[original_indexes[max_residual_index]] = 92
+                calibrant_weightings[original_indexes[max_residual_index]] = 0.5
+
+            if calibration_iteration > 7:
+                repeat_calibration = False
+        except IndexError:
+            pass
 
     return cal_coefficients, calibrant_flags, calibrant_weightings, calibrant_residuals
 
@@ -767,12 +771,12 @@ def determine_nutrient_survey(database, params, sample_id):
                             # TODO: pull dep/rp from logsheet option
                 else:  # Sample id has more than just numbers in it
                     if params['surveyparams'][surv]['seal']['decodesampleid']:  # Decode the sample ID, needs a prefisurv too
-                        surveyprefisurv = params['surveyparams'][surv]['seal']['surveyprefisurv']
+                        surveyprefix = params['surveyparams'][surv]['seal']['surveyprefix']
                         if len(params['surveyparams'][surv]['seal'][
-                                   'surveyprefisurv']) > 0:  # Check theres actually a prefisurv
-                            sampleprefisurv = sample_id[
-                                              0:len(params['surveyparams'][surv]['seal']['surveyprefisurv'])]
-                            if surveyprefisurv == sampleprefisurv:
+                                   'surveyprefix']) > 0:  # Check theres actually a prefix
+                            sampleprefix = sample_id[
+                                              0:len(params['surveyparams'][surv]['seal']['surveyprefix'])]
+                            if surveyprefix == sampleprefix:
                                 survey = surv
                             else:
                                 logging.error('Sample: ' + str(sample_id) + ' does not match esurvisting surveys.')
@@ -787,7 +791,7 @@ def determine_nutrient_survey(database, params, sample_id):
 
                                     return deployment, rosettepos, survey
                             else:
-                                rosettepos = int(sample_id[len(surveyprefisurv):])
+                                rosettepos = int(sample_id[len(surveyprefix):])
                                 deployment = surv
                                 survey = surv
                                 return deployment, rosettepos, survey

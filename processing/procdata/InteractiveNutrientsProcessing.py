@@ -90,12 +90,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             sys.exit()
 
 
-    def interactive_routine(self):
+    def interactive_routine(self, trace_redraw=False):
         """
         Routine called everytime the data has been reprocessed, this will redraw all as necessary.
         :return:
         """
-        thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient))
+        thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient, trace_redraw))
         thread.start()
         thread.join()
 
@@ -280,7 +280,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         except Exception:
             print(traceback.print_exc())
 
-    def draw_data(self, chd_data, w_d, current_nutrient):
+    def draw_data(self, chd_data, w_d, current_nutrient, trace_redraw):
         """
         Draws the relevant data to the figures that are already intialised in init_ui. Removes lines on each call of
         this function so that memory and performance are preserved.
@@ -301,6 +301,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.main_trace.set_xlim(0, len(chd_data.ad_data[current_nutrient]))
             self.main_trace.set_ylim(0, max(chd_data.ad_data[current_nutrient])*1.1)
+
+        if trace_redraw:
+            del self.main_trace.lines[:]
+            self.main_trace.plot(range(len(chd_data.ad_data[current_nutrient])), chd_data.ad_data[current_nutrient],
+                                 linewidth=0.9, label='trace')
 
         if len(self.main_trace.lines) > 1:
             del self.main_trace.lines[1:]
@@ -374,6 +379,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 self.peak_display.setStart.connect(lambda: self.move_peak_start(x_axis_time, peak_index))
                 self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_axis_time, peak_index))
                 self.peak_display.saveSig.connect(lambda: self.update_from_dialog(peak_index))
+                self.peak_display.peakShiftLeft.connect(lambda: self.shift_trace(x_axis_time, 'left'))
+                self.peak_display.peakShiftRight.connect(lambda: self.shift_trace(x_axis_time, 'right'))
 
     def move_peak_start(self, x_axis_time, peak_index):
         """
@@ -435,6 +442,19 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                               self.current_nutrient)
             self.interactive_routine()
 
+    def shift_trace(self, x_axis_time, direction):
+        if direction == 'right':
+            for i in range(3):
+                self.chd_data.ad_data[self.current_nutrient].insert(x_axis_time, 0)
+        elif direction == 'left':
+            for i in range(3):
+                self.chd_data.ad_data[self.current_nutrient].pop(x_axis_time)
+
+        self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                          self.current_nutrient)
+
+        self.interactive_routine(trace_redraw=True)
+
     def keyPressEvent(self, event):
         """
         Handles keyboard button presses and completes functions accordingly
@@ -478,7 +498,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 'windowStart'] = ws
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
-            self.draw_data(self.chd_data, self.w_d, self.current_nutrient)
+            self.draw_data(self.chd_data, self.w_d, self.current_nutrient, False)
             self.interactive_routine()
         # Below is only meant to be used for DEVELOPMENT PURPOSES, used to inject random values into peak picking
         # to check how the software responds, used to check speed of processing and robustness
@@ -494,7 +514,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.w_d.quality_flag = [self.w_d.quality_flag[i] if x not in [4,5] else 1 for i, x in enumerate(self.w_d.quality_flag)]
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
-            self.draw_data(self.chd_data, self.w_d, self.current_nutrient)
+            self.draw_data(self.chd_data, self.w_d, self.current_nutrient, False)
             self.interactive_routine()
 
     def move_camera_left(self):
@@ -681,13 +701,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     qcp.mdl_plot(self.MDL_fig, self.MDL_plot, self.w_d.MDL_indexes, self.w_d.MDL_concentrations,
                                  self.w_d.MDL_flags)
 
-                elif qc.lower() == 'bqc':
-                    qcp.bqc_plot(self.BQC_fig, self.BQC_plot, self.w_d.BQC_indexes, self.w_d.BQC_concentrations,
-                                 self.w_d.BQC_flags)
-
-                elif qc.lower() == 'intqc':
-                    #qcp.intqc_plot(self.IntQC_fig, self.IntQC_plot, self.w_d.)
-                    pass
+                # elif qc.lower() == 'bqc':
+                #     qcp.bqc_plot(self.BQC_fig, self.BQC_plot, self.w_d.BQC_indexes, self.w_d.BQC_concentrations,
+                #                  self.w_d.BQC_flags)
+                #
+                # elif qc.lower() == 'intqc':
+                #     qcp.intqc_plot(self.IntQC_fig, self.IntQC_plot, self.w_d.)
+                    # pass
 
 
 if __name__ == '__main__':

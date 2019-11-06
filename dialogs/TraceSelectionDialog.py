@@ -150,11 +150,9 @@ class traceSelection(hyproDialogTemplate):
 
     def peakshiftright(self):
         self.peakShiftRight.emit()
-        self.close()
 
     def peakshiftleft(self):
         self.peakShiftLeft.emit()
-        self.close()
 
     def pickstart(self):
         self.setStart.emit()

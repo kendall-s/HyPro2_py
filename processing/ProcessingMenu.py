@@ -397,7 +397,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
             c.close()
 
             format = '%d/%m/%Y %H:%M:%S'
-            starttime = '01/01/2018 00:00:00'
+            starttime = '01/01/2019 00:00:00'
             starttimeinseconds = calendar.timegm(time.strptime(starttime, format))
 
             lat = [x[0] for x in data]
@@ -414,8 +414,8 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
             if files:
                 preppedfile = Dataset(files + '/' + self.currproject + '.nc', 'w')
 
-                preppedfile.description = 'in2018_v04 Underway Nutrients, Nitrate (NOx) and Phosphate ' \
-                                          'analysed on Seal AA100. Time stamps are seconds since 01/01/2018 00:00 UTC.'
+                preppedfile.description = 'in2019_v05 Underway Nutrients, Nitrate (NOx) and Phosphate ' \
+                                          'analysed on Seal AA100. Time stamps are seconds since 01/01/2019 00:00 UTC.'
 
                 vals = preppedfile.createDimension('value', len(lat))
                 lats = preppedfile.createVariable('latitude', np.float64, ('value',))
@@ -432,7 +432,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
 
                 lats[:] = lat
                 lons[:] = lon
-                times[:] = timevals
+                times[:] = timer
                 nitrates[:] = nitrate
                 phosphates[:] = phos
                 filesnc[:] = file
