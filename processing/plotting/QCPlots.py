@@ -102,24 +102,142 @@ class redfieldPlot(QMainPlotterTemplate):
             self.canvas.draw()
 
 class rmnsPlotWindowTemplate(QMainPlotterTemplate):
-    def __init__(self, database):
+    def __init__(self, database, params_path):
         super().__init__()
         self. database = database
-        #self.populate_runlist()
+        with open(params_path, 'r') as file:
+            self.params = json.loads(file.read())
+
+        self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
+                             'Ammonia': 'ammonia'}
+
+        self.rmnscols = {'NOx': 5, 'Phosphate': 1, 'Silicate': 3, 'Nitrite': 7, 'Ammonia': 9}
 
         self.setWindowTitle('HyPro - RMNS')
 
-        self.main_plot.set_title('RMS', fontsize=18)
-        self.main_plot.set_xlabel('[NOx] (uM)', fontsize=15)
-        self.main_plot.set_ylabel('[Phosphate] (uM)', fontsize=15)
+        self.main_plot.set_title('RMNS', fontsize=18)
+        self.main_plot.set_xlabel('Run/Peak Number', fontsize=15)
+        self.main_plot.set_ylabel('Concentration (uM)', fontsize=15)
 
         self.main_plot.grid(alpha=0.1)
 
-        rmns_plot(self.figure, self.main_plot, [0, 1], [5.5, 5.5], [1, 1], 'CC', 'nitrate')
+        nutrient_label = QLabel('Nutrient', self)
+        self.nutrient = QComboBox(self)
+        self.nutrient.addItems(['NOx', 'Phosphate', 'Silicate', 'Nitrite', 'Ammonia'])
+        self.nutrient.currentIndexChanged.connect(self.populate_rmns)
 
-        #def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
+        rmns_type_label = QLabel('RMNS Lot')
+        self.rmns_type = QComboBox(self)
+        self.rmns_type.currentIndexChanged.connect(self.populate_run_list)
 
+        self.qvbox_layout.insertWidget(0, nutrient_label)
+        self.qvbox_layout.insertWidget(1, self.nutrient)
+        self.qvbox_layout.insertWidget(2, rmns_type_label)
+        self.qvbox_layout.insertWidget(3, self.rmns_type)
+
+        self.apply_button.clicked.connect(self.draw_data)
+
+        self.populate_rmns()
+        self.populate_run_list()
         self.show()
+
+    def populate_rmns(self):
+        try:
+            nut = self.nutrient.currentText()
+            nutq = self.nut_converter[nut]
+            conn = sqlite3.connect(self.database)
+            c = conn.cursor()
+            c.execute('SELECT runNumber, sampleID FROM %sData' % nutq)
+            data = list(c.fetchall())
+            c.close()
+            rmnsnamelength = len(self.params['nutrientprocessing']['qcsamplenames']['rmns'])
+            listofrmns = []
+            for i, x in enumerate(data):
+                if x[1][:rmnsnamelength] == self.params['nutrientprocessing']['qcsamplenames']['rmns']:
+                    listofrmns.append(x)
+            rmnslots = set([x[1][rmnsnamelength:(rmnsnamelength + 3)] for x in listofrmns])
+
+            self.rmns_type.clear()
+            self.rmns_type.addItems(rmnslots)
+
+        except Exception:
+            print(traceback.print_exc())
+
+    def populate_run_list(self):
+        try:
+            nut = self.nutrient.currentText()
+            nutq = self.nut_converter[nut]
+            rmns = self.rmns_type.currentText()
+
+            conn = sqlite3.connect(self.database)
+            c = conn.cursor()
+            c.execute('SELECT runNumber, sampleID FROM %sData' % nutq)
+            data = list(c.fetchall())
+            c.close()
+
+            runnums = []
+            for i, x in enumerate(data):
+                if rmns in x[1]:
+                    runnums.append(x[0])
+
+            self.run_list.clear()
+            rn = sorted(list(set(runnums)))
+            for x in rn:
+                self.run_list.addItem(str(x))
+        except Exception:
+            print(traceback.print_exc())
+
+    def draw_data(self):
+        try:
+            del self.main_plot.lines[:]
+            nut = self.nutrient.currentText()
+            nutq = self.nut_converter[nut]
+            rmns = self.rmns_type.currentText()
+            selected = self.run_list.selectedItems()
+            selected_runs = [item.text() for item in selected]
+
+            queryq = '?'
+            queryplaceruns = ', '.join(queryq for unused in selected_runs)
+            conn = sqlite3.connect(self.database)
+            c = conn.cursor()
+            c.execute(
+                'SELECT peakNumber, runNumber, sampleID, concentration, flag FROM %sData WHERE runNumber IN (%s)' % (
+                    nutq, queryplaceruns), (selected_runs))
+            data = list(c.fetchall())
+            c.close()
+
+            self.runs = []
+            self.conctoplot = []
+            self.peaknums = []
+            sampleid = []
+            self.flagtoplot = []
+            for x in data:
+                if rmns in x[2]:
+                    self.peaknums.append(x[0])
+                    self.runs.append(x[1])
+                    sampleid.append(x[2])
+                    self.conctoplot.append(x[3])
+                    self.flagtoplot.append(x[4])
+
+            runpeaknumhold = []
+            self.runpeaknumtoplot = []
+            runs = sorted(set(self.runs))
+
+            for x in runs:
+                runpeaknumhold.append(self.runs.count(x))
+
+            for i, x in enumerate(runpeaknumhold):
+                for y in range(x):
+                    if y > 0:
+                        self.runpeaknumtoplot.append(runs[i] + (y / ((x - 1) * 1.6)))
+                    else:
+                        self.runpeaknumtoplot.append(runs[i])
+
+
+            rmns_plot(self.figure, self.main_plot, self.runpeaknumtoplot, self.conctoplot, self.flagtoplot, rmns, nutq)
+            self.canvas.draw()
+        except Exception:
+            print(traceback.print_exc())
 
 
 
@@ -376,25 +494,26 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
         current_rmns = [x for x in rmns_data if x[0] in rmns]
         if current_rmns:
             conc = current_rmns[0][nut_column[nutrient]]
-            axes.plot([min(indexes), max(indexes)], [conc]*2, lw=1, linestyle='--', color='#8B8B8B', label='Certified Value')
-            axes.plot([min(indexes), max(indexes)], [conc*1.01]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
-            axes.plot([min(indexes), max(indexes)], [conc*0.99]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
-            axes.plot([min(indexes), max(indexes)], [conc*1.02]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
-            axes.plot([min(indexes), max(indexes)], [conc*0.98]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
-            axes.plot([min(indexes), max(indexes)], [conc*1.03]*2, lw=1, color= '#E54580', label = '3% Concentration Error')
-            axes.plot([min(indexes), max(indexes)], [conc*0.97]*2, lw=1, color= '#e56969', label = '3% Concentration Error')
+            axes.plot([min(indexes)-1, max(indexes)+1], [conc]*2, lw=1, linestyle='--', color='#8B8B8B', label='Certified Value')
+            axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.01]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
+            axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.99]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
+            axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.02]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
+            axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.98]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
+            axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.03]*2, lw=1, color= '#E54580', label = '3% Concentration Error')
+            axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.97]*2, lw=1, color= '#e56969', label = '3% Concentration Error')
 
 
         else:
             axes.annotate('No RMNS values found', [0.05, 0.05], xycoords='axes fraction')
 
-        axes.set_title(rmns)
+        axes.set_title(str(nutrient).capitalize() + ' RMNS' + str(rmns), fontsize=16)
         axes.set_xlabel('Peak Number')
-        axes.set_ylabel('Raw Peak Height (A/D)')
+        axes.set_ylabel('Concentration (uM)')
         axes.grid(alpha=0.3, zorder=1)
 
     axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o')
     axes.set_ylim(min(concentrations) * 0.975, max(concentrations) * 1.025)
+    axes.set_xlim(min(indexes)-1, max(indexes)+1)
 
     handles, labels = axes.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))

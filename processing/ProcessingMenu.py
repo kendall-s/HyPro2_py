@@ -27,7 +27,6 @@ import calendar
 import hyproicons, style
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 
-
 # TODO: Make output for ODV
 # TODO: make logsheet go to Dissolved Oxygen box file
 # TODO: convert QMainWindow to template, cut total code in half.
@@ -50,11 +49,13 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         self.currpath = path
         self.db = self.currpath + '/' + self.currproject + 'Data.db'
 
+        self.params_path = self.currpath + '/' + '%sParams.json' % self.currproject
+
         inittabs.main(self.currproject, self.currpath)
 
         self.init_ui()
 
-        self.userprompter()
+        self.user_prompter()
 
 
     def init_ui(self):
@@ -141,7 +142,6 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         addAnalysisMenu.addAction(self.addLogsheet)
 
         self.setcheckboxes()
-
         self.populatesurveys()
 
         self.surveyMenu.addSeparator()
@@ -288,15 +288,13 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         self.grid_layout.addWidget(outputboxlabel, 3, 1, 1, 2)
         self.grid_layout.addWidget(self.outputbox.widget, 4, 1, 14, 3)
 
-        #self.grid_layout.setColumnMinimumWidth(5, 3)
-
         rereadbut.clicked.connect(self.reread)
         viewdatabut.clicked.connect(self.viewdata)
         refreshfilesbut.clicked.connect(self.refresh)
         deletedatabut.clicked.connect(self.deletefiles)
 
-    def userprompter(self):
-        with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
+    def user_prompter(self):
+        with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
         analyses = params['analysisparams'].keys()
         anyactivated = False
@@ -318,7 +316,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
 
     def viewdata(self):
 
-        with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
+        with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
 
         self.viewDataDialog = viewDataDialog(self.db, params)
@@ -331,8 +329,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         self.backToMain.emit()
 
     def rmnsplots(self):
-        #self.rmnsWindow = qcp.rmnsPlotWindow(self.currproject, self.currpath, self.db)
-        self.rmnsWindow = qcp.rmnsPlotWindowTemplate(self.db)
+        self.rmnsWindow = qcp.rmnsPlotWindowTemplate(self.db, self.params_path)
         self.rmnsWindow.show()
 
     def mdlplots(self):
@@ -469,7 +466,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
     def setcheckboxes(self):
         analyses = ['guildline', 'scripps', 'seal', 'seasave', 'logsheet']
 
-        with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
+        with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
 
         for i in analyses:
@@ -506,7 +503,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         self.paramsettings.show()
 
     def populatesurveys(self):
-        with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
+        with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
 
         surveys = list(params['surveyparams'].keys())
@@ -531,7 +528,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
 
     # Make parameters file if it doesn't currently exist - fill with defaults
     def makeparamsfile(self):
-        if os.path.isfile(self.currpath + '/' + '%sParams.json' % self.currproject):
+        if os.path.isfile(self.params_path):
             print('Parameter file checked')
         else:
             # TODO: make this a file to include into distribution
@@ -719,7 +716,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
                 params['surveyparams'][self.currproject]['seal']['decodedepfromid'] = False
                 params['surveyparams'][self.currproject]['seal']['usesampleid'] = True
 
-            with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'w') as file:
+            with open(self.params_path, 'w') as file:
                 json.dump(params, file)
             print('Parameter file created')
 

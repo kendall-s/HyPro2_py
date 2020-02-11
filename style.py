@@ -125,7 +125,7 @@ QPushButton[nutrientControls=true]:pressed {
 
 ---------------------------------------------------------- */
 QComboBox {
-    font: 14px;
+    font: 14px Segoe UI;
 }
 
 
