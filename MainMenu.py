@@ -45,9 +45,13 @@ class Mainmenu(QMainWindow):
             QMenuBar {
                 background-color: #ffffff;
                 color: #000000;
+                font: 13px Segoe UI;  
             }
             QMenuBar:hover {
                 color: #000000;
+            }
+            QMenu {
+                font: 13px Segoe UI;
             }
             QMdiArea{
                 background-color: #ebeff2;

@@ -49,7 +49,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     calibrant_cup_type = processing_parameters['nutrientprocessing']['cupnames']['calibrant']
     cal_zero_label = processing_parameters['nutrientprocessing']['calibrants']['cal0']
     cal_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calibration']
-    cal_error_limit = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calerror']
+    cal_error_limit = float(processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calerror'])
     mdl_cup = processing_parameters['nutrientprocessing']['qcsamplenames']['mdl']
     sample_cup_type = processing_parameters['nutrientprocessing']['cupnames']['sample']
     qc_cup_ids = [processing_parameters['nutrientprocessing']['qcsamplenames'][x] for x in
@@ -618,8 +618,9 @@ def find_duplicate_samples(duplicate_indexes, sample_ids, cup_types, sample_cup_
         # Then got to also make sure cup type is a sample, otherwise Nulls would be listed
         # Keeping the duplicate indexes in the dictionary structure as well to differentiate
         if not any(qc_name in sample_ids[indices_list[1][0]] for qc_name in qc_samples_names):
-            if cup_types[indices_list[1][0]] == sample_cup_type:
-                duplicate_samples.append(indices_list)
+            if sample_ids[indices_list[1][0]] != 'Sample':
+                if cup_types[indices_list[1][0]] == sample_cup_type:
+                    duplicate_samples.append(indices_list)
 
     return duplicate_samples
 
@@ -772,14 +773,12 @@ def determine_nutrient_survey(database, params, sample_id):
                 else:  # Sample id has more than just numbers in it
                     if params['surveyparams'][surv]['seal']['decodesampleid']:  # Decode the sample ID, needs a prefisurv too
                         surveyprefix = params['surveyparams'][surv]['seal']['surveyprefix']
-                        if len(params['surveyparams'][surv]['seal'][
-                                   'surveyprefix']) > 0:  # Check theres actually a prefix
-                            sampleprefix = sample_id[
-                                              0:len(params['surveyparams'][surv]['seal']['surveyprefix'])]
+                        if len(params['surveyparams'][surv]['seal']['surveyprefix']) > 0:  # Check theres actually a prefix
+                            sampleprefix = sample_id[0:len(params['surveyparams'][surv]['seal']['surveyprefix'])]
                             if surveyprefix == sampleprefix:
                                 survey = surv
                             else:
-                                logging.error('Sample: ' + str(sample_id) + ' does not match esurvisting surveys.')
+                                logging.error('Sample ID: ' + str(sample_id) + ' does not match existing surveys')
                                 break
                             if params['surveyparams'][surv]['seal']['decodedepfromid']:  # Decode a dep/rp
                                 depformat = params['surveyparams'][surv]['seal']['depformat']

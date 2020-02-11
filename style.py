@@ -1,29 +1,30 @@
 import matplotlib as mpl
 
 mplstyle = {'normal': {'axes.edgecolor': '#000000', 'xtick.color': '#000000', 'ytick.color': '#000000',
-                  'axes.facecolor': '#F9FCFF', 'axes.labelcolor': '#000000', 'figure.facecolor': '#F9FCFF',
-                  'grid.color': '#000000', 'figure.frameon': False, 'axes.prop_cycle': mpl.cycler(color=['#191919'])},
-       'dark': {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
-                'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
-                'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
-                'text.color': '#F5F5F5', 'axes.prop_cycle': mpl.cycler(color=['#F5F5F5']),
-                'legend.facecolor': '#191919'}}
+                        'axes.facecolor': '#FDFDFF', 'axes.labelcolor': '#000000', 'figure.facecolor': '#FDFDFF',
+                        'grid.color': '#000000', 'figure.frameon': False, 'axes.prop_cycle': mpl.cycler(color=['#191919'])},
+            'dark': {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
+                    'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
+                    'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
+                    'text.color': '#F5F5F5', 'axes.prop_cycle': mpl.cycler(color=['#F5F5F5']),
+                    'legend.facecolor': '#191919'}}
 
 
 stylesheet = {'normal': """
 /* -------------------------------- QMainWindow-----------
 
 ---------------------------------------------------------- */
-QMainWindow[ProcessingMenu = true] {
+QMainWindow[ProcessingMenu=true] {
     background-color: #ebeff2;
     border: 0px;
 }
 
-QMainWindow[NutrientProcessing = true] {
+QMainWindow[NutrientProcessing=true] {
     background-color: #ebeff2;
     border: 0px;
     
 }
+
 
 
 /* ---------------------------- QGraphicsDropShadow ------
@@ -34,12 +35,26 @@ QGraphicsDropShadow {
    
 }
 
+/* -------------------------------- QLineEdit  -----------
+
+---------------------------------------------------------- */
+
+QLineEdit {
+    font: 14px;
+    border: 1px solid;
+}
+QLineEdit:hover {
+    font: 14px;
+    border: 1px solid #41ADD4;
+}
+
+
 
 /* ----------------------------------- QLabel ------------
 
 ---------------------------------------------------------- */
 QLabel {
-    font: 14px;
+    font: 14px Segoe UI;
 }
 QLabel[dashboardText=true] {
     color: #222222;
@@ -131,15 +146,6 @@ QCheckBox[sideBarCheckbox=true] {
 }
 
 
-
-/* --------------------------------- QLineEdit -----------
-
----------------------------------------------------------- */
-QLineEdit {
-    font: 14px;
-}
-
-
 /* --------------------------------- QListWidget ---------
 
 ---------------------------------------------------------- */
@@ -154,7 +160,6 @@ QListWidget {
 QTabWidget QWidget {
     font: 14px;
     color: #000000;
-    background-color: #F9FCFF;
     border: 0px #000000;
 }
 
@@ -173,7 +178,7 @@ QHeaderView {
 /* -------------------------------- QPlainTextEdit---------
 
 ---------------------------------------------------------- */
-QPlainTextEdit{
+QPlainTextEdit[output=true]{
     font: 14px;
     border: 0px;
     padding-bottom: 3px;
@@ -412,7 +417,7 @@ QLineEdit {
     background-color: #191919;
 }
 QLineEdit:hover {
-    border: 2px solid #999999;
+    border: 1px solid #9C9C9C;
 }
 QLineEdit:focus {
     border: 1px solid #888888;
@@ -502,7 +507,7 @@ QScrollBar:sub-page:vertical {
 /* -------------------------------- QPlainTextEdit---------
 
 ---------------------------------------------------------- */
-QPlainTextEdit{
+QPlainTextEdit[output=true]{
     font: 14px;
     color: #F5F5F5;
     background-color: #191919;

@@ -12,6 +12,7 @@ class QTextEditLogger(logging.Handler):
         super().__init__()
 
         self.widget = QtWidgets.QPlainTextEdit(parent)
+        self.widget.setProperty('output', True)
         self.widget.setReadOnly(True)
         self.widget.setFont(QFont('Segoe UI'))
 

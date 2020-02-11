@@ -32,8 +32,9 @@ class hyproMainWindowTemplate(QMainWindow):
         self.move(qtRectangle.topLeft())
 
         self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint)
-
         self.setWindowTitle(self.title)
+
+        self.main_menu = self.menuBar()
 
         self.centralWidget().setLayout(self.grid_layout)
 

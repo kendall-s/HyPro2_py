@@ -41,7 +41,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         super().__init__((screenwidth * 0.85), (screenheight * 0.85), 'HyPro - Process Nutrient Analysis')
 
         # Set flagging colours
-        self.FLAG_COLORS = {1: '#68C968', 2: '#3CB6C9', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#C9852B'}
+        self.FLAG_COLORS = {1: '#68C968', 2: '#3CB6C9', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#C9852B', 8: '#3CB6C9'}
         self.FLAG_CONVERTER = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad',
                                91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
 
@@ -112,9 +112,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         """
         try:
             self.setFont(QFont('Segoe UI'))
+
             self.setWindowModality(Qt.WindowModal)
             self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)
-            self.showMaximized()
+            #self.showMaximized()
             mainMenu = self.menuBar()
             fileMenu = mainMenu.addMenu('File')
             editMenu = mainMenu.addMenu('Edit')
@@ -302,14 +303,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.main_trace.set_xlim(0, len(chd_data.ad_data[current_nutrient]))
             self.main_trace.set_ylim(0, max(chd_data.ad_data[current_nutrient])*1.1)
 
+        if len(self.main_trace.lines) > 1:
+            del self.main_trace.lines[1:]
+            del self.main_trace.artists[1:]
+
         if trace_redraw:
             del self.main_trace.lines[:]
             self.main_trace.plot(range(len(chd_data.ad_data[current_nutrient])), chd_data.ad_data[current_nutrient],
                                  linewidth=0.9, label='trace')
-
-        if len(self.main_trace.lines) > 1:
-            del self.main_trace.lines[1:]
-            del self.main_trace.artists[1:]
 
         for i, x in enumerate(w_d.time_values):
             self.main_trace.plot(x, w_d.window_values[i], color=self.FLAG_COLORS[w_d.quality_flag[i]], linewidth=2.5, label='top')
@@ -320,8 +321,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.main_trace.plot(w_d.drift_peak_starts[:], w_d.raw_drift_medians[:], linewidth=1, color="#c6c600", label='drift')
 
         self.tracecanvas.draw()
-        ft = time.time()
 
+        ft = time.time()
 
         print('Draw time: ' + str(ft-st))
         print(str(len(self.main_trace.lines)) + str(' Lines on Main Trace'))
@@ -414,7 +415,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
-            self.interactive_routine()
+            self.interactive_routine(trace_redraw=True)
 
     def move_peak_end(self, x_axis_time, peak_index):
         """
@@ -427,25 +428,34 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
         win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
 
+        print(x_axis_time)
+        peak_window_start = picked_peak_start + win_start
+        print(peak_window_start)
+
         if x_axis_time > (picked_peak_start + win_start):
 
             window_end = picked_peak_start + win_start + win_length
 
+            print(x_axis_time)
+            print(window_end)
+
             if x_axis_time > window_end:
                 window_end_increase = x_axis_time - window_end
+                print(window_end_increase)
                 self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'] = win_length + window_end_increase
             if window_end > x_axis_time:
                 window_end_decrease = window_end - x_axis_time
+
                 self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'] = win_length - window_end_decrease
 
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
-            self.interactive_routine()
+            self.interactive_routine(trace_redraw=True)
 
     def shift_trace(self, x_axis_time, direction):
         if direction == 'right':
             for i in range(3):
-                self.chd_data.ad_data[self.current_nutrient].insert(x_axis_time, 0)
+                self.chd_data.ad_data[self.current_nutrient].insert(x_axis_time, 100)
         elif direction == 'left':
             for i in range(3):
                 self.chd_data.ad_data[self.current_nutrient].pop(x_axis_time)

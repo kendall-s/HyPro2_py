@@ -20,7 +20,7 @@ class traceSelection(hyproDialogTemplate):
     def __init__(self, sampleid, cuptype, peaknumber, admedian, conc, flag, dil, type):
         super().__init__(550, 245, 'HyPro - Peak:')
 
-        self.flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad',
+        self.flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad', 6: 'Cal Bad',
                                91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
 
 
@@ -127,7 +127,7 @@ class traceSelection(hyproDialogTemplate):
             self.shiftpeakright.hide()
 
             self.grid_layout.addWidget(self.okbut, 3, 1)
-            self.gridl_ayout.addWidget(self.cancelbut, 3, 2)
+            self.grid_layout.addWidget(self.cancelbut, 3, 2)
 
         self.show()
 

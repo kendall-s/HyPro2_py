@@ -15,7 +15,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.ticker import MaxNLocator
 from pylab import *
-
+import pandas as pd
 import style
 import hyproicons
 from dialogs.TraceSelectionDialog import traceSelection
@@ -28,13 +28,14 @@ mpl.rc('font', family = 'Segoe UI Symbol') # Cast Segoe UI font onto all plot te
 # The other classes using QMainWindow are plots that are called on manually and are then displayed in their
 # own window
 # TODO: Fix RMNS plot so it still works even if nominal RMNS values are not in the database
-
+# TODO: Delete the old classes and functions for plots that have been superseded
 
 class redfieldPlot(QMainPlotterTemplate):
     def __init__(self, database):
         super().__init__()
         self. database = database
-        self.populate_runlist()
+
+        self.apply_button.clicked.connect(self.draw_data)
 
         self.setWindowTitle('Redfield Ratio Plot')
 
@@ -43,22 +44,82 @@ class redfieldPlot(QMainPlotterTemplate):
         self.main_plot.set_ylabel('[Phosphate] (uM)', fontsize=15)
 
         self.main_plot.grid(alpha=0.1)
+        survey_label = QLabel('Survey to use:', self)
+        #survey_label.setFont(QFont('Segoe UI'))
+        self.survey_selector = QComboBox()
+        self.survey_selector.setFont(QFont('Segoe UI'))
 
+        self.qvbox_layout.insertWidget(0, survey_label)
+        self.qvbox_layout.insertWidget(1, self.survey_selector)
 
+        self.populate_fields()
         self.show()
 
-    def populate_runlist(self):
+    def populate_fields(self):
+
         conn = sqlite3.connect(self.database)
         c = conn.cursor()
         c.execute('SELECT DISTINCT runNumber FROM nitrateData')
         nitrate_runs = sorted(list(c.fetchall()))
         c.execute('SELECT DISTINCT runNumber FROM phosphateData')
         phosphate_runs = list(c.fetchall())
-        c.close()
 
+        runs = []
         for x in nitrate_runs:
             if x in phosphate_runs:
+                runs.append(x[0])
                 self.run_list.addItem(str(x[0]))
+        query_placeholder = ', '.join('?' for unused in runs)
+        c.execute(f'SELECT DISTINCT survey from nitrateData WHERE runNumber in ({query_placeholder})', (runs))
+        distinct_surveys = list(c.fetchall())
+        c.close()
+        for x in distinct_surveys:
+            self.survey_selector.addItem(x[0])
+
+
+    def draw_data(self):
+        selected = self.run_list.selectedItems()
+        selected_runs = [int(item.text()) for item in selected]
+
+        if selected_runs:
+            conn = sqlite3.connect(self.database)
+            query_placeholder = ', '.join('?' for unused in selected_runs)
+            nox_df = pd.read_sql_query(f"SELECT * FROM nitrateData WHERE runNumber IN ({query_placeholder})", conn,
+                                       params=selected_runs)
+            phos_df = pd.read_sql_query(f"SELECT * FROM phosphateData WHERE runNumber IN ({query_placeholder})", conn,
+                                       params=selected_runs)
+            conn.close()
+            nox_plottable = []
+            phos_plottable = []
+            for nox_row in nox_df.itertuples():
+                phos_point = phos_df.loc[(phos_df['runNumber'] == nox_row[1]) & (phos_df['peakNumber'] == nox_row[4])]
+                nox_plottable.append(nox_row[7])
+                phos_plottable.append(float(phos_point['concentration']))
+
+            self.main_plot.scatter(nox_plottable, phos_plottable, marker='o', facecolors='#FFB186', edgecolors='#EF8A68',
+                                   alpha=0.75)
+
+            self.canvas.draw()
+
+class rmnsPlotWindowTemplate(QMainPlotterTemplate):
+    def __init__(self, database):
+        super().__init__()
+        self. database = database
+        #self.populate_runlist()
+
+        self.setWindowTitle('HyPro - RMNS')
+
+        self.main_plot.set_title('RMS', fontsize=18)
+        self.main_plot.set_xlabel('[NOx] (uM)', fontsize=15)
+        self.main_plot.set_ylabel('[Phosphate] (uM)', fontsize=15)
+
+        self.main_plot.grid(alpha=0.1)
+
+        rmns_plot(self.figure, self.main_plot, [0, 1], [5.5, 5.5], [1, 1], 'CC', 'nitrate')
+
+        #def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
+
+        self.show()
 
 
 
@@ -172,12 +233,6 @@ class rmnsPlot(QWidget):
 
         self.canvas.draw()
 
-
-
-"""
-    Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad,
-                    91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
-"""
 
 def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients):
     if len(axes.lines) > 0:
@@ -1449,7 +1504,7 @@ class rmnsPlotWindow(QMainWindow):
         found = False
         for i, x in enumerate(self.runpeaknumtoplot):
             if abs(x - xval) < 0.09: # Check x coords to where was clicked
-                if abs(self.conctoplot[i] - yval) < 0.008: # Check y coords to where was clicked if less than threshold
+                if abs(self.conctoplot[i] - yval) < 0.01: # Check y coords to where was clicked if less than threshold
                                                            # then pick this peak
                     runnum = self.runs[i]
                     peaknum = self.peaknums[i]
@@ -1467,8 +1522,9 @@ class rmnsPlotWindow(QMainWindow):
             c.close()
             # Display the peak information dialog, no point assigning variables just pull from data call of db
             # aka  in SampleID, CupType, CorrAD, Conc, Flag, Dilution, PlotType
-            self.selection = traceSelection(data[0][0], data[0][1], data[0][2], data[0][3], data[0][4], data[0][5],
-                                            'Plot')
+            self.selection = traceSelection(sampleid=data[0][0], cuptype=data[0][1], peaknumber=peaknum,
+                                            admedian=data[0][2], conc=data[0][3], flag=data[0][4], dil=data[0][5],
+                                            type='Plot')
             self.selection.show()
 
 

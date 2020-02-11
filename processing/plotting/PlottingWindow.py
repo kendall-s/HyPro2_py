@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QDesktopWidget, QAction, QVBoxLayout, QFileDialog, QApplication,
                              QGridLayout, QLabel, QListWidget, QCheckBox, QPushButton, QAbstractItemView, QFrame)
 from PyQt5.QtGui import QFont, QIcon, QImage
-import io
+import io, json
 import hyproicons, style
 
 class QMainPlotterTemplate(QMainWindow):
@@ -17,9 +17,18 @@ class QMainPlotterTemplate(QMainWindow):
 
         self.setWindowIcon(QIcon(':/assets/icon.svg'))
 
+        with open('C:/HyPro/hyprosettings.json', 'r') as file:
+            params = json.loads(file.read())
+        theme = params['theme']
+
+        if params['theme'] == 'normal':
+            plt.style.use(style.mplstyle['normal'])
+        else:
+            plt.style.use(style.mplstyle['dark'])
+
         self.init_ui()
 
-        self.setStyleSheet(style.stylesheet['normal'])
+        self.setStyleSheet(style.stylesheet[theme])
 
     def init_ui(self):
         self.setFont(QFont('Segoe UI'))
@@ -36,7 +45,6 @@ class QMainPlotterTemplate(QMainWindow):
         self.qvbox_frame_holder = QFrame()
         self.qvbox_frame_holder.setLayout(self.qvbox_layout)
         self.grid_layout = QGridLayout()
-
 
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('File')
@@ -60,7 +68,6 @@ class QMainPlotterTemplate(QMainWindow):
         self.mark_bad_data = QCheckBox('Mark bad data', self)
 
         self.apply_button = QPushButton('Apply', self)
-        self.apply_button.clicked.connect(self.apply)
 
         self.figure = plt.figure()
         self.figure.set_tight_layout(tight=True)
@@ -90,17 +97,14 @@ class QMainPlotterTemplate(QMainWindow):
     def export_plot(self):
         filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.png')
         if filedialog[0]:
-            self.figure.savefig(filedialog[0] + filedialog[1], dpi=400)
+            self.figure.savefig(filedialog[0] + filedialog[1], dpi=300)
 
     def copy_plot(self):
         buffer = io.BytesIO()
-        self.figure.savefig(buffer, dpi=400)
+        self.figure.savefig(buffer, dpi=300)
         QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
 
     def on_click(self, event):
         tb = get_current_fig_manager().toolbar
         if event.button == 1 and event.inaxes and tb.mode == '':
             print(event.xdata)
-
-    def apply(self):
-        pass

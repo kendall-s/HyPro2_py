@@ -1,17 +1,18 @@
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QGridLayout, QMessageBox, QFrame,
-                             QCheckBox, QTabWidget, QDialog, QComboBox)
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QMessageBox, QFrame,
+                             QCheckBox, QTabWidget, QGridLayout, QComboBox)
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtGui import *
 import json, time, logging
 import hyproicons, style
+from dialogs.templates.DialogTemplate import hyproDialogTemplate
+
 
 # File that provides the GUI for editing all of the parameters used in processing, these parameters
 # live in the project paramters json file
 
-
-class parametersDialog(QDialog):
+class parametersDialog(hyproDialogTemplate):
     def __init__(self, project, path):
-        super().__init__()
+        super().__init__(475, 800, 'HyPro Project Parameters')
         self.setWindowIcon(QtGui.QIcon(':/assets/icon.svg'))
 
         self.currproject = project
@@ -19,25 +20,9 @@ class parametersDialog(QDialog):
 
         self.init_ui()
 
-        self.setStyleSheet(style.stylesheet['normal'])
 
     def init_ui(self):
         try:
-            self.setFont(QFont('Segoe UI'))
-
-            self.gridlayout = QGridLayout()
-            self.gridlayout.setSpacing(20)
-
-            self.setGeometry(0, 0, 475, 800)
-            qtRectangle = self.frameGeometry()
-            screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
-            centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
-            qtRectangle.moveCenter(centerPoint)
-            self.move(qtRectangle.topLeft())
-            self.setWindowModality(QtCore.Qt.ApplicationModal)
-
-            self.setWindowTitle('HyPro Project Parameters')
-
             with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
                 params = json.loads(file.read())
 
@@ -76,12 +61,12 @@ class parametersDialog(QDialog):
             cancel = QPushButton('Cancel', self)
             cancel.clicked.connect(self.cancelfunction)
 
-            self.gridlayout.addWidget(self.tabs, 1, 0, 5, 4)
+            self.grid_layout.addWidget(self.tabs, 1, 0, 5, 4)
 
-            self.gridlayout.addWidget(save, 10, 1)
-            self.gridlayout.addWidget(cancel, 10, 2)
+            self.grid_layout.addWidget(save, 10, 1)
+            self.grid_layout.addWidget(cancel, 10, 2)
 
-            self.setLayout(self.gridlayout)
+            self.setLayout(self.grid_layout)
 
 
             self.generaltab.layout = QGridLayout()
@@ -313,6 +298,7 @@ class parametersDialog(QDialog):
             # ************************ Ammonia Tab ******************************
 
             self.ammoniatab.layout = QGridLayout()
+
 
             ammonianamelabel = QLabel('Name:', self)
             self.ammonianame = QLineEdit(self)

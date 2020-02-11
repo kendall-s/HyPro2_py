@@ -8,7 +8,7 @@ from dialogs.templates.DialogTemplate import hyproDialogTemplate
 # Functionality and GUI to delete data from a projects database, also can delete original files as well
 class deleteDialog(hyproDialogTemplate):
     def __init__(self, path, project, database):
-        super().__init__(235, 410, 'HyPro - Select Data to Delete')
+        super().__init__(235, 470, 'HyPro - Select Data to Delete')
 
         self.currpath = path
         self.currproject = project

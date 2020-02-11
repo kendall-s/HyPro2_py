@@ -31,7 +31,6 @@ from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 # TODO: Make output for ODV
 # TODO: make logsheet go to Dissolved Oxygen box file
 # TODO: convert QMainWindow to template, cut total code in half.
-# TODO: transfer style sheet to style file - make dark mode please
 
 # This file contains the GUI functionality of the processing menu which is secondary to the main menu
 # Processing of all files within a project takes place from within this menu
@@ -61,12 +60,11 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
     def init_ui(self):
         self.makeparamsfile()
 
-        mainMenu = self.menuBar()
-        fileMenu = mainMenu.addMenu('File')
+        fileMenu = self.main_menu.addMenu('File')
         exportMenu = fileMenu.addMenu(QIcon(':/assets/archivebox.svg'), 'Export')
         outputMenu = fileMenu.addMenu(QIcon(':/assets/text.svg'), 'Output Log')
 
-        editMenu = mainMenu.addMenu('Edit')
+        editMenu = self.main_menu.addMenu('Edit')
         rmnsMenu = QAction(QIcon(':/assets/food.svg'), 'Edit RMNS', self)
         rmnsMenu.triggered.connect(self.rmnsstandards)
         editMenu.addAction(rmnsMenu)
@@ -80,13 +78,13 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         editMenu.addAction(paramsMenu)
         paramsMenu.triggered.connect(self.parametersettings)
 
-        analysisMenu = mainMenu.addMenu('Analyses')
-        self.surveyMenu = mainMenu.addMenu('Surveys')
-        viewMenu = mainMenu.addMenu('View')
+        analysisMenu = self.main_menu.addMenu('Analyses')
+        self.surveyMenu = self.main_menu.addMenu('Surveys')
+        viewMenu = self.main_menu.addMenu('View')
         nutrientqcMenu = viewMenu.addMenu('Nutrient QC Plots')
         salinityqcMenu = viewMenu.addMenu('Salinity QC Plots')
         oxygenqcMenu = viewMenu.addMenu('Oxygen QC Plots')
-        helpMenu = mainMenu.addMenu('Help')
+        helpMenu = self.main_menu.addMenu('Help')
 
         addAnalysisMenu = analysisMenu.addMenu(QIcon(':/assets/flask.svg'), 'Add Analysis')
 
@@ -333,7 +331,8 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         self.backToMain.emit()
 
     def rmnsplots(self):
-        self.rmnsWindow = qcp.rmnsPlotWindow(self.currproject, self.currpath, self.db)
+        #self.rmnsWindow = qcp.rmnsPlotWindow(self.currproject, self.currpath, self.db)
+        self.rmnsWindow = qcp.rmnsPlotWindowTemplate(self.db)
         self.rmnsWindow.show()
 
     def mdlplots(self):

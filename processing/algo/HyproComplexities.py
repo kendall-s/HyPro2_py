@@ -2,7 +2,7 @@ import sqlite3, logging, traceback, json
 
 # This file contains some more of the complicated functions that are required for hypro, namely determining a survey..
 
-# TODO: delete determine survey, split this into the processing scripts of each analyte
+# TODO: delete determineSurvey, split this into the processing scripts of each analyte
 def determineSurvey(database, params, analyte, sampleid, bottleid = None):
     try:
         #print(sampleid)
