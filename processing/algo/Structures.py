@@ -23,7 +23,6 @@ class CalibratedData:
 class WorkingData:
     def __init__(self, run):
         self.run = run
-
         self.channel = 0
         self.analyte = 'Gold'
 
@@ -68,6 +67,7 @@ class WorkingData:
 class SLKData:
     def __init__(self, run):
         self.run = run
+        self.run_number = 0
 
         self.operator = 'Chemist'
         self.date = '01/01/1990'

@@ -632,7 +632,8 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
                         "mdl": "MDL",
                         "bqc": "BQC",
                         "internalqc": "IntQC",
-                        "driftcheck": "Drift Sample Check"
+                        "driftcheck": "Drift Sample Check",
+                        "underway": "UWY Sample"
                     }
                 },
                 "analysisparams": {

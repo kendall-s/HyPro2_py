@@ -664,7 +664,7 @@ def pack_data(slk_data, working_data, database):
     conn = sqlite3.connect(database)
     c = conn.cursor()
 
-    run_list = [working_data.run for x in slk_data.sample_ids]
+    run_list = [slk_data.run_number for x in slk_data.sample_ids]
     peak_number = [i for i, x in enumerate(slk_data.sample_ids)]
 
     package = tuple(zip(run_list, slk_data.cup_types, slk_data.sample_ids, peak_number,
@@ -685,7 +685,7 @@ def pack_data(slk_data, working_data, database):
     conn.commit()
 
     anl = [working_data.analyte for x in working_data.calibrant_indexes]
-    run = [working_data.run for x in working_data.calibrant_indexes]
+    run = [slk_data.run_number for x in working_data.calibrant_indexes]
     package = tuple(zip(anl, run, working_data.calibrant_indexes,
                         working_data.calibrant_medians, working_data.calibrant_medians_minuszero,
                         working_data.calibrant_concs, working_data.calibrant_weightings,
@@ -695,31 +695,30 @@ def pack_data(slk_data, working_data, database):
     conn.commit()
 
     anl = [working_data.analyte for x in working_data.baseline_indexes]
-    run = [working_data.run for x in working_data.baseline_indexes]
-    package = tuple(zip(anl, run, working_data.baseline_indexes,
+    run = [slk_data.run_number for x in working_data.baseline_indexes]
+    package = tuple(zip(anl, run, working_data.baseline_indexes, working_data.baseline_peak_starts,
                         working_data.baseline_medians, working_data.baseline_flags))
 
-    c.executemany('INSERT OR REPLACE INTO nutrientBaselines VALUES(?,?,?,?,?)', package)
+    c.executemany('INSERT OR REPLACE INTO nutrientBaselines VALUES(?,?,?,?,?,?)', package)
     conn.commit()
 
     anl = [working_data.analyte for x in working_data.drift_indexes]
-    run = [working_data.run for x in working_data.drift_indexes]
-    package = tuple(zip(anl, run, working_data.drift_indexes,
+    run = [slk_data.run_number for x in working_data.drift_indexes]
+    package = tuple(zip(anl, run, working_data.drift_indexes, working_data.drift_peak_starts,
                         working_data.drift_medians, working_data.drift_flags))
-    print(package)
 
-    c.executemany('INSERT OR REPLACE INTO nutrientDrifts VALUES (?,?,?,?,?)', package)
+    c.executemany('INSERT OR REPLACE INTO nutrientDrifts VALUES (?,?,?,?,?,?)', package)
     conn.commit()
 
 
-def populate_nutrient_survey(database, params, sample_id):
+def populate_nutrient_survey(database, params, sample_id, cup_types):
     deployments = []
     rosette_positions = []
     survey = []
 
     for i, s_id in enumerate(sample_id):
         try:
-            dep, rp, surv = determine_nutrient_survey(database, params, s_id)
+            dep, rp, surv = determine_nutrient_survey(database, params, s_id, cup_types[i])
         except TypeError:
             # TODO: fix this so this error is accounted for in the determining survey, something is being missed
             dep = 'Unknown'
@@ -734,7 +733,7 @@ def populate_nutrient_survey(database, params, sample_id):
 
 
 # TODO: Finding a nutrient survey needs fixing, this is messy and does not account for all cases!
-def determine_nutrient_survey(database, params, sample_id):
+def determine_nutrient_survey(database, params, sample_id, cup_type):
     """
     Algorithm for determining the survey of a sample, just has a lot of different checks that need to take place to
     account for all cases
@@ -748,6 +747,29 @@ def determine_nutrient_survey(database, params, sample_id):
 
     if sample_id[0:3].lower() == 'test':
         return 'Test', 'Test', 'Test'
+
+    if cup_type == params['nutrientprocessing']['cupnames']['null']:
+        return 'Null', 'Null', 'Null'
+
+    if ((cup_type == params['nutrientprocessing']['cupnames']['primer']) or
+        (cup_type == params['nutrientprocessing']['cupnames']['recovery']) or
+        (cup_type == params['nutrientprocessing']['cupnames']['high']) or
+        (cup_type == params['nutrientprocessing']['cupnames']['low']) or
+        (cup_type == params['nutrientprocessing']['cupnames']['end']) or
+        (cup_type == params['nutrientprocessing']['cupnames']['drift']) or
+        (cup_type == params['nutrientprocessing']['cupnames']['baseline']) or
+        (cup_type == params['nutrientprocessing']['cupnames']['calibrant']) or
+        (sample_id == params['nutrientprocessing']['qcsamplenames']['driftcheck'])):
+        return 'StandardQC', 'StandardQC', 'StandardQC'
+
+    if (params['nutrientprocessing']['qcsamplenames']['rmns'] in sample_id):
+        return 'RMNS', 'RMNS', 'RMNS'
+    if (params['nutrientprocessing']['qcsamplenames']['mdl'] in sample_id):
+        return 'MDL', 'MDL', 'MDL'
+    if (params['nutrientprocessing']['qcsamplenames']['bqc'] in sample_id):
+        return 'BQC', 'BQC', 'BQC'
+    if (params['nutrientprocessing']['qcsamplenames']['internalqc'] in sample_id):
+        return 'INTQC', 'INTQC', 'INTQC'
 
     surveys = list(params['surveyparams'].keys())
     for surv in surveys:
@@ -902,9 +924,10 @@ def match_lat_lons_routine(path, project, database, current_nut, parameters, wor
 
     rvi_times = generate_rvi_timestamps(epoch_date, len(rvi_lon))
 
-    sample_times, sample_concs = extract_underway_samples(slk_data.cup_types, working_data.quality_flag,
-                                                          slk_data.epoch_timestamps,
+    sample_times, sample_concs = extract_underway_samples(slk_data.sample_ids, slk_data.cup_types,
+                                                          working_data.quality_flag, slk_data.epoch_timestamps,
                                                           working_data.calculated_concentrations,
+                                                          parameters['nutrientprocessing']['qcsamplenames']['underway'],
                                                           parameters['nutrientprocessing']['cupnames']['sample'])
 
     rvi_start, rvi_end = find_rvi_time_subset(sample_times, rvi_times)
@@ -919,7 +942,7 @@ def match_lat_lons_routine(path, project, database, current_nut, parameters, wor
     store_underway_data(packaged_underway_data, database, current_nut)
 
 
-def extract_underway_samples(cup_types, quality_flags, time_stamps, concentrations, sample_name):
+def extract_underway_samples(sample_ids, cup_types, quality_flags, time_stamps, concentrations, sample_id_name, cup_name):
     """
     Finds the underway samples and pulls out the time stamps and the relevant concentrations from the run data
     :param cup_types:
@@ -929,12 +952,10 @@ def extract_underway_samples(cup_types, quality_flags, time_stamps, concentratio
     :param sample_name:
     :return: sample_times, sample_concentrations
     """
-
-
     sample_times = []
     sample_concs = []
-    for i, x in enumerate(cup_types):
-        if x == sample_name:
+    for i, cup in enumerate(cup_types):
+        if (cup == cup_name) and (sample_ids[i] == sample_id_name):
             if quality_flags[i] == 1:
                 sample_times.append(time_stamps[i])
                 sample_concs.append(concentrations[i])

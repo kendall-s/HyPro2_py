@@ -49,6 +49,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.processing_parameters = load_proc_settings(path, project)
 
         self.file_path = path + '/' + 'Nutrients' + '/' + file
+
         self.path = path
         self.project = project
         self.database = database
@@ -70,6 +71,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                                                              self.w_d,
                                                                                              self.processing_parameters,
                                                                                              self.database)
+        self.slk_data.run_number = int(file[len(self.processing_parameters['analysisparams']['seal']['filePrefix']):-4])
+
         # Process the data and return calculated values
         self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                           self.current_nutrient)
@@ -643,26 +646,28 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.rmns_plots = []
         sample_ids_set = set(sample_ids)
         for qc in qc_samps:
-            if not qc == 'driftsample':
-                if any(qc_samps[qc] in s_id for s_id in sample_ids_set if s_id[0:4].lower() != 'test'):
-                    qc_name = ''.join(i for i in qc_samps[qc].replace(" ", "") if not i.isdigit())
-                    setattr(self, "{}".format(qc_name + '_tab'), QWidget())
-                    self.qctabs.addTab(getattr(self, "{}".format(qc_name + '_tab')), str(qc_samps[qc]))
-                    setattr(self, "{}".format(qc_name + '_lout'), QVBoxLayout())
-                    getattr(self, "{}".format(qc_name + '_tab')).setLayout(getattr(self, "{}".format(qc_name + '_lout')))
-                    setattr(self, "{}".format(qc_name + '_fig'), plt.figure())
-                    setattr(self, "{}".format(qc_name + '_canvas'), FigureCanvas(getattr(self, "{}".format(qc_name + '_fig'))))
-                    if qc == 'rmns':
-                        rmns_list = [x for x in sample_ids_set if qc_samps[qc] in x and x[0:4].lower() != 'test']
-                        for i, rmns in enumerate(rmns_list):
-                            rmns_name = ''.join(i for i in rmns.replace(" ", "") if not i.isdigit())
-                            setattr(self, (rmns_name+'_plot'), getattr(self, "{}".format(qc_name+'_fig')).add_subplot(len(rmns_list), 1, i+1))
-                            self.rmns_plots.append(rmns_name)
+            if qc == 'driftcheck':
+                break
+            if any(qc_samps[qc] in s_id for s_id in sample_ids_set if s_id[0:4].lower() != 'test'):
+                qc_name = ''.join(i for i in qc_samps[qc].replace(" ", "") if not i.isdigit())
+                setattr(self, "{}".format(qc_name + '_tab'), QWidget())
 
-                    else:
-                        setattr(self, "{}".format(qc_name + str('_plot')), getattr(self, "{}".format(qc_name + '_fig')).add_subplot(111))
-                    getattr(self, "{}".format(qc_name + str('_lout'))).addWidget(getattr(self, "{}".format(qc_name + str('_canvas'))))
-                    self.qc_tabs_in_existence.append(qc_name)
+                self.qctabs.addTab(getattr(self, "{}".format(qc_name + '_tab')), str(qc_samps[qc]))
+                setattr(self, "{}".format(qc_name + '_lout'), QVBoxLayout())
+                getattr(self, "{}".format(qc_name + '_tab')).setLayout(getattr(self, "{}".format(qc_name + '_lout')))
+                setattr(self, "{}".format(qc_name + '_fig'), plt.figure())
+                setattr(self, "{}".format(qc_name + '_canvas'), FigureCanvas(getattr(self, "{}".format(qc_name + '_fig'))))
+
+                if qc == 'rmns':
+                    rmns_list = [x for x in sample_ids_set if qc_samps[qc] in x and x[0:4].lower() != 'test']
+                    for i, rmns in enumerate(rmns_list):
+                        rmns_name = ''.join(i for i in rmns.replace(" ", "") if not i.isdigit())
+                        setattr(self, (rmns_name+'_plot'), getattr(self, "{}".format(qc_name+'_fig')).add_subplot(len(rmns_list), 1, i+1))
+                        self.rmns_plots.append(rmns_name)
+                else:
+                    setattr(self, "{}".format(qc_name + str('_plot')), getattr(self, "{}".format(qc_name + '_fig')).add_subplot(111))
+                getattr(self, "{}".format(qc_name + str('_lout'))).addWidget(getattr(self, "{}".format(qc_name + str('_canvas'))))
+                self.qc_tabs_in_existence.append(qc_name)
 
     def plot_standard_data(self):
         """

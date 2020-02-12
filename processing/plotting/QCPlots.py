@@ -1,12 +1,9 @@
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import io
 import json
-import logging
 import sqlite3
 import statistics
 import traceback
-import numpy as np
-
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtGui import QFont, QIcon, QImage
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QDesktopWidget, QApplication, QVBoxLayout, QAction, QLabel,
