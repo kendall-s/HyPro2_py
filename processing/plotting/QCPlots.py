@@ -240,13 +240,116 @@ class rmnsPlotWindowTemplate(QMainPlotterTemplate):
             print(traceback.print_exc())
 
 
-
-class generalPlot(QMainPlotterTemplate):
-    def __init__(self):
+class mdlPlotWindowTemplate(QMainPlotterTemplate):
+    def __init__(self, database, params_path):
         super().__init__()
+        self. database = database
+        with open(params_path, 'r') as file:
+            self.params = json.loads(file.read())
+
+        self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
+                             'Ammonia': 'ammonia'}
+
+        self.setWindowTitle('HyPro - MDL')
+        self.main_plot.set_title('MDL', fontsize=18)
+        self.main_plot.set_xlabel('Run/Peak Number', fontsize=15)
+        self.main_plot.set_ylabel('Concentration (uM)', fontsize=15)
+
+        self.main_plot.grid(alpha=0.1)
+
+        nutrient_label = QLabel('Nutrient', self)
+        self.nutrient = QComboBox(self)
+        self.nutrient.addItems(['NOx', 'Phosphate', 'Silicate', 'Nitrite', 'Ammonia'])
+        self.nutrient.currentIndexChanged.connect(self.populate_run_list)
 
 
-        self.show()
+        self.qvbox_layout.insertWidget(0, nutrient_label)
+        self.qvbox_layout.insertWidget(1, self.nutrient)
+
+        self.apply_button.clicked.connect(self.draw_data)
+
+        self.populate_run_list()
+
+    def populate_run_list(self):
+        try:
+            nut = self.nutrient.currentText()
+            nutq = self.nut_converter[nut]
+
+            conn = sqlite3.connect(self.database)
+            c = conn.cursor()
+            c.execute('SELECT runNumber, sampleID FROM %sData' % nutq)
+            data = list(c.fetchall())
+            c.close()
+
+            mdl = self.params['nutrientprocessing']['qcsamplenames']['mdl']
+            runnums = []
+            for i, x in enumerate(data):
+                if mdl in x[1]:
+                    runnums.append(x[0])
+            self.run_list.clear()
+            rn = sorted(list(set(runnums)))
+            for x in rn:
+                self.run_list.addItem(str(x))
+
+        except Exception:
+            print(traceback.print_exc())
+
+    def draw_data(self):
+        nut = self.nutrient.currentText()
+        nutq = self.nut_converter[nut]
+        selected = self.run_list.selectedItems()
+        selected_runs = [item.text() for item in selected]
+
+        mdl = self.params['nutrientprocessing']['qcsamplenames']['mdl']
+
+        queryq = '?'
+        queryplaceruns = ', '.join(queryq for unused in selected_runs)
+        conn = sqlite3.connect(self.database)
+        c = conn.cursor()
+        c.execute(
+            'SELECT peakNumber, runNumber, sampleID, concentration, flag FROM %sData WHERE runNumber IN (%s)' % (
+                nutq, queryplaceruns), (selected_runs))
+        data = list(c.fetchall())
+        c.close()
+
+        self.runs = []
+        self.conctoplot = []
+        self.peaknums = []
+        sampleid = []
+        self.flagtoplot = []
+        for x in data:
+            if mdl in x[2]:
+                self.peaknums.append(x[0])
+                self.runs.append(x[1])
+                sampleid.append(x[2])
+                self.conctoplot.append(x[3])
+                self.flagtoplot.append(x[4])
+
+        runpeaknumhold = []
+        self.runpeaknumtoplot = []
+        runs = sorted(set(self.runs))
+
+        stdevs = []
+        for x in runs:
+            conchold = []
+            for i, y in enumerate(self.runs):
+                if x == y:
+                    conchold.append(self.conctoplot[i])
+            stdevs.append(statistics.stdev(conchold))
+
+            runpeaknumhold.append(self.runs.count(x))
+
+        for i, x in enumerate(runpeaknumhold):
+            for y in range(x):
+                if y > 0:
+                    self.runpeaknumtoplot.append(runs[i] + (y / ((x - 1) * 1.6)))
+                else:
+                    self.runpeaknumtoplot.append(runs[i])
+        mdl_plot(self.figure, self.main_plot, self.runpeaknumtoplot, self.conctoplot, self.flagtoplot, stdevs=stdevs, run_nums=runs)
+        self.canvas.draw()
+
+        #self.figure.axes[1].cla()
+
 
 
 class rmnsPlot(QWidget):
@@ -506,10 +609,10 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
         else:
             axes.annotate('No RMNS values found', [0.05, 0.05], xycoords='axes fraction')
 
-        axes.set_title(str(nutrient).capitalize() + ' RMNS' + str(rmns), fontsize=16)
+        axes.set_title(str(nutrient).capitalize() + ' RMNS' + str(rmns), fontsize=12)
         axes.set_xlabel('Peak Number')
         axes.set_ylabel('Concentration (uM)')
-        axes.grid(alpha=0.3, zorder=1)
+        axes.grid(alpha=0.2, zorder=1)
 
     axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o')
     axes.set_ylim(min(concentrations) * 0.975, max(concentrations) * 1.025)
@@ -519,25 +622,44 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
     by_label = dict(zip(labels, handles))
     axes.legend(by_label.values(), by_label.keys())
 
-
-def mdl_plot(fig, axes, indexes, concentrations, flags):
+def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=False, run_nums=False):
     if len(axes.lines) > 0:
         del axes.lines[:]
-
     else:
-        axes.set_title('MDL')
+        axes.set_title('MDL', fontsize=12)
         axes.set_xlabel('Peak Number')
         axes.set_ylabel('Concentration (uM)')
-        axes.grid(alpha=0.3, zorder=2)
+        axes.grid(alpha=0.2, zorder=2)
 
-    mdl = 3 * statistics.stdev(concentrations)
-    axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl,3)), ms=10, mfc='none')
-    axes.set_ylim(min(concentrations)*0.99, max(concentrations)*1.01)
+    if stdevs: # Used when the across run plot is required - to plot standard deviation per run
+        if len(fig.axes) > 1:
+            fig.axes[1].remove()
 
-    axes.legend()
+        stdev_plot = axes.twinx()
+
+        mean_conc = statistics.mean(concentrations)
+        stdev_conc = statistics.mean(concentrations)
+
+        mean_mdl_plot = axes.plot((-999, 999), (mean_conc, mean_conc), linewidth=0.5, linestyle='--', color='#4286f4', label='Mean MDL')
+        upper_mdl_plot = axes.plot((-999, 999), ((stdev_conc * 2) + mean_conc, (stdev_conc * 2) + mean_conc), linewidth=0.5, color='#2baf69', label='Lower/Upper 2xSD')
+        lower_mdl_plot = axes.plot((-999, 999), (mean_conc - (stdev_conc * 2), (mean_conc - stdev_conc * 2)), linewidth=0.5, color='#2baf69')
+
+        stdev_runs_plot = stdev_plot.plot(run_nums, stdevs, linewidth=0, marker='s', markersize=5, mec='#949fb2', mfc='#949fb2', alpha=0.8, label='MDL SD per run')
+        stdev_plot.set_ylabel('Standard Deviation per Run (µM)', fontsize=12)
+
+        axes.plot(indexes, concentrations, linestyle=':', lw=0.25, marker='o', mfc='None', mec='#12BA66', ms=12, label='Measured MDL')
+
+        axes.set_xlim(min(indexes)-1, max(indexes)+1)
+        all_lines = mean_mdl_plot + upper_mdl_plot + stdev_runs_plot
+        labs = [l.get_label() for l in all_lines]
+        axes.legend(all_lines, labs)
+    else: # Normal in processing plot
+        mdl = 3 * statistics.stdev(concentrations)
+        axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl,3)), ms=12, mfc='none', mec='#12BA66')
+        axes.set_ylim(min(concentrations)*0.99, max(concentrations)*1.01)
+        axes.legend(fontsize=12)
 
     fig.set_tight_layout(tight=True)
-
 
 def bqc_plot(fig, axes, indexes, concentrations, flags):
     if len(axes.lines) > 0:
@@ -558,6 +680,7 @@ def bqc_plot(fig, axes, indexes, concentrations, flags):
     axes.legend()
 
     fig.set_tight_layout(tight=True)
+
 
 
 class calibrationCurve(QWidget):
@@ -1961,154 +2084,3 @@ class mdlPlotWindow(QMainWindow):
                                             'Plot')
             self.selection.show()
 
-
-class redfieldPlot2(QMainWindow):
-    def __init__(self, project, path, database):
-        super().__init__()
-
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
-
-        self.setWindowIcon(QIcon(':/assets/icon.svg'))
-
-        self.currproject = project
-
-        self.currpath = path
-
-        self.database = database
-
-        self.init_ui()
-
-        self.populaterunlist()
-
-        self.setStyleSheet("""
-            QLabel {
-                font: 14px;
-            }
-            QListWidget {
-                font: 14px;
-            }
-            QPushButton {
-                font: 13px;
-            }
-            QComboBox {
-                font: 13px;
-            }
-            QCheckBox {
-                font: 14px;
-            }
-                            """)
-
-        try:
-            with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
-                self.params = json.loads(file.read())
-        except Exception:
-            logging.error("Can't find parameters file")
-
-    def init_ui(self):
-
-        deffont = QFont('Segoe UI')
-        self.setGeometry(0, 0, 780, 820)
-        self.setFont(deffont)
-        qtRectangle = self.frameGeometry()
-        centerPoint = QDesktopWidget().availableGeometry().center()
-        qtRectangle.moveCenter(centerPoint)
-        self.move(qtRectangle.topLeft())
-
-        self.setFont(deffont)
-
-        self.setWindowTitle('HyPro - Redfield Ratio')
-
-        self.gridlayout = QGridLayout()
-        self.qvboxlayout = QVBoxLayout()
-
-        # *************** Menu bar ************************
-
-        mainMenu = self.menuBar()
-        fileMenu = mainMenu.addMenu('File')
-        editMenu = mainMenu.addMenu('Edit')
-
-        exportPlot = QAction(QIcon(':/assets/archivebox.svg'), 'Export Plot', self)
-        exportPlot.triggered.connect(self.exportplot)
-        fileMenu.addAction(exportPlot)
-
-        copyPlot = QAction(QIcon(':/assets/newdoc.svg'), 'Copy', self)
-        copyPlot.triggered.connect(self.copyplot)
-        editMenu.addAction(copyPlot)
-
-        # *************** UI elements in window created ************************
-
-        self.figure = plt.figure()
-        self.figure.set_tight_layout(tight=True)
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setParent(self)
-
-        runlistlabel = QLabel('Select Run:', self)
-        self.runlist = QListWidget(self)
-        self.runlist.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
-        self.runlist.setMaximumWidth(120)
-
-        self.showbaddata = QCheckBox('Show bad data', self)
-
-        self.markbaddata = QCheckBox('Mark bad data', self)
-
-        self.applybutton = QPushButton('Apply', self)
-        self.applybutton.clicked.connect(self.apply)
-
-        # *************** Position elements in layouts ************************
-
-        self.gridlayout.addWidget(self.canvas, 0, 1)
-        self.gridlayout.addLayout(self.qvboxlayout, 0, 0)
-
-        self.qvboxlayout.addWidget(runlistlabel)
-        self.qvboxlayout.addWidget(self.runlist)
-
-        self.qvboxlayout.addWidget(self.showbaddata)
-        self.qvboxlayout.addWidget(self.markbaddata)
-
-        self.qvboxlayout.addWidget(self.applybutton)
-
-        self.centralWidget().setLayout(self.gridlayout)
-
-        # *************** Make up plot ************************
-
-        self.mainplot = self.figure.add_subplot(111)
-
-        self.mainplot.set_title('Redfield Ratio', fontsize=18)
-        self.mainplot.set_xlabel('[NOx] (uM)', fontsize=15)
-        self.mainplot.set_ylabel('[Phosphate] (uM)', fontsize=15)
-
-        for x in self.mainplot.get_xticklabels():
-            x.set_fontsize(12)
-        for y in self.mainplot.get_yticklabels():
-            y.set_fontsize(12)
-
-        self.mainplot.grid(alpha=0.1)
-
-        self.canvas.draw()
-
-    def populaterunlist(self):
-        conn = sqlite3.connect(self.database)
-        c = conn.cursor()
-        c.execute('SELECT runNumber FROM nitrateData')
-        data = list(c.fetchall())
-        c.close()
-
-        sorted_run_numbers = sorted(list(set(data)))
-        for x in sorted_run_numbers:
-            self.runlist.addItem(str(x[0]))
-
-    def apply(self):
-        selected = self.runlist.selectedItems()
-        selected_runs = [item.text() for item in selected]
-        print(selected_runs)
-
-    def exportplot(self):
-        filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.png')
-        if filedialog[0]:
-            self.figure.savefig(filedialog[0] + filedialog[1], dpi=400)
-
-    def copyplot(self):
-        buffer = io.BytesIO()
-        self.figure.savefig(buffer, dpi=400)
-        QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))

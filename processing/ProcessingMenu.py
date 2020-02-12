@@ -333,7 +333,8 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         self.rmnsWindow.show()
 
     def mdlplots(self):
-        self.mdlWindow = qcp.mdlPlotWindow(self.currproject, self.currpath, self.db)
+        #self.mdlWindow = qcp.mdlPlotWindow(self.currproject, self.currpath, self.db)
+        self.mdlWindow = qcp.mdlPlotWindowTemplate(self.db, self.params_path)
         self.mdlWindow.show()
 
     def redfield(self):

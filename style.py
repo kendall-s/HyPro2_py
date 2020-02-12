@@ -158,7 +158,7 @@ QListWidget {
 
 ---------------------------------------------------------- */
 QTabWidget QWidget {
-    font: 14px;
+    font: 14px Segoe UI;
     color: #000000;
     border: 0px #000000;
 }
@@ -168,7 +168,7 @@ QTabWidget QWidget {
 
 ---------------------------------------------------------- */
 QTableWidget {
-    font: 14px;
+    font: 14px Segoe UI;
 }
 QHeaderView {
     font: 14px;
@@ -313,7 +313,7 @@ QDialog {
 
 ---------------------------------------------------------- */
 QLabel {
-    font: 14px;
+    font: 14px Segoe UI;
     color: #F5F5F5;
 }
 QLabel[sideHeaderHeading=true] {   
@@ -331,7 +331,7 @@ QLabel[sideBarText=true] {
 
 ---------------------------------------------------------- */
 QPushButton {
-    font: 14px;
+    font: 14px Segoe UI;
     color: #F5F5F5;
     border: 3px solid #333333;
     background-color: #333333;
@@ -348,7 +348,7 @@ QPushButton:pressed {
 
 ---------------------------------------------------------- */
 QComboBox {
-    font: 14px;
+    font: 14px Segoe UI;
     color: #F5F5F5;
     border: 1px solid #666666;
     background-color: #000000;
@@ -377,7 +377,7 @@ QComboBox:down-arrow {
 
 ---------------------------------------------------------- */
 QCheckBox {
-    font: 14px;
+    font: 14px Segoe UI;
     color: white;
 }
 
@@ -386,7 +386,7 @@ QCheckBox {
 
 ---------------------------------------------------------- */
 QTabWidget QWidget {
-    font: 14px;
+    font: 14px Segoe UI;
     color: white;
     background-color: #202020;
     border: 1px #000000;
@@ -428,7 +428,7 @@ QLineEdit:focus {
 
 ---------------------------------------------------------- */
 QListWidget {
-    font: 14px;
+    font: 14px Segoe UI;
     color: #F5F5F5;
     background-color: #191919;
     selection-background-color: #4D4D4D;    
@@ -508,7 +508,7 @@ QScrollBar:sub-page:vertical {
 
 ---------------------------------------------------------- */
 QPlainTextEdit[output=true]{
-    font: 14px;
+    font: 14px Segoe UI;
     color: #F5F5F5;
     background-color: #191919;
     selection-background-color: #4D4D4D;  
