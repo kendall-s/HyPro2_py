@@ -660,7 +660,7 @@ def reset_calibrant_flags(quality_flags):
     return quality_flags
 
 
-def pack_data(slk_data, working_data, database):
+def pack_data(slk_data, working_data, database, file_path):
     conn = sqlite3.connect(database)
     c = conn.cursor()
 
@@ -710,6 +710,12 @@ def pack_data(slk_data, working_data, database):
     c.executemany('INSERT OR REPLACE INTO nutrientDrifts VALUES (?,?,?,?,?,?)', package)
     conn.commit()
 
+    # Put file modfied time into db as salinity file processed
+    mod_time = float(os.path.getmtime(file_path))
+    c.executemany('INSERT OR REPLACE INTO nutrientFilesProcessed VALUES(?,?)', ((working_data.run, mod_time),))
+    conn.commit()
+
+    conn.close()
 
 def populate_nutrient_survey(database, params, sample_id, cup_types):
     deployments = []

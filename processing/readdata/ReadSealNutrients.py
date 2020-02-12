@@ -26,7 +26,8 @@ def get_data_routine(file_path, w_d, processing_parameters, database):
     # Check and determine if we know the surveys
     slk_data.deployment, slk_data.rosette_position, slk_data.survey = psn.populate_nutrient_survey(database,
                                                                                                processing_parameters,
-                                                                                               slk_data.sample_ids)
+                                                                                               slk_data.sample_ids,
+                                                                                               slk_data.cup_types)
     ft = time.time()
     print('Read time: ' + str(ft-st))
 

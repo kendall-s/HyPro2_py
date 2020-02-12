@@ -2,6 +2,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtGui import QFont
 import logging
 import time
+import json
 import os
 
 # Modified QPlainTextEdit to act as a logger output and catch the logger calls
@@ -15,6 +16,10 @@ class QTextEditLogger(logging.Handler):
         self.widget.setProperty('output', True)
         self.widget.setReadOnly(True)
         self.widget.setFont(QFont('Segoe UI'))
+
+        with open('C:/HyPro/hyprosettings.json', 'r') as temp:
+            params = json.loads(temp.read())
+        self.active_processor = params['activeprocessor']
 
         self.log_path = log_path
         try:
@@ -31,7 +36,7 @@ class QTextEditLogger(logging.Handler):
     def emit(self, record):
         msg = self.format(record)
         currenttime = time.strftime('%d/%m %H:%M:%S', time.localtime(time.time()))
-        self.output = currenttime + ': ' + msg
+        self.output = currenttime + ' | ' + self.active_processor + ': ' + msg
         self.widget.appendPlainText(self.output)
         try:
             with open(self.log_path, mode='a+') as file:

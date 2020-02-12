@@ -249,6 +249,7 @@ def form_tables(database):
                         (nutrient TEXT, 
                         runNumber INTEGER,
                         baselineIndexes INTEGER,
+                        baselinePeakStarts INTEGER,
                         baselineMedians FLOAT,
                         baselineFlags INTEGER, UNIQUE(nutrient, runNumber, baselineIndexes))''')
 
@@ -256,6 +257,7 @@ def form_tables(database):
                         (nutrient TEXT,
                         runNumber INTEGER,
                         driftIndexes INTEGER,
+                        driftPeakStarts INTEGER,
                         driftMedians FLOAT,
                         driftFlags INTEGER, UNIQUE(nutrient, runNumber, driftIndexes))''')
 

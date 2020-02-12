@@ -49,7 +49,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.processing_parameters = load_proc_settings(path, project)
 
         self.file_path = path + '/' + 'Nutrients' + '/' + file
-
+        self.file = file
         self.path = path
         self.project = project
         self.database = database
@@ -331,7 +331,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         print(str(len(self.main_trace.lines)) + str(' Lines on Main Trace'))
 
     def store_data(self):
-        psn.pack_data(self.slk_data, self.w_d, self.database)
+        psn.pack_data(self.slk_data, self.w_d, self.database, self.file_path)
 
     def proceed(self):
         self.main_trace.cla()
@@ -341,7 +341,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         # If the matching lat/lons check box is active assume the file is a underway one. Pull out samples and
         # find the latitude and longitudes that correspond
-        if self.find_lat_lons.isChecked:
+        if self.find_lat_lons.isChecked():
+            print('Checked')
             complete = psn.match_lat_lons_routine(self.path, self.project, self.database, self.current_nutrient,
                                                   self.processing_parameters, self.w_d, self.slk_data)
 
@@ -356,6 +357,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
            
         except IndexError:
             print('Processing completed')
+            logging.info(f'Processing successfully completed for nutrient file - {self.file}')
             self.close()
 
     def cancel(self):

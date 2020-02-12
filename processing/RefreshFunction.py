@@ -194,6 +194,8 @@ class refreshFunction():
                                             procfile = True
                 if procfile:
                     break
+            if not procfile:
+                logging.info('No new files to process')
 
         except Exception:
             logging.error(traceback.print_exc())
