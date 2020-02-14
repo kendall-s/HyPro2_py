@@ -13,7 +13,6 @@ from dialogs.templates.DialogTemplate import hyproDialogTemplate
 class parametersDialog(hyproDialogTemplate):
     def __init__(self, project, path):
         super().__init__(475, 800, 'HyPro Project Parameters')
-        self.setWindowIcon(QtGui.QIcon(':/assets/icon.svg'))
 
         self.currproject = project
         self.currpath = path
@@ -123,7 +122,7 @@ class parametersDialog(hyproDialogTemplate):
             intqclabel = QLabel('Internal QC:', self)
             self.intqc = QLineEdit(self)
 
-            self.generaltab.layout.addWidget(slkcolumnlabel, 0, 0)
+            self.generaltab.layout.addWidget(slkcolumnlabel, 0, 0, 1, 2, QtCore.Qt.AlignCenter)
             self.generaltab.layout.addWidget(sampleidlabel, 1, 0)
             self.generaltab.layout.addWidget(self.sampleid, 1, 1)
             self.generaltab.layout.addWidget(cupnumberlabel, 2, 0)
@@ -135,7 +134,7 @@ class parametersDialog(hyproDialogTemplate):
 
             self.generaltab.layout.addWidget(genlinesep1, 5, 0, 1, 2)
 
-            self.generaltab.layout.addWidget(cupnameslabel, 6, 0)
+            self.generaltab.layout.addWidget(cupnameslabel, 6, 0, 1, 2, QtCore.Qt.AlignCenter)
             self.generaltab.layout.addWidget(primerlabel, 7, 0)
             self.generaltab.layout.addWidget(self.primer, 7, 1)
             self.generaltab.layout.addWidget(recoverylabel, 8, 0)
@@ -159,7 +158,7 @@ class parametersDialog(hyproDialogTemplate):
 
             self.generaltab.layout.addWidget(genlinesep2, 17, 0, 1, 2)
 
-            self.generaltab.layout.addWidget(qcsamplelabel, 18, 0)
+            self.generaltab.layout.addWidget(qcsamplelabel, 18, 0, 1, 2, QtCore.Qt.AlignCenter)
             self.generaltab.layout.addWidget(driftchecklabel, 19, 0)
             self.generaltab.layout.addWidget(self.driftcheck, 19, 1)
             self.generaltab.layout.addWidget(rmnslabel, 20, 0)

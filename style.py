@@ -41,7 +41,6 @@ QGraphicsDropShadow {
 
 QLineEdit {
     font: 14px;
-    border: 1px solid;
 }
 QLineEdit:hover {
     font: 14px;
@@ -159,8 +158,6 @@ QListWidget {
 ---------------------------------------------------------- */
 QTabWidget QWidget {
     font: 14px Segoe UI;
-    color: #000000;
-    border: 0px #000000;
 }
 
 
@@ -189,6 +186,7 @@ QPlainTextEdit[output=true]{
 /* ----------------------------------- QFrame ------------
 
 ---------------------------------------------------------- */
+
 QFrame[dashboardFrame=true] {
     background-color: #f7faff;
 }
@@ -389,7 +387,6 @@ QTabWidget QWidget {
     font: 14px Segoe UI;
     color: white;
     background-color: #202020;
-    border: 1px #000000;
 }
 QTabWidget:pane {
     background-color: #191919;
@@ -420,7 +417,7 @@ QLineEdit:hover {
     border: 1px solid #9C9C9C;
 }
 QLineEdit:focus {
-    border: 1px solid #888888;
+    border: 1px solid #999999;
 }
 
 
@@ -476,11 +473,11 @@ QScrollBar:vertical {
     margin: 0px 0px 0px 0px;
 }
 QScrollBar:handle:vertical::pressed {
-    background: #888888;
+    background: #8F8F8F;
     border-radius: 3px;    
 }
 QScrollBar::handle:vertical {
-    background: #666666;
+    background: #717171;
     min-height: 0px;
     border-radius: 3px;
 }  
@@ -521,6 +518,10 @@ QPlainTextEdit[output=true]{
 /* ------------------------------------- QFrame ----------
 
 ---------------------------------------------------------- */
+QFrame[frameShape="4"][frameShadow="48"] {
+    background-color: #D5D5D5;
+    border: 1px solid #141414;
+}
 
 QFrame[dashboardFrame=true] {
     background-color: #191919;
@@ -536,6 +537,7 @@ QFrame[sideHeaderFrame=true]{
     background-color: #1C1C1C;
     border-radius: 1px;
 }
+
 
 
 

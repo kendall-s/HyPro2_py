@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QPushButton, QL
                              QMdiSubWindow)
 
 from time import sleep
+import xarray
 import time
 from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtGui, QtCore, QtWidgets

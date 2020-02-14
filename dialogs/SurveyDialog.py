@@ -1,5 +1,6 @@
 # https://stackoverflow.com/questions/8979409/get-text-from-qpushbutton-in-pyqt
 
+from dialogs.templates.DialogTemplate import hyproDialogTemplate
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QGridLayout, QMessageBox, QFrame,
                              QCheckBox, QTabWidget)
 from PyQt5 import QtGui, QtWidgets, QtCore
@@ -10,46 +11,28 @@ import json
 import hyproicons, style
 
 # The GUI for adding or editing surveys to the required settings needed
-class surveyDialog(QWidget):
+class surveyDialog(hyproDialogTemplate):
     def __init__(self, project, survey, path):
-        super().__init__()
-        self.setWindowIcon(QtGui.QIcon(':/assets/icon.svg'))
+        super().__init__(450, 600, 'HyPro - Add Survey')
 
         self.currproject = project
         self.survey = survey
         self.currpath = path
-
+        
+        if survey != 'new':
+            self.setWindowTitle('HyPro - Survey Settings')
+            self.surveyName = QLineEdit(self.survey)
+            self.surveyName.setReadOnly(True)
+        else: 
+            self.surveyName = QLineEdit(self)
         self.init_ui()
-
-        self.setStyleSheet(style.stylesheet['normal'])
 
 
     def init_ui(self):
         try:
             self.setFont(QFont('Segoe UI'))
-
-            self.gridlayout = QGridLayout()
-            self.gridlayout.setSpacing(20)
-
-            # Center window on active screen
-            self.setGeometry(0, 0, 515, 725)
-            qtRectangle = self.frameGeometry()
-            screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
-            centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
-            qtRectangle.moveCenter(centerPoint)
-            self.move(qtRectangle.topLeft())
-            self.setWindowModality(QtCore.Qt.ApplicationModal)
-
-
+            
             headerLabel = QLabel('Survey name: ', self)
-
-            if self.survey == 'new':
-                self.setWindowTitle('HyPro - Add Survey')
-                self.surveyName = QLineEdit(self)
-            else:
-                self.setWindowTitle('HyPro - Survey Settings')
-                self.surveyName = QLineEdit(self.survey)
-                self.surveyName.setReadOnly(True)
 
             analyses = ['Guildline Salinity', 'Scripps Oxygen', 'Seal Nutrients', 'Seasave CTD']
             analyseskey = ['guildline', 'scripps', 'seal', 'seasave']
@@ -60,7 +43,7 @@ class surveyDialog(QWidget):
             self.tabs = QTabWidget()
             self.saltactive = False
             self.oxyactive = False
-            self.nutsactive = False
+            self.nuts_active = False
             self.ctdactive = False
 
             tabnotadded = True
@@ -75,9 +58,9 @@ class surveyDialog(QWidget):
                         self.tabs.addTab(self.oxygentab, 'Oxygen')
                         self.oxyactive = True
                     if i == 'seal':
-                        self.nutrienttab = QWidget()
-                        self.tabs.addTab(self.nutrienttab, 'Nutrients')
-                        self.nutsactive = True
+                        self.nutrient_tab = QWidget()
+                        self.tabs.addTab(self.nutrient_tab, 'Nutrients')
+                        self.nuts_active = True
                     if i == 'seasave':
                         self.ctdtab = QWidget()
                         self.tabs.addTab(self.ctdtab, 'CTD')
@@ -100,15 +83,15 @@ class surveyDialog(QWidget):
             cancel = QPushButton('Cancel', self)
             cancel.clicked.connect(self.cancelfunction)
 
-            self.gridlayout.addWidget(headerLabel, 0, 0)
-            self.gridlayout.addWidget(self.surveyName, 0, 1)
+            self.grid_layout.addWidget(headerLabel, 0, 0)
+            self.grid_layout.addWidget(self.surveyName, 0, 1)
 
-            self.gridlayout.addWidget(self.tabs, 1, 0, 5, 3)
+            self.grid_layout.addWidget(self.tabs, 1, 0, 5, 3)
 
-            self.gridlayout.addWidget(save, 10, 0)
-            self.gridlayout.addWidget(cancel, 10, 2)
+            self.grid_layout.addWidget(save, 10, 0)
+            self.grid_layout.addWidget(cancel, 10, 2)
 
-            self.setLayout(self.gridlayout)
+            self.setLayout(self.grid_layout)
 
             # Salinity Tab
             if self.saltactive:
@@ -285,91 +268,57 @@ class surveyDialog(QWidget):
                 self.oxygentab.setLayout(oxy_grid)
 
             # Nutrient tab
-            if self.nutsactive:
-                self.nutrienttab.layout = QGridLayout()
-
-                self.activateNutrient = QCheckBox('Activate for use with this survey', self)
+            if self.nuts_active:
+                self.nutrient_tab.layout = QGridLayout()
+                self.nutrient_tab.layout.setSpacing(5)
+                self.activate_nutrient = QCheckBox('Activate survey for this analyte', self)
                 #self.activateNutrient.clicked.connect(self.enabledisable)
 
-                self.matchNutrientLabel = QLabel('Use sampling logsheet to match RP and bottle label:', self)
+                nut_linesep1 = QFrame()
+                nut_linesep1.setFrameShape(QFrame.HLine)
+                nut_linesep1.setFrameShadow(QFrame.Sunken)
 
-                self.matchNutrientCheck = QCheckBox(self)
+                self.sample_id_nutrient = QCheckBox('Directly use sample ID instead of dep/ros label decoding system, \n'
+                                                  'beware this overrides all other decoding of IDs', self)
+                nut_linesep2 = QFrame()
+                nut_linesep2.setFrameShape(QFrame.HLine)
+                nut_linesep2.setFrameShadow(QFrame.Sunken)
 
-                self.decodeNutrientLabel = QLabel('Decode sample ID:')
+                survey_prefix_nutrient_label = QLabel('Survey prefix on sample ID:')
 
-                self.decodeNutrient = QCheckBox(self)
-                #self.decodeNutrient.clicked.connect(self.enabledisable)
+                self.survey_prefix_nutrient = QLineEdit(self)
+                self.survey_prefix_nutrient.setDisabled(True)
 
-                self.surveyPrefixNutrient = QLabel('Sample survey prefix')
+                nut_linesep3 = QFrame()
+                nut_linesep3.setFrameShape(QFrame.HLine)
+                nut_linesep3.setFrameShadow(QFrame.Sunken)
 
-                self.surveyPrefixNutrientEdit = QLineEdit(self)
-                self.surveyPrefixNutrientEdit.setDisabled(True)
+                decode_deprp_nutrient_label = QLabel('Decode a deployment/RP from ID')
 
-                self.decodeNutrientDeployment = QCheckBox('Decode Deployment from sample ID', self)
-                #self.decodeNutrientDeployment.clicked.connect(self.enabledisable)
-                self.decodeNutrientDeployment.setDisabled(True)
+                self.decode_deployment_nutrient = QCheckBox('Decode Dep/RP?', self)
 
-                self.deploymentNutrientFormat = QLabel(
-                    'Deployment/Bottle format after prefix (if there is one) e.g. DDDBB', self)
+                dep_rp_format_nutrient_label = QLabel('Dep/Bottle format after prefix:')
 
-                self.deploymentNutrientFormatEdit = QLineEdit(self)
-                self.deploymentNutrientFormatEdit.setDisabled(True)
+                self.dep_rp_format_nutrient = QLineEdit()
 
-                self.decodeNutrientDate = QCheckBox('Decode Sample ID date format', self)
-                #self.decodeNutrientDate.clicked.connect(self.enabledisable)
-                self.decodeNutrientDate.setDisabled(True)
+                nut_linesep4 = QFrame()
+                nut_linesep4.setFrameShape(QFrame.HLine)
+                nut_linesep4.setFrameShadow(QFrame.Sunken)
 
-                self.dateNutrientFormat = QLabel('Date/Time format e.g. YYYYMMDD hh:mm:ss', self)
+                self.nutrient_tab.layout.addWidget(self.activate_nutrient, 0, 0)
+                self.nutrient_tab.layout.addWidget(nut_linesep1, 1, 0, 1, 2)
+                self.nutrient_tab.layout.addWidget(self.sample_id_nutrient, 2, 0, 1, 2)
+                self.nutrient_tab.layout.addWidget(nut_linesep2, 3, 0, 1, 2)
+                self.nutrient_tab.layout.addWidget(survey_prefix_nutrient_label, 4, 0)
+                self.nutrient_tab.layout.addWidget(self.survey_prefix_nutrient, 5, 0)
+                self.nutrient_tab.layout.addWidget(nut_linesep3, 6, 0, 1, 2)
+                self.nutrient_tab.layout.addWidget(decode_deprp_nutrient_label, 7, 0)
+                self.nutrient_tab.layout.addWidget(self.decode_deployment_nutrient, 8, 0)
+                self.nutrient_tab.layout.addWidget(dep_rp_format_nutrient_label, 9, 0)
+                self.nutrient_tab.layout.addWidget(self.dep_rp_format_nutrient, 10, 0)
+                self.nutrient_tab.layout.addWidget(nut_linesep4, 11, 0, 1, 2)
 
-                self.decodeNutrientDateEdit = QLineEdit(self)
-                self.decodeNutrientDateEdit.setDisabled(True)
-
-                self.sampleNutrientID = QCheckBox('Use sample ID instead of dep/ros label', self)
-
-                self.createNutrientMetadata = QCheckBox('Automatically create meta-data', self)
-
-                nutlinesep1 = QFrame(self)
-                nutlinesep1.setFrameShape(QFrame.HLine)
-                nutlinesep1.setFrameShadow(QFrame.Sunken)
-
-                nutlinesep2 = QFrame(self)
-                nutlinesep2.setFrameShape(QFrame.HLine)
-                nutlinesep2.setFrameShadow(QFrame.Sunken)
-
-                nutlinesep3 = QFrame(self)
-                nutlinesep3.setFrameShape(QFrame.HLine)
-                nutlinesep3.setFrameShadow(QFrame.Sunken)
-
-                self.nutrienttab.layout.addWidget(self.activateNutrient, 0, 0)
-                self.nutrienttab.layout.addWidget(nutlinesep1, 1, 0, 1, 2)
-
-                self.nutrienttab.layout.addWidget(self.matchNutrientLabel, 2, 0)
-                self.nutrienttab.layout.addWidget(self.matchNutrientCheck, 2, 1)
-
-                self.nutrienttab.layout.addWidget(nutlinesep2, 3, 0, 1, 2)
-
-                self.nutrienttab.layout.addWidget(self.decodeNutrientLabel, 4, 0)
-                self.nutrienttab.layout.addWidget(self.decodeNutrient, 4, 1)
-
-                self.nutrienttab.layout.addWidget(self.surveyPrefixNutrient, 5, 0)
-                self.nutrienttab.layout.addWidget(self.surveyPrefixNutrientEdit, 5, 1)
-
-                self.nutrienttab.layout.addWidget(self.decodeNutrientDeployment, 6, 0)
-
-                self.nutrienttab.layout.addWidget(self.deploymentNutrientFormat, 7, 0)
-                self.nutrienttab.layout.addWidget(self.deploymentNutrientFormatEdit, 7, 1)
-
-                self.nutrienttab.layout.addWidget(self.decodeNutrientDate, 8, 0)
-
-                self.nutrienttab.layout.addWidget(self.dateNutrientFormat, 9, 0)
-                self.nutrienttab.layout.addWidget(self.decodeNutrientDateEdit, 9, 1)
-
-                self.nutrienttab.layout.addWidget(nutlinesep3, 10, 0, 1, 2)
-
-                self.nutrienttab.layout.addWidget(self.sampleNutrientID, 11, 0)
-                self.nutrienttab.layout.addWidget(self.createNutrientMetadata, 12, 0)
-
-                self.nutrienttab.setLayout(self.nutrienttab.layout)
+                self.nutrient_tab.setLayout(self.nutrient_tab.layout)
 
             self.populatefields()
 
@@ -404,17 +353,12 @@ class surveyDialog(QWidget):
                 #     self.decodeOxygenDateEdit.setText(params['surveyparams'][k]['scripps']['dateformat'])
                 #     self.sampleOxygenID.setChecked(params['surveyparams'][k]['scripps']['usesampleid'])
                 #     self.createOxygenMetadata.setChecked(params['surveyparams'][k]['scripps']['autometadata'])
-                if self.nutsactive:
-                    self.activateNutrient.setChecked(params['surveyparams'][k]['seal']['activated'])
-                    self.matchNutrientCheck.setChecked(params['surveyparams'][k]['seal']['matchlogsheet'])
-                    self.decodeNutrient.setChecked(params['surveyparams'][k]['seal']['decodesampleid'])
-                    self.surveyPrefixNutrientEdit.setText(params['surveyparams'][k]['seal']['surveyprefix'])
-                    self.decodeNutrientDeployment.setChecked(params['surveyparams'][k]['seal']['decodedepfromid'])
-                    self.deploymentNutrientFormatEdit.setText(params['surveyparams'][k]['seal']['depformat'])
-                    self.decodeNutrientDate.setChecked(params['surveyparams'][k]['seal']['decodetimefromid'])
-                    self.decodeNutrientDateEdit.setText(params['surveyparams'][k]['seal']['dateformat'])
-                    self.sampleNutrientID.setChecked(params['surveyparams'][k]['seal']['usesampleid'])
-                    self.createNutrientMetadata.setChecked(params['surveyparams'][k]['seal']['autometadata'])
+                if self.nuts_active:
+                    self.activate_nutrient.setChecked(params['surveyparams'][k]['seal']['activated'])
+                    self.survey_prefix_nutrient.setText(params['surveyparams'][k]['seal']['surveyprefix'])
+                    self.decode_deployment_nutrient.setChecked(params['surveyparams'][k]['seal']['decodedepfromid'])
+                    self.dep_rp_format_nutrient.setText(params['surveyparams'][k]['seal']['depformat'])
+                    self.sample_id_nutrient.setChecked(params['surveyparams'][k]['seal']['usesampleid'])
 
     def savefunction(self):
         try:
@@ -424,7 +368,7 @@ class surveyDialog(QWidget):
             # TODO Fix this so it changes the save query based on tabs open
 
             newsurvey = {'%s' % surveyname: {}}
-            if self.nutsactive:
+            if self.nuts_active:
                 newsurvey[surveyname]['seal'] = {'activated': self.activateNutrient.isChecked(),
                                                       'matchlogsheet': self.matchNutrientCheck.isChecked(),
                                                       'decodesampleid': self.decodeNutrient.isChecked(),
