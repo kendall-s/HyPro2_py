@@ -119,6 +119,9 @@ QPushButton[nutrientControls=true]:pressed {
     background-color: #78C6FF;
     border-style: inset;
 }
+QPushButton[msgBox=true] {
+    width: 85px;
+}
 
 /* ---------------------------------- QComboBox ---------
 
@@ -307,6 +310,20 @@ QDialog {
 }
 
 
+/* ------------------------------- QMessageBox ------------
+
+---------------------------------------------------------- */
+QMessageBox {
+    background-color: #202020;
+    background-color: #2C2C2C;
+}
+QDialogButtonBox {
+    background-color: #50E62D;
+}
+
+
+
+
 /* ----------------------------------- QLabel ------------
 
 ---------------------------------------------------------- */
@@ -339,6 +356,23 @@ QPushButton:hover {
 }
 QPushButton:pressed {
     background-color: #666666;
+}
+QPushButton[sideBarButton=true] {
+    border: 0px solid #4e546c;
+    background-color: None;
+    color: #F5F5F5;
+    font: 14px;
+    height: 25px;
+}
+QPushButton[sideBarButton=true]:hover {
+    color: #ccd5e0;
+    border: 1px solid #6C676A;
+}
+QPushButton[sideBarButton=true]:pressed {
+    color: #6bb7ff;
+}
+QPushButton[msgBox=true] {
+    width: 85px;
 }
 
 
@@ -511,6 +545,15 @@ QPlainTextEdit[output=true]{
     selection-background-color: #4D4D4D;  
     border: 0px;
     padding-bottom: 3px;
+}
+
+
+/* ----------------------------------- QGroupBox ----------
+
+---------------------------------------------------------- */
+QGroupBox {
+    font: 14px Segoe UI;
+    font-weight: bold;
 }
 
 

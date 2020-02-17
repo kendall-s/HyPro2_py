@@ -1,7 +1,8 @@
 # old color fcfcfc
 import sys, os, sqlite3, json, subprocess
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QPushButton, QLabel, QGridLayout,
-                             QMessageBox, QInputDialog, QComboBox, QAction, QDesktopWidget, QFrame, QMdiArea,
+                             QInputDialog, QComboBox, QAction, QDesktopWidget, QFrame, QMdiArea,
                              QMdiSubWindow)
 
 from time import sleep
@@ -698,11 +699,9 @@ class Mainmenu(QMainWindow):
     def openprocessing(self):
         try:
             if self.currproject == 'No active project':
-                messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Error...',
-                                         (
-                                             'There is no active project currently selected, please create or import one.'),
-                                         buttons=QtWidgets.QMessageBox.Ok, parent=self)
-                messagebox.setIconPixmap(QPixmap(':/assets/exclamation.svg'))
+                message_box = hyproMessageBoxTemplate('Error',
+                                                      'There is no active project currently selected, please create or import one.',
+                                                      'information')
             else:
                 self.project = self.currprojectdisp.text()
                 with open('C:/HyPro/hyprosettings.json', 'r') as file:
@@ -743,13 +742,9 @@ class Mainmenu(QMainWindow):
 
     # Message box including about info
     def aboutinformation(self):
-        messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'About',
-                                 "This is an experimental version of HyPro built using Python",
-                                 buttons=QtWidgets.QMessageBox.Ok, parent=self)
-        messagebox.setIconPixmap(QPixmap(':/assets/questionmark.svg'))
-        messagebox.setFont(QFont('Segoe UI'))
-        messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 20px; }')
-        messagebox.exec_()
+        message_box = hyproMessageBoxTemplate('About Hypro',
+                                              'This is an experimental version of HyPro built using Python',
+                                              'about')
 
     # Show the manual TODO: add a standalone directory for packaged versions
     # TODO: write manual lol

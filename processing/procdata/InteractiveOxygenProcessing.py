@@ -1,8 +1,15 @@
-import os, logging, traceback, sqlite3, json
+import json
+import logging
+import os
+import sqlite3
+import time
+import traceback
+
 import processing.RefreshFunction
-from processing.plotting.QCPlots import oxygenErrorPlot
-import processing.readdata.ReadScrippsOxygen as rso
 import processing.procdata.ProcessScrippsOxygen as pso
+import processing.readdata.ReadScrippsOxygen as rso
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
+from processing.plotting.QCPlots import oxygenErrorPlot
 
 
 class processingOxygenWindow():
@@ -48,30 +55,48 @@ class processingOxygenWindow():
         c.execute(query, deployments)
 
         ctd_data = list(c.fetchall())
-        oxygen_sensor_1 = [x[5] for x in ctd_data]
-        oxygen_sensor_2 = [x[6] for x in ctd_data]
-        ctd_deployment = [x[0] for x in ctd_data]
-        ctd_rosette_positions = [x[11] for x in ctd_data]
 
-        ctd_data_to_plot = {'primary_difference': [], 'secondary_difference': [], 'dep_rosette_postion': [],
-                            'rosette_positon_to_plot': []}
+        if not ctd_data:
+            logging.info(f'<b>The oxygen file {self.file} contains CTD samples - however there is no CTD sensor data in HyPro. The file'
+                         ' is processed but no error plot appears because of this error. Once CTD data is imported, '
+                         'reprocess this file to see the error plot. </b>')
+            time.sleep(0.3)
+            message_box = hyproMessageBoxTemplate('HyPro - Oxygen Processing Anomaly',
+                                                  f'CTD data matching results in the file {self.file} are not in HyPro',
+                                                  'information',
+                                                  long_text=f'The oxygen file {self.file} contains CTD samples, '
+                                                            f'however there is no matching CTD sensor data in HyPro. '
+                                                            f'The file is processed but no error plot appears because '
+                                                            f'of this error. Once CTD data is imported, reprocess '
+                                                            f'this file to see the error plot.')
 
-        for i, x in enumerate(oxygen_data.station):
-            for l, m in enumerate(ctd_deployment):
-                if x == m:
-                    if oxygen_data.rosette[i] == ctd_rosette_positions[l]:
-                        ctd_data_to_plot['rosette_positon_to_plot'].append(oxygen_data.rosette[i])
-                        ctd_data_to_plot['primary_difference'].append(oxygen_sensor_1[l] - oxygen_data.oxygen_mols[i])
-                        ctd_data_to_plot['secondary_difference'].append(oxygen_sensor_2[l] - oxygen_data.oxygen_mols[i])
-                        ctd_data_to_plot['dep_rosette_postion'].append(x + (oxygen_data.rosette[i] / 24))
+            self.proceed_processing()
 
-        self.oxygen_error_plot = oxygenErrorPlot(ctd_data_to_plot['dep_rosette_postion'],
-                                                 ctd_data_to_plot['primary_difference'],
-                                                 ctd_data_to_plot['secondary_difference'],
-                                                 max(ctd_data_to_plot['rosette_positon_to_plot']),
-                                                 self.interactive)
+        else:
+            oxygen_sensor_1 = [x[5] for x in ctd_data]
+            oxygen_sensor_2 = [x[6] for x in ctd_data]
+            ctd_deployment = [x[0] for x in ctd_data]
+            ctd_rosette_positions = [x[11] for x in ctd_data]
 
-        self.oxygen_error_plot.proceed.clicked.connect(self.proceed_processing)
+            ctd_data_to_plot = {'primary_difference': [], 'secondary_difference': [], 'dep_rosette_postion': [],
+                                'rosette_position_to_plot': []}
+
+            for i, x in enumerate(oxygen_data.station):
+                for l, m in enumerate(ctd_deployment):
+                    if x == m:
+                        if oxygen_data.rosette[i] == ctd_rosette_positions[l]:
+                            ctd_data_to_plot['rosette_position_to_plot'].append(oxygen_data.rosette[i])
+                            ctd_data_to_plot['primary_difference'].append(oxygen_sensor_1[l] - oxygen_data.oxygen_mols[i])
+                            ctd_data_to_plot['secondary_difference'].append(oxygen_sensor_2[l] - oxygen_data.oxygen_mols[i])
+                            ctd_data_to_plot['dep_rosette_postion'].append(x + (oxygen_data.rosette[i] / 24))
+
+            self.oxygen_error_plot = oxygenErrorPlot(ctd_data_to_plot['dep_rosette_postion'],
+                                                     ctd_data_to_plot['primary_difference'],
+                                                     ctd_data_to_plot['secondary_difference'],
+                                                     max(ctd_data_to_plot['rosette_position_to_plot']),
+                                                     self.interactive)
+
+            self.oxygen_error_plot.proceed.clicked.connect(self.proceed_processing)
 
     def proceed_processing(self):
 

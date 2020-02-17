@@ -61,7 +61,7 @@ def determine_oxygen_survey(station, cast, rp, bottle_id, database_path, process
 
     surveys = list(processing_parameters['surveyparams'].keys())
     for surv in surveys:
-        if processing_parameters['surveyparams'][surv]['guildline']['matchlogsheet']:
+        if processing_parameters['surveyparams'][surv]['scripps']['ctdsurvey']:
             if station < 900:
                 deployment = station
                 rosette_position = rp
@@ -77,11 +77,11 @@ def determine_oxygen_survey(station, cast, rp, bottle_id, database_path, process
                     return None
 
             else:
-                if processing_parameters['surveyparams'][surv]['guildline']['decodesampleid']:
-                    survey_prefix = processing_parameters['surveyparams'][surv]['guildline']['surveyprefix']
+                if processing_parameters['surveyparams'][surv]['scripps']['decodesampleid']:
+                    survey_prefix = processing_parameters['surveyparams'][surv]['scripps']['surveyprefix']
                     if station == survey_prefix:
                         survey = surv
-                        if processing_parameters['surveyparams'][surv]['guildline']['decodedepfromid']:
+                        if processing_parameters['surveyparams'][surv]['scripps']['decodedepfromid']:
                             deployment = cast
                             rosette_position = rp
                             return deployment, rosette_position, survey
@@ -89,4 +89,3 @@ def determine_oxygen_survey(station, cast, rp, bottle_id, database_path, process
                             deployment = surv
                             rosette_position = rp * cast
                             return deployment, rosette_position, survey
-

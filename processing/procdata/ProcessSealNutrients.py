@@ -751,7 +751,7 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
     conn = sqlite3.connect(database)
     c = conn.cursor()
 
-    if sample_id[0:3].lower() == 'test':
+    if 'test' in sample_id[0:4].lower():
         return 'Test', 'Test', 'Test'
 
     if cup_type == params['nutrientprocessing']['cupnames']['null']:
@@ -784,15 +784,17 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
                 return 'usingID', 'usingID', 'usingID'
             else:
                 if str(sample_id).isdigit():  # CTD sample is only numbers in name
-                    if params['surveyparams'][surv]['seal']['matchlogsheet']:
+                    if params['surveyparams'][surv]['seal']['ctdsurvey']:
                         survey = surv
                         if params['surveyparams'][surv]['seal']['decodedepfromid']:
                             depformat = params['surveyparams'][surv]['seal']['depformat']
                             depformatlength = depformat.count('D')
                             rpformatlength = depformat.count('B')
                             if depformatlength > 0:
-                                deployment = sample_id[0:depformatlength]
-                                rosettepos = sample_id[depformatlength:(depformatlength + rpformatlength)]
+                                if len(sample_id) < len(depformat):
+                                    depformatlength = depformatlength - 1
+                                rosettepos = sample_id[len(sample_id)-rpformatlength:]
+                                deployment = sample_id[0: depformatlength]
 
                                 return deployment, rosettepos, survey
                         else:

@@ -1,6 +1,5 @@
 import os, logging, json, sys
-from PyQt5.QtWidgets import (QWidget, QMainWindow, QPushButton, QLabel, QGridLayout, QFileDialog,
-                             QMessageBox, QDesktopWidget, QFrame, QAction, QCheckBox)
+from PyQt5.QtWidgets import (QPushButton, QLabel, QFileDialog, QFrame, QAction, QCheckBox)
 from PyQt5 import QtGui, QtWidgets, QtCore
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -26,6 +25,7 @@ import time
 import calendar
 import hyproicons, style
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
 # TODO: Make output for ODV
 # TODO: make logsheet go to Dissolved Oxygen box file
@@ -368,13 +368,9 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
             outputfile.write(outputtext)
             outputfile.close()
 
-            messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Success',
-                                     "Output log was successfully saved",
-                                     buttons=QtWidgets.QMessageBox.Ok, parent=self)
-            messagebox.setIconPixmap(QPixmap(':/assets/success.svg'))
-            messagebox.setFont(QFont('Segoe UI'))
-            messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-            messagebox.exec_()
+            message_box = hyproMessageBoxTemplate('Saving Success',
+                                                  'Output log was successfully saved.',
+                                                  'success')
 
     def clearoutput(self):
         self.outputbox.clear()
@@ -515,13 +511,9 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
             self.surveyMenu.addAction(survey)
 
     def aboutinformation(self):
-        messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'About',
-                                 "This is an experimental version of HyPro built using Python",
-                                 buttons=QtWidgets.QMessageBox.Ok, parent=self)
-        messagebox.setIconPixmap(QPixmap(':/assets/questionmark.svg'))
-        messagebox.setFont(QFont('Segoe UI'))
-        messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-        messagebox.exec_()
+        message_box = hyproMessageBoxTemplate('About Hypro',
+                                              'This is an experimental version of HyPro built using Python.',
+                                              'about')
 
     def showmanual(self):
         file = 'C:/Users/she384/Documents/Tests/Manual.pdf'
@@ -533,7 +525,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
             print('Parameter file checked')
         else:
             # TODO: make this a file to include into distribution
-            params = {
+            default_params = {
                 "nutrientprocessing": {
                     "elementNames": {
                         "silicateName": "SILICATE",
@@ -637,17 +629,17 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
                     }
                 },
                 "analysisparams": {
+                    "seal": {
+                        "filePrefix": "",
+                        "runFormat": "RRR",
+                        "activated": False
+                    },
                     "guildline": {
                         "filePrefix": "",
                         "runFormat": "RRR",
                         "activated": False
                     },
                     "scripps": {
-                        "filePrefix": "",
-                        "runFormat": "RRR",
-                        "activated": False
-                    },
-                    "seal": {
                         "filePrefix": "",
                         "runFormat": "RRR",
                         "activated": False
@@ -667,7 +659,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
                     "%s" % self.currproject: {
                         "guildline": {
                             "activated": False,
-                            "matchlogsheet": True,
+                            "ctdsurvey": True,
                             "decodesampleid": False,
                             "surveyprefix": "",
                             "decodedepfromid": True,
@@ -679,27 +671,20 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
                         },
                         "scripps": {
                             "activated": False,
-                            "matchlogsheet": False,
+                            "ctdsurvey": False,
                             "decodesampleid": False,
                             "surveyprefix": "",
                             "decodedepfromid": False,
-                            "depformat": "DDD",
-                            "decodetimefromid": False,
-                            "dateformat": "",
                             "usesampleid": False,
-                            "autometadata": False
                         },
                         "seal": {
                             "activated": False,
-                            "matchlogsheet": True,
+                            "ctdsurvey": True,
                             "decodesampleid": True,
                             "surveyprefix": "",
                             "decodedepfromid": True,
                             "depformat": "DDBB",
-                            "decodetimefromid": False,
-                            "dateformat": "",
                             "usesampleid": False,
-                            "autometadata": False
                         }
                     }
                 }
@@ -708,18 +693,19 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
             with open('C:/HyPro/hyprosettings.json', 'r') as f:
                 hyproprojs = json.load(f)
             if hyproprojs['projects'][self.currproject]['type'] == 'Shore':
-                params['surveyparams'][self.currproject]['guildline']['matchlogsheet'] = False
-                params['surveyparams'][self.currproject]['guildline']['decodedepfromid'] = False
-                params['surveyparams'][self.currproject]['guildline']['usesampleid'] = True
-                params['surveyparams'][self.currproject]['scripps']['matchlogsheet'] = False
-                params['surveyparams'][self.currproject]['scripps']['decodedepfromid'] = False
-                params['surveyparams'][self.currproject]['scripps']['usesampleid'] = True
-                params['surveyparams'][self.currproject]['seal']['matchlogsheet'] = False
-                params['surveyparams'][self.currproject]['seal']['decodedepfromid'] = False
-                params['surveyparams'][self.currproject]['seal']['usesampleid'] = True
+                default_params['surveyparams'][self.currproject]['guildline']['ctdsurvey'] = False
+                default_params['surveyparams'][self.currproject]['guildline']['decodedepfromid'] = False
+                default_params['surveyparams'][self.currproject]['guildline']['usesampleid'] = True
+                default_params['surveyparams'][self.currproject]['scripps']['ctdsurvey'] = False
+                default_params['surveyparams'][self.currproject]['scripps']['decodedepfromid'] = False
+                default_params['surveyparams'][self.currproject]['scripps']['usesampleid'] = True
+                default_params['surveyparams'][self.currproject]['seal']['ctdsurvey'] = False
+                default_params['surveyparams'][self.currproject]['seal']['decodedepfromid'] = False
+                default_params['surveyparams'][self.currproject]['seal']['usesampleid'] = True
 
             with open(self.params_path, 'w') as file:
-                json.dump(params, file)
+                json.dump(default_params, file)
+            logging.info('Parameters file created successfully')
             print('Parameter file created')
 
     def rmnsstandards(self):

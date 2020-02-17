@@ -32,12 +32,11 @@ class QTextEditLogger(logging.Handler):
 
         self.widget.appendPlainText(' . . . ')
 
-
     def emit(self, record):
         msg = self.format(record)
         currenttime = time.strftime('%d/%m %H:%M:%S', time.localtime(time.time()))
         self.output = currenttime + ' | ' + self.active_processor + ': ' + msg
-        self.widget.appendPlainText(self.output)
+        self.widget.appendHtml(self.output)
         try:
             with open(self.log_path, mode='a+') as file:
                 file.write(self.output + '\n')
