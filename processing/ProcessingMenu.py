@@ -662,29 +662,26 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
                             "ctdsurvey": True,
                             "decodesampleid": False,
                             "surveyprefix": "",
-                            "decodedepfromid": True,
-                            "depformat": "DDBB",
-                            "decodetimefromid": False,
-                            "dateformat": "",
-                            "usesampleid": False,
-                            "autometadata": True
+                            "decodedepfromid": False,
+                            "depformat": None,
+                            "usesampleid": False
                         },
                         "scripps": {
                             "activated": False,
-                            "ctdsurvey": False,
+                            "ctdsurvey": True,
                             "decodesampleid": False,
-                            "surveyprefix": "",
+                            "surveyprefix": None,
                             "decodedepfromid": False,
-                            "usesampleid": False,
+                            "usesampleid": False
                         },
                         "seal": {
                             "activated": False,
                             "ctdsurvey": True,
                             "decodesampleid": True,
-                            "surveyprefix": "",
+                            "surveyprefix": None,
                             "decodedepfromid": True,
                             "depformat": "DDBB",
-                            "usesampleid": False,
+                            "usesampleid": False
                         }
                     }
                 }

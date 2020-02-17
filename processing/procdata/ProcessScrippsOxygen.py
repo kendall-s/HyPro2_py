@@ -72,7 +72,7 @@ def determine_oxygen_survey(station, cast, rp, bottle_id, database_path, process
                 logsheet_bottle = c.fetchone()
 
                 if logsheet_bottle[0] == bottle_id:
-                    survey = surv + ' - Match CTD'
+                    survey = surv
 
                     return deployment, rosette_position, survey
                 else:

@@ -45,17 +45,15 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
     for surv in surveys:
         if processing_parameters['surveyparams'][surv]['guildline']['activated']:
             if processing_parameters['surveyparams'][surv]['guildline']['usesampleid']:
-
                 deployment = 'usingID'
                 rosette_position = 'usingID'
                 survey = 'usingID'
                 return deployment, rosette_position, survey
             else:
                 if str(int(float(sample_id))).isdigit():
-                    if processing_parameters['surveyparams'][surv]['guildline']['matchlogsheet']:
-
+                    if processing_parameters['surveyparams'][surv]['guildline']['ctdsurvey']:
                         deployment = int(float(sample_id))
-                        survey = surv + ' - Match CTD'
+                        survey = surv
                         c.execute('SELECT * from logsheetData WHERE deployment=?', [deployment, ])
                         logsheet_data = list(c.fetchall())
                         if logsheet_data:

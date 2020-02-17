@@ -180,7 +180,7 @@ class viewDataDialog(hyproDialogTemplate):
                     self.c.execute('SELECT DISTINCT runNumber from %sData' % x)
 
                 avail_numbers.append(self.c.fetchall())
-            # TODO: get rid of duplicates in a clean manner - can't be bothered with it right now
+
             data = avail_numbers
             all_nuts = True
 
