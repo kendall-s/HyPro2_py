@@ -100,6 +100,7 @@ class CHDData:
 class OxygenData:
     def __init__(self):
 
+        self.file = ''
         self.run = ''
         self.iodate_normality = ''
         self.iodate_temperature = ''

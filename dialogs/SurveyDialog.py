@@ -18,8 +18,8 @@ class surveyDialog(hyproDialogTemplate):
         self.currproject = project
         self.survey = survey
         self.currpath = path
-        
-        if survey != 'new':
+
+        if self.survey != 'new':
             self.setWindowTitle('HyPro - Survey Settings')
             self.surveyName = QLineEdit(self.survey)
             self.surveyName.setReadOnly(True)
@@ -50,7 +50,7 @@ class surveyDialog(hyproDialogTemplate):
             tabnotadded = True
             for i, analysis in enumerate(params['analysisparams'].keys()):
                 print(analysis)
-                if params['analysisparams'][analysis]['activated'] == True:
+                if params['analysisparams'][analysis]['activated'] == True or self.survey == 'new':
                     if analysis == 'seal':
                         self.nutrient_tab = QWidget()
                         self.tabs.addTab(self.nutrient_tab, 'Nutrients')
@@ -63,7 +63,7 @@ class surveyDialog(hyproDialogTemplate):
                         self.oxygentab = QWidget()
                         self.tabs.addTab(self.oxygentab, 'Oxygen')
                         self.oxyactive = True
-                    if analysis == 'seasave':
+                    if analysis == 'seasave' and self.survey != 'new':
                         self.ctdtab = QWidget()
                         self.tabs.addTab(self.ctdtab, 'CTD')
                         self.ctdactive = True

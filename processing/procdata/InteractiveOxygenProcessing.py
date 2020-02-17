@@ -62,7 +62,7 @@ class processingOxygenWindow():
                          'reprocess this file to see the error plot. </b>')
             time.sleep(0.3)
             message_box = hyproMessageBoxTemplate('HyPro - Oxygen Processing Anomaly',
-                                                  f'CTD data matching results in the file {self.file} are not in HyPro',
+                                                  f'CTD data matching results in the file {self.file} are not in HyPro.',
                                                   'information',
                                                   long_text=f'The oxygen file {self.file} contains CTD samples, '
                                                             f'however there is no matching CTD sensor data in HyPro. '
