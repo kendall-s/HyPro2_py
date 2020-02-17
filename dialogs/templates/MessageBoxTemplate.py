@@ -20,7 +20,9 @@ class hyproMessageBoxTemplate(QMessageBox):
         elif type == 'information':
             self.setIconPixmap(QPixmap(':/assets/exclamation.svg'))
         elif type == 'error':
-            self.setIconPixmap(QPixmap(':/assets/.svg'))
+            self.setIconPixmap(QPixmap(':/assets/cross.svg'))
+        elif type == 'delete':
+            self.setIconPixmap(QPixmap(':/assets/trash.svg'))
 
         self.setText(short_text)
         self.setInformativeText(long_text)

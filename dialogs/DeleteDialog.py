@@ -4,6 +4,7 @@ import os, sqlite3, logging, traceback
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
 # Functionality and GUI to delete data from a projects database, also can delete original files as well
 class deleteDialog(hyproDialogTemplate):
@@ -36,7 +37,6 @@ class deleteDialog(hyproDialogTemplate):
         self.items_elected_boolean = 0
 
         self.data_files = QListWidget()
-        self.data_files.itemSelectionChanged.connect(self.itemselected)
 
         self.delete_files_checkbox = QCheckBox('Delete data files as well?', self)
 
@@ -84,16 +84,15 @@ class deleteDialog(hyproDialogTemplate):
 
         self.data_files.addItems(filenames)
 
-    def itemselected(self):
-        # Not sure why I did this
-        self.itemselectedboolean = 1
-
     def deletedata(self):
         try:
             filetype = self.analysis_type.currentText()
 
-            if self.itemselectedboolean == 1:
-                selectedfile = str(self.data_files.currentItem().text())
+            selectedfile = self.data_files.currentItem()
+
+            if selectedfile:
+
+                selectedfile = str(selectedfile.text())
 
                 conn = sqlite3.connect(self.db)
                 c = conn.cursor()
@@ -167,16 +166,14 @@ class deleteDialog(hyproDialogTemplate):
                     else:
                         logging.info('Sample logsheet data - ' + str(selectedfile) + ' deleted')
 
-                messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Deleted successfully',
-                                         'Data was deleted from the database',
-                                         buttons=QtWidgets.QMessageBox.Ok, parent=self)
-                messagebox.setIconPixmap(QPixmap(':/assets/trash.svg'))
-                messagebox.setFont(QFont('Segoe UI'))
-                messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-                messagebox.exec_()
+                messagebox = hyproMessageBoxTemplate('Deleted successfully',
+                                                     'Data was deleted from the database file',
+                                                     'delete')
 
             else:
-                message = QMessageBox.about(self, "Error", "Please select a file...")
+                messagebox = hyproMessageBoxTemplate('Error',
+                                                     'Please select a file to delete             ',
+                                                     'error')
 
         except Exception:
             logging.error(traceback.print_exc())

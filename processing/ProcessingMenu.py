@@ -29,7 +29,6 @@ from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
 # TODO: Make output for ODV
 # TODO: make logsheet go to Dissolved Oxygen box file
-# TODO: convert QMainWindow to template, cut total code in half.
 
 # This file contains the GUI functionality of the processing menu which is secondary to the main menu
 # Processing of all files within a project takes place from within this menu

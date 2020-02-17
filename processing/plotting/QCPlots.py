@@ -24,6 +24,7 @@ mpl.rc('font', family = 'Segoe UI Symbol') # Cast Segoe UI font onto all plot te
 # nutrient processing workflow
 # The other classes using QMainWindow are plots that are called on manually and are then displayed in their
 # own window
+
 # TODO: Fix RMNS plot so it still works even if nominal RMNS values are not in the database
 # TODO: Delete the old classes and functions for plots that have been superseded
 

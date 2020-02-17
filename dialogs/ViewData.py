@@ -1,8 +1,11 @@
 # https://stackoverflow.com/questions/283645/python-list-in-sql-query-as-parameter
 
-from PyQt5.QtWidgets import (QTableWidget)
+from PyQt5.QtWidgets import (QTableWidget, QApplication)
 import sqlite3
+import csv, io
 from PyQt5 import QtWidgets
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtCore import QEvent
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
 class viewData(hyproDialogTemplate):
@@ -19,7 +22,9 @@ class viewData(hyproDialogTemplate):
         self.show()
 
     def init_ui(self):
+
         self.datatable = QTableWidget(self)
+        self.datatable.installEventFilter(self)
 
         conn = sqlite3.connect(self.db)
         self.c = conn.cursor()
@@ -69,7 +74,7 @@ class viewData(hyproDialogTemplate):
 
         elif self.analysis == 'Silicate':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Flag']
+                       'Concentration', 'Survey', 'Deployment', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
                 q = 'SELECT * FROM silicateData WHERE deployment IN (%s)' % queryplace
                 self.c.execute(q, self.selected)
@@ -79,7 +84,7 @@ class viewData(hyproDialogTemplate):
 
         elif self.analysis == 'Nitrate':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag']
+                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
                 q = 'SELECT * FROM  nitrateData WHERE deployment IN (%s)' % queryplace
                 self.c.execute(q, self.selected)
@@ -89,7 +94,7 @@ class viewData(hyproDialogTemplate):
 
         elif self.analysis == 'Phosphate':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag']
+                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
                 q = 'SELECT * FROM phosphateData WHERE deployment IN (%s)' % queryplace
                 self.c.execute(q, self.selected)
@@ -99,9 +104,9 @@ class viewData(hyproDialogTemplate):
 
         elif self.analysis == 'Nitrite':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag']
+                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM nitriteeData WHERE deployment IN (%s)' % queryplace
+                q = 'SELECT * FROM nitriteData WHERE deployment IN (%s)' % queryplace
                 self.c.execute(q, self.selected)
             elif self.view == 'File':
                 q = 'SELECT * FROM nitriteData WHERE runNumber IN (%s)' % queryplace
@@ -109,7 +114,7 @@ class viewData(hyproDialogTemplate):
 
         elif self.analysis == 'Ammonia':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag']
+                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
                 q = 'SELECT * FROM ammoniaData WHERE deployment IN (%s)' % queryplace
                 self.c.execute(q, self.selected)
@@ -131,3 +136,26 @@ class viewData(hyproDialogTemplate):
         self.datatable.setHorizontalHeaderLabels(headers)
         self.datatable.resizeColumnsToContents()
         self.grid_layout.addWidget(self.datatable, 0, 0)
+
+    def eventFilter(self, source, event):
+        if (event.type() == QEvent.KeyPress and
+                event.matches(QKeySequence.Copy)):
+            self.copySelection()
+            return True
+        return super(hyproDialogTemplate, self).eventFilter(source, event)
+
+    def copySelection(self):
+        selection = self.datatable.selectedIndexes()
+        if selection:
+            rows = sorted(index.row() for index in selection)
+            columns = sorted(index.column() for index in selection)
+            rowcount = rows[-1] - rows[0] + 1
+            colcount = columns[-1] - columns[0] + 1
+            table = [[''] * colcount for _ in range(rowcount)]
+            for index in selection:
+                row = index.row() - rows[0]
+                column = index.column() - columns[0]
+                table[row][column] = index.data()
+            stream = io.StringIO()
+            csv.writer(stream).writerows(table)
+            QApplication.clipboard().setText(stream.getvalue())

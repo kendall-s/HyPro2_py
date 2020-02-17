@@ -171,7 +171,7 @@ QTableWidget {
     font: 14px Segoe UI;
 }
 QHeaderView {
-    font: 14px;
+    font: 14px Segoe UI;
 }
 
 
