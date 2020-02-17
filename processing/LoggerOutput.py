@@ -36,6 +36,7 @@ class QTextEditLogger(logging.Handler):
         msg = self.format(record)
         currenttime = time.strftime('%d/%m %H:%M:%S', time.localtime(time.time()))
         self.output = currenttime + ' | ' + self.active_processor + ': ' + msg
+        time.sleep(0.1)
         self.widget.appendHtml(self.output)
         try:
             with open(self.log_path, mode='a+') as file:

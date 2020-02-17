@@ -714,7 +714,7 @@ class Mainmenu(QMainWindow):
                 self.hide()
 
                 self.proccing.backToMain.connect(self.show)
-                self.proccing.outputbox.close()
+                self.proccing.output_box.close()
                 self.proccing.backToMain.connect(self.proccing.hide)
 
         except Exception as e:

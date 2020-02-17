@@ -60,7 +60,7 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
                             ros_p = [x[1] for x in logsheet_data]
                             salt_label = [x[4] for x in logsheet_data]
                             for m, label in enumerate(salt_label):
-                                if bottle_id == label:
+                                if bottle_id.lower() == label.lower():
                                     rosette_position = ros_p[m]
                                     return deployment, rosette_position, survey
                         else:

@@ -1,6 +1,6 @@
 import os, logging, json, sys
-from PyQt5.QtWidgets import (QPushButton, QLabel, QFileDialog, QFrame, QAction, QCheckBox)
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtWidgets import (QPushButton, QLabel, QFileDialog, QFrame, QAction, QCheckBox, QPlainTextEdit,
+                             QGraphicsDropShadowEffect, QApplication)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from dialogs.ViewDataDialog import viewDataDialog
@@ -35,7 +35,7 @@ from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 # Processing of all files within a project takes place from within this menu
 
 
-class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
+class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
     backToMain = pyqtSignal()
 
     def __init__(self, project, path):
@@ -59,239 +59,237 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
 
 
     def init_ui(self):
-        self.makeparamsfile()
+        self.make_default_params_file()
 
-        fileMenu = self.main_menu.addMenu('File')
-        exportMenu = fileMenu.addMenu(QIcon(':/assets/archivebox.svg'), 'Export')
-        outputMenu = fileMenu.addMenu(QIcon(':/assets/text.svg'), 'Output Log')
+        file_menu = self.main_menu.addMenu('File')
+        export_menu = file_menu.addMenu(QIcon(':/assets/archivebox.svg'), 'Export')
+        output_menu = file_menu.addMenu(QIcon(':/assets/text.svg'), 'Output Log')
 
-        editMenu = self.main_menu.addMenu('Edit')
-        rmnsMenu = QAction(QIcon(':/assets/food.svg'), 'Edit RMNS', self)
-        rmnsMenu.triggered.connect(self.rmnsstandards)
-        editMenu.addAction(rmnsMenu)
+        edit_menu = self.main_menu.addMenu('Edit')
+        rmns_menu = QAction(QIcon(':/assets/food.svg'), 'Edit RMNS', self)
+        rmns_menu.triggered.connect(self.rmns_standards_window)
+        edit_menu.addAction(rmns_menu)
 
-        osilMenu = QAction(QIcon(':/assets/saltshaker.svg'), 'Edit OSIL', self)
-        editMenu.addAction(osilMenu)
+        osil_menu = QAction(QIcon(':/assets/saltshaker.svg'), 'Edit OSIL', self)
+        edit_menu.addAction(osil_menu)
 
-        editMenu.addSeparator()
+        edit_menu.addSeparator()
 
-        paramsMenu = QAction(QIcon(':/assets/settings2.svg'), 'Edit Parameters', self)
-        editMenu.addAction(paramsMenu)
-        paramsMenu.triggered.connect(self.parametersettings)
+        params_menu = QAction(QIcon(':/assets/settings2.svg'), 'Edit Parameters', self)
+        edit_menu.addAction(params_menu)
+        params_menu.triggered.connect(self.parameter_settings_window)
 
-        analysisMenu = self.main_menu.addMenu('Analyses')
-        self.surveyMenu = self.main_menu.addMenu('Surveys')
-        viewMenu = self.main_menu.addMenu('View')
-        nutrientqcMenu = viewMenu.addMenu('Nutrient QC Plots')
-        salinityqcMenu = viewMenu.addMenu('Salinity QC Plots')
-        oxygenqcMenu = viewMenu.addMenu('Oxygen QC Plots')
-        helpMenu = self.main_menu.addMenu('Help')
+        analysis_menu = self.main_menu.addMenu('Analyses')
+        self.survey_menu = self.main_menu.addMenu('Surveys')
+        view_menu = self.main_menu.addMenu('View')
+        nutrient_qc_menu = view_menu.addMenu('Nutrient QC Plots')
+        salinity_qc_menu = view_menu.addMenu('Salinity QC Plots')
+        oxygen_qc_menu = view_menu.addMenu('Oxygen QC Plots')
+        help_menu = self.main_menu.addMenu('Help')
 
-        addAnalysisMenu = analysisMenu.addMenu(QIcon(':/assets/flask.svg'), 'Add Analysis')
+        add_analysis_menu = analysis_menu.addMenu(QIcon(':/assets/flask.svg'), 'Add Analysis')
 
-        exportData = QAction(QIcon(':/assets/ship.svg'), 'Export Deployments', self)
-        exportData.triggered.connect(self.exportdata)
-        exportMenu.addAction(exportData)
+        export_data = QAction(QIcon(':/assets/ship.svg'), 'Export Deployments', self)
+        export_data.triggered.connect(self.export_data_window)
+        export_menu.addAction(export_data)
 
         exportUnderwayNutrients = QAction('Export Underway Nutrients', self)
         exportUnderwayNutrients.triggered.connect(self.exportuwynuts)
-        exportMenu.addAction(exportUnderwayNutrients)
+        export_menu.addAction(exportUnderwayNutrients)
 
-        deleteFiles = QAction(QIcon(':/assets/trash2.svg'), 'Delete Files', self)
-        deleteFiles.triggered.connect(self.deletefiles)
-        fileMenu.addAction(deleteFiles)
+        delete_files = QAction(QIcon(':/assets/trash2.svg'), 'Delete Files', self)
+        delete_files.triggered.connect(self.delete_files_window)
+        file_menu.addAction(delete_files)
 
-        saveOutput = QAction(QIcon(':/assets/save.svg'), 'Save Output', self)
-        saveOutput.triggered.connect(self.saveoutput)
-        outputMenu.addAction(saveOutput)
+        save_output = QAction(QIcon(':/assets/save.svg'), 'Save Output', self)
+        save_output.triggered.connect(self.save_output_window)
+        output_menu.addAction(save_output)
 
-        clearOutput = QAction(QIcon(':/assets/clear.svg'), 'Clear Output', self)
-        clearOutput.triggered.connect(self.clearoutput)
-        outputMenu.addAction(clearOutput)
+        clear_output = QAction(QIcon(':/assets/clear.svg'), 'Clear Output', self)
+        clear_output.triggered.connect(self.clear_output_function)
+        output_menu.addAction(clear_output)
 
-        mainmenuAction = QAction(QIcon(':/assets/home.svg'), 'Main Menu', self)
-        mainmenuAction.setShortcut('Ctrl+Alt+H')
-        mainmenuAction.setStatusTip('Back to the main menu')
-        mainmenuAction.triggered.connect(self.backtomenufunction)
-        fileMenu.addAction(mainmenuAction)
+        main_menu_action = QAction(QIcon(':/assets/home.svg'), 'Main Menu', self)
+        main_menu_action.setShortcut('Ctrl+Alt+H')
+        main_menu_action.setStatusTip('Back to the main menu')
+        main_menu_action.triggered.connect(self.backtomenufunction)
+        file_menu.addAction(main_menu_action)
 
-        fileMenu.addSeparator()
+        file_menu.addSeparator()
 
-        exitMenu = QAction(QIcon(':/assets/exit.svg'), 'Exit', self)
-        exitMenu.triggered.connect(self.close)
-        fileMenu.addAction(exitMenu)
+        exit_menu = QAction(QIcon(':/assets/exit.svg'), 'Exit', self)
+        exit_menu.triggered.connect(self.close)
+        file_menu.addAction(exit_menu)
 
-        self.addGuildlineSalinity = QAction('Guildline Salinity', self)
-        self.addGuildlineSalinity.triggered.connect(self.addguildline)
-        addAnalysisMenu.addAction(self.addGuildlineSalinity)
+        self.add_guildline_salinity = QAction('Guildline Salinity', self)
+        self.add_guildline_salinity.triggered.connect(self.add_guildline_analysis)
+        add_analysis_menu.addAction(self.add_guildline_salinity)
 
-        self.addScrippsOxygen = QAction('Scripps Oxygen', self)
-        self.addScrippsOxygen.triggered.connect(self.addscripps)
-        addAnalysisMenu.addAction(self.addScrippsOxygen)
+        self.add_scripps_oxygen = QAction('Scripps Oxygen', self)
+        self.add_scripps_oxygen.triggered.connect(self.add_scripps_analysis)
+        add_analysis_menu.addAction(self.add_scripps_oxygen)
 
-        self.addSealNutrients = QAction('Seal Nutrients', self)
-        self.addSealNutrients.triggered.connect(self.addseal)
-        addAnalysisMenu.addAction(self.addSealNutrients)
+        self.add_seal_nutrients = QAction('Seal Nutrients', self)
+        self.add_seal_nutrients.triggered.connect(self.add_seal_analysis)
+        add_analysis_menu.addAction(self.add_seal_nutrients)
 
-        self.addSeasaveCTD = QAction('Seasave CTD', self)
-        self.addSeasaveCTD.triggered.connect(self.addseasave)
-        addAnalysisMenu.addAction(self.addSeasaveCTD)
+        self.add_seasave_ctd = QAction('Seasave CTD', self)
+        self.add_seasave_ctd.triggered.connect(self.add_seasave_analysis)
+        add_analysis_menu.addAction(self.add_seasave_ctd)
 
-        self.addLogsheet = QAction('Sampling Logsheet', self)
-        self.addLogsheet.triggered.connect(self.addlogsheet)
-        addAnalysisMenu.addAction(self.addLogsheet)
+        self.add_logsheet = QAction('Sampling Logsheet', self)
+        self.add_logsheet.triggered.connect(self.add_logsheet_analysis)
+        add_analysis_menu.addAction(self.add_logsheet)
 
-        self.setcheckboxes()
-        self.populatesurveys()
+        self.populate_analysis_checkboxes()
+        self.populate_surveys()
 
-        self.surveyMenu.addSeparator()
-        self.addNewSurvey = QAction(QIcon(':/assets/roundplus.svg'), 'New', self)
-        self.addNewSurvey.triggered.connect(lambda: self.surveysettings('new'))
-        self.surveyMenu.addAction(self.addNewSurvey)
+        self.survey_menu.addSeparator()
+        self.add_new_survey = QAction(QIcon(':/assets/roundplus.svg'), 'New', self)
+        self.add_new_survey.triggered.connect(lambda: self.survey_settings_window('new'))
+        self.survey_menu.addAction(self.add_new_survey)
 
-        rmnsPlots = QAction('RMNS', self)
-        rmnsPlots.triggered.connect(self.rmnsplots)
-        nutrientqcMenu.addAction(rmnsPlots)
+        rmns_plots = QAction('RMNS', self)
+        rmns_plots.triggered.connect(self.rmnsplots)
+        nutrient_qc_menu.addAction(rmns_plots)
 
-        mdlPlots = QAction('MDL', self)
-        mdlPlots.triggered.connect(self.mdlplots)
-        nutrientqcMenu.addAction(mdlPlots)
+        mdl_plots = QAction('MDL', self)
+        mdl_plots.triggered.connect(self.mdlplots)
+        nutrient_qc_menu.addAction(mdl_plots)
 
-        redfieldPlot = QAction('Redfield Ratio', self)
-        redfieldPlot.triggered.connect(self.redfield)
-        nutrientqcMenu.addAction(redfieldPlot)
+        redfield_plots = QAction('Redfield Ratio', self)
+        redfield_plots.triggered.connect(self.redfield)
+        nutrient_qc_menu.addAction(redfield_plots)
 
-        salinityErrorPlot = QAction('Salinity - CTD Error', self)
-        salinityErrorPlot.triggered.connect(self.salinityerror)
-        salinityqcMenu.addAction(salinityErrorPlot)
+        salinity_error_plot = QAction('Salinity - CTD Error', self)
+        salinity_error_plot.triggered.connect(self.salinityerror)
+        salinity_qc_menu.addAction(salinity_error_plot)
 
-        salinityStandardPlot = QAction('Salinity Standards', self)
-        salinityStandardPlot.triggered.connect(self.salinitystandards)
-        salinityqcMenu.addAction(salinityStandardPlot)
+        salinity_standard_plot = QAction('Salinity Standards', self)
+        salinity_standard_plot.triggered.connect(self.salinitystandards)
+        salinity_qc_menu.addAction(salinity_standard_plot)
 
-        oxygenErrorPlot = QAction('Oxygen - CTD Error', self)
-        oxygenErrorPlot.triggered.connect(self.oxygenerror)
-        oxygenqcMenu.addAction(oxygenErrorPlot)
+        oxygen_error_plot = QAction('Oxygen - CTD Error', self)
+        oxygen_error_plot.triggered.connect(self.oxygenerror)
+        oxygen_qc_menu.addAction(oxygen_error_plot)
 
-        oxygenStandardPlot = QAction('Oxygen Standards', self)
-        oxygenStandardPlot.triggered.connect(self.oxygenstandards)
-        oxygenqcMenu.addAction(oxygenStandardPlot)
+        oxygen_standard_plot = QAction('Oxygen Standards', self)
+        oxygen_standard_plot.triggered.connect(self.oxygenstandards)
+        oxygen_qc_menu.addAction(oxygen_standard_plot)
 
-        plotsAction = QAction('Create Plots', self)
-        plotsAction.triggered.connect(self.produceplots)
-        viewMenu.addAction(plotsAction)
+        plots_action = QAction('Create Plots', self)
+        plots_action.triggered.connect(self.produce_plots_window)
+        view_menu.addAction(plots_action)
 
-        statsAction = QAction('View QC Stats', self)
-        statsAction.triggered.connect(self.producestats)
-        viewMenu.addAction(statsAction)
+        stats_action = QAction('View QC Stats', self)
+        stats_action.triggered.connect(self.produce_stats_window)
+        view_menu.addAction(stats_action)
 
-        aboutMenu = QAction(QIcon(':/assets/roundquestionmark.svg'), 'About', self)
-        aboutMenu.triggered.connect(self.aboutinformation)
-        helpMenu.addAction(aboutMenu)
+        about_menu = QAction(QIcon(':/assets/roundquestionmark.svg'), 'About', self)
+        about_menu.triggered.connect(self.about_information)
+        help_menu.addAction(about_menu)
 
-        manualMenu = QAction(QIcon(':/assets/roundinfo.svg'), 'Manual', self)
-        manualMenu.triggered.connect(self.showmanual)
-        helpMenu.addAction(manualMenu)
+        manual_menu = QAction(QIcon(':/assets/roundinfo.svg'), 'Manual', self)
+        manual_menu.triggered.connect(self.show_manual)
+        help_menu.addAction(manual_menu)
 
-        currprojectframe = QFrame(self)
-        currprojectframe.setProperty('sideHeaderFrame', True)
+        current_project_frame = QFrame(self)
+        current_project_frame.setProperty('sideHeaderFrame', True)
         # Shadow graphics parameters
-        currprojectframeshadow = QtWidgets.QGraphicsDropShadowEffect()
+        current_project_frame_shadow = QGraphicsDropShadowEffect()
+        current_project_frame_shadow.setBlurRadius(5)
+        current_project_frame_shadow.setYOffset(1)
+        current_project_frame_shadow.setXOffset(2)
 
-        currprojectframeshadow.setBlurRadius(5)
-        currprojectframeshadow.setYOffset(1)
-        currprojectframeshadow.setXOffset(2)
+        current_project_label = QLabel('Current Project:')
+        current_project_label.setProperty('sideBarText', True)
 
-        currprojectlabel = QLabel('Current Project:')
-        currprojectlabel.setProperty('sideBarText', True)
+        current_project_heading = QLabel('<b>' + self.currproject + '</b>')
+        current_project_heading.setAlignment(Qt.AlignCenter)
+        current_project_heading.setProperty('sideHeaderHeading', True)
 
-        currproject = QLabel('<b>' + self.currproject + '</b>')
-        currproject.setAlignment(Qt.AlignCenter)
-        currproject.setProperty('sideHeaderHeading', True)
-
-        topperframe = QFrame(self)
-        topperframe.setProperty('topBarFrame', True)
-        topperframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-        topperframeshadow.setBlurRadius(5)
-        topperframeshadow.setYOffset(2)
-        topperframeshadow.setXOffset(3)
+        top_h_frame = QFrame(self)
+        top_h_frame.setProperty('topBarFrame', True)
+        top_h_frame_shadow = QGraphicsDropShadowEffect()
+        top_h_frame_shadow.setBlurRadius(5)
+        top_h_frame_shadow.setYOffset(2)
+        top_h_frame_shadow.setXOffset(3)
         #topperframe.setGraphicsEffect(topperframeshadow)
 
-        outputboxframe = QFrame(self)
-        outputboxframe.setProperty('dashboardFrame', True)
-        outputboxframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-        outputboxframeshadow.setBlurRadius(5)
-        outputboxframeshadow.setYOffset(2)
-        outputboxframeshadow.setXOffset(3)
+        output_frame = QFrame(self)
+        output_frame.setProperty('dashboardFrame', True)
+        output_frame_shadow = QGraphicsDropShadowEffect()
+        output_frame_shadow.setBlurRadius(5)
+        output_frame_shadow.setYOffset(2)
+        output_frame_shadow.setXOffset(3)
         #outputboxframe.setGraphicsEffect(outputboxframeshadow)
 
-        outputboxlabel = QLabel(' Output: ')
-        outputboxlabel.setProperty('dashboardText', True)
+        output_label = QLabel(' Output: ')
+        output_label.setProperty('dashboardText', True)
 
-        # TODO: finish the logger, logging to file and reloading each time hypro opened
         logged_path = self.currpath + '/' +self.currproject + '.txt'
-        self.outputbox = QTextEditLogger(self, logged_path)
-        logging.getLogger().addHandler(self.outputbox)
+        self.output_box = QTextEditLogger(self, logged_path)
+        logging.getLogger().addHandler(self.output_box)
         logging.getLogger().setLevel(logging.INFO)
 
-        sidebarframe = QFrame(self)
-        sidebarframe.setProperty('sideBarFrame', True)
-        sidebarframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-        sidebarframeshadow.setBlurRadius(5)
-        #sidebarframeshadow.setColor(QtGui.QColor('#183666'))
-        sidebarframeshadow.setYOffset(1)
-        sidebarframeshadow.setXOffset(2)
-        # sidebarframe.setGraphicsEffect(sidebarframeshadow)
+        side_bar_frame = QFrame(self)
+        side_bar_frame.setProperty('sideBarFrame', True)
+        side_bar_frame_shadow = QGraphicsDropShadowEffect()
+        side_bar_frame_shadow.setBlurRadius(5)
+        #side_bar_frame_shadow.setColor(QtGui.QColor('#183666'))
+        side_bar_frame_shadow.setYOffset(1)
+        side_bar_frame_shadow.setXOffset(2)
+        # side_bar_frame.setGraphicsEffect(side_bar_frame_shadow)
 
-        self.interactiveprocessing = QCheckBox('Interactive Processing')
-        self.interactiveprocessing.setChecked(True)
-        self.interactiveprocessing.setProperty('sideBarCheckbox', True)
+        self.interactive_processing = QCheckBox('Interactive Processing')
+        self.interactive_processing.setChecked(True)
+        self.interactive_processing.setProperty('sideBarCheckbox', True)
 
-        procdatalabel = QLabel('<b>Process Data</b>')
-        procdatalabel.setProperty('sideBarText', True)
+        process_data_label = QLabel('<b>Process Data</b>')
+        process_data_label.setProperty('sideBarText', True)
 
-        rereadbut = QPushButton('Reread File')
-        rereadbut.setProperty('sideBarButton', True)
+        reread_button = QPushButton('Reread File')
+        reread_button.setProperty('sideBarButton', True)
 
-        refreshfilesbut = QPushButton('Refresh Files')
-        refreshfilesbut.setProperty('sideBarButton', True)
-        # refreshfilesbut.setIcon(QIcon('roundrefresh'))
+        refresh_button = QPushButton('Refresh Files')
+        refresh_button.setProperty('sideBarButton', True)
+        # refresh_button.setIcon(QIcon('roundrefresh'))
 
-        optionslabel = QLabel('<b>Options</b>')
-        optionslabel.setProperty('sideBarText', True)
+        options_label = QLabel('<b>Options</b>')
+        options_label.setProperty('sideBarText', True)
 
-        viewdatabut = QPushButton('View Data')
-        viewdatabut.setProperty('sideBarButton', True)
+        view_data_button = QPushButton('View Data')
+        view_data_button.setProperty('sideBarButton', True)
 
-        deletedatabut = QPushButton('Delete Data')
-        deletedatabut.setProperty('sideBarButton', True)
+        delete_data_button = QPushButton('Delete Data')
+        delete_data_button.setProperty('sideBarButton', True)
 
-        self.grid_layout.addWidget(currprojectframe, 0, 0, 5, 1)
-        self.grid_layout.addWidget(sidebarframe, 4, 0, 15, 1)
+        self.grid_layout.addWidget(current_project_frame, 0, 0, 5, 1)
+        self.grid_layout.addWidget(side_bar_frame, 4, 0, 15, 1)
 
-        self.grid_layout.addWidget(currprojectlabel, 0, 0, 2, 1, Qt.AlignCenter)
-        self.grid_layout.addWidget(currproject, 1, 0, 3, 1, Qt.AlignCenter)
+        self.grid_layout.addWidget(current_project_label, 0, 0, 2, 1, Qt.AlignCenter)
+        self.grid_layout.addWidget(current_project_heading, 1, 0, 3, 1, Qt.AlignCenter)
 
-        self.grid_layout.addWidget(procdatalabel, 5, 0, Qt.AlignCenter)
-        self.grid_layout.addWidget(refreshfilesbut, 6, 0)
-        self.grid_layout.addWidget(rereadbut, 7, 0)
+        self.grid_layout.addWidget(process_data_label, 5, 0, Qt.AlignCenter)
+        self.grid_layout.addWidget(refresh_button, 6, 0)
+        self.grid_layout.addWidget(reread_button, 7, 0)
 
-        self.grid_layout.addWidget(optionslabel, 9, 0, Qt.AlignCenter)
-        self.grid_layout.addWidget(viewdatabut, 10, 0)
-        self.grid_layout.addWidget(deletedatabut, 11, 0)
+        self.grid_layout.addWidget(options_label, 9, 0, Qt.AlignCenter)
+        self.grid_layout.addWidget(view_data_button, 10, 0)
+        self.grid_layout.addWidget(delete_data_button, 11, 0)
 
-        self.grid_layout.addWidget(self.interactiveprocessing, 17, 0, Qt.AlignHCenter)
+        self.grid_layout.addWidget(self.interactive_processing, 17, 0, Qt.AlignHCenter)
 
-        self.grid_layout.addWidget(topperframe, 0, 1, 3, 3)
+        self.grid_layout.addWidget(top_h_frame, 0, 1, 3, 3)
 
-        self.grid_layout.addWidget(outputboxframe, 3, 1, 15, 3)
-        self.grid_layout.addWidget(outputboxlabel, 3, 1, 1, 2)
-        self.grid_layout.addWidget(self.outputbox.widget, 4, 1, 14, 3)
+        self.grid_layout.addWidget(output_frame, 3, 1, 15, 3)
+        self.grid_layout.addWidget(output_label, 3, 1, 1, 2)
+        self.grid_layout.addWidget(self.output_box.widget, 4, 1, 14, 3)
 
-        rereadbut.clicked.connect(self.reread)
-        viewdatabut.clicked.connect(self.viewdata)
-        refreshfilesbut.clicked.connect(self.refresh)
-        deletedatabut.clicked.connect(self.deletefiles)
+        reread_button.clicked.connect(self.reread)
+        view_data_button.clicked.connect(self.view_data_window)
+        refresh_button.clicked.connect(self.refresh)
+        delete_data_button.clicked.connect(self.delete_files_window)
 
     def user_prompter(self):
         with open(self.params_path, 'r') as file:
@@ -311,10 +309,10 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
 
     def reread(self):
         self.rereadDialog = rereadDialog(self.currpath, self.currproject, self.db,
-                                         self.interactiveprocessing.checkState())
+                                         self.interactive_processing.checkState())
         self.rereadDialog.show()
 
-    def viewdata(self):
+    def view_data_window(self):
 
         with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
@@ -323,7 +321,7 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         self.viewDataDialog.show()
 
     def refresh(self):
-        self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactiveprocessing.checkState())
+        self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState())
 
     def backtomenufunction(self):
         self.backToMain.emit()
@@ -352,30 +350,29 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
     def oxygenstandards(self):
         pass
 
-    def produceplots(self):
+    def produce_plots_window(self):
         self.prodplots = producePlotsDialog()
         self.prodplots.show()
 
-    def deletefiles(self):
+    def delete_files_window(self):
         self.deletefilesdialog = deleteDialog(self.currpath, self.currproject, self.db)
         self.deletefilesdialog.show()
 
-    def saveoutput(self):
-        filedialog = QtWidgets.QFileDialog.getSaveFileName(self, 'Save File', '', '.txt')
+    def save_output_window(self):
+        filedialog = QFileDialog.getSaveFileName(self, 'Save File', '', '.txt')
         if filedialog[0]:
             outputfile = open(filedialog[0] + filedialog[1], 'w')
-            outputtext = self.outputbox.gettext()
+            outputtext = self.output_box.gettext()
             outputfile.write(outputtext)
             outputfile.close()
-
             message_box = hyproMessageBoxTemplate('Saving Success',
                                                   'Output log was successfully saved.',
                                                   'success')
 
-    def clearoutput(self):
-        self.outputbox.clear()
+    def clear_output_function(self):
+        self.output_box.clear()
 
-    def exportdata(self):
+    def export_data_window(self):
         self.exporter = exportDeployments(self.db)
         self.exporter.show()
 
@@ -435,32 +432,32 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         except Exception:
             print(traceback.print_exc())
 
-    def addguildline(self):
+    def add_guildline_analysis(self):
         self.guildline = analysisSettings(self.currproject, 'guildline', self.currpath)
         self.guildline.show()
-        self.guildline.analysisSettingsUpdated.connect(self.setcheckboxes)
+        self.guildline.analysisSettingsUpdated.connect(self.populate_analysis_checkboxes)
 
-    def addseal(self):
+    def add_seal_analysis(self):
         self.seal = analysisSettings(self.currproject, 'seal', self.currpath)
         self.seal.show()
-        self.seal.analysisSettingsUpdated.connect(self.setcheckboxes)
+        self.seal.analysisSettingsUpdated.connect(self.populate_analysis_checkboxes)
 
-    def addscripps(self):
+    def add_scripps_analysis(self):
         self.scripps = analysisSettings(self.currproject, 'scripps', self.currpath)
         self.scripps.show()
-        self.scripps.analysisSettingsUpdated.connect(self.setcheckboxes)
+        self.scripps.analysisSettingsUpdated.connect(self.populate_analysis_checkboxes)
 
-    def addseasave(self):
+    def add_seasave_analysis(self):
         self.seasave = analysisSettings(self.currproject, 'seasave', self.currpath)
         self.seasave.show()
-        self.seasave.analysisSettingsUpdated.connect(self.setcheckboxes)
+        self.seasave.analysisSettingsUpdated.connect(self.populate_analysis_checkboxes)
 
-    def addlogsheet(self):
+    def add_logsheet_analysis(self):
         self.logsheet = analysisSettings(self.currproject, 'logsheet', self.currpath)
         self.logsheet.show()
-        self.logsheet.analysisSettingsUpdated.connect(self.setcheckboxes)
+        self.logsheet.analysisSettingsUpdated.connect(self.populate_analysis_checkboxes)
 
-    def setcheckboxes(self):
+    def populate_analysis_checkboxes(self):
         analyses = ['guildline', 'scripps', 'seal', 'seasave', 'logsheet']
 
         with open(self.params_path, 'r') as file:
@@ -469,37 +466,37 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
         for i in analyses:
             if params['analysisparams'][i]['activated'] == True:
                 if i == 'guildline':
-                    self.addGuildlineSalinity.setIcon(QIcon(':/assets/roundchecked.svg'))
+                    self.add_guildline_salinity.setIcon(QIcon(':/assets/roundchecked.svg'))
                 elif i == 'scripps':
-                    self.addScrippsOxygen.setIcon(QIcon(':/assets/roundchecked.svg'))
+                    self.add_scripps_oxygen.setIcon(QIcon(':/assets/roundchecked.svg'))
                 elif i == 'seal':
-                    self.addSealNutrients.setIcon(QIcon(':/assets/roundchecked.svg'))
+                    self.add_seal_nutrients.setIcon(QIcon(':/assets/roundchecked.svg'))
                 elif i == 'seasave':
-                    self.addSeasaveCTD.setIcon(QIcon(':/assets/roundchecked.svg'))
+                    self.add_seasave_ctd.setIcon(QIcon(':/assets/roundchecked.svg'))
                 elif i == 'logsheet':
-                    self.addLogsheet.setIcon(QIcon(':/assets/roundchecked.svg'))
+                    self.add_logsheet.setIcon(QIcon(':/assets/roundchecked.svg'))
             else:
                 if i == 'guildline':
-                    self.addGuildlineSalinity.setIcon(QIcon(':/assets/roundcross.svg'))
+                    self.add_guildline_salinity.setIcon(QIcon(':/assets/roundcross.svg'))
                 elif i == 'scripps':
-                    self.addScrippsOxygen.setIcon(QIcon(':/assets/roundcross.svg'))
+                    self.add_scripps_oxygen.setIcon(QIcon(':/assets/roundcross.svg'))
                 elif i == 'seal':
-                    self.addSealNutrients.setIcon(QIcon(':/assets/roundcross.svg'))
+                    self.add_seal_nutrients.setIcon(QIcon(':/assets/roundcross.svg'))
                 elif i == 'seasave':
-                    self.addSeasaveCTD.setIcon(QIcon(':/assets/roundcross.svg'))
+                    self.add_seasave_ctd.setIcon(QIcon(':/assets/roundcross.svg'))
                 elif i == 'logsheet':
-                    self.addLogsheet.setIcon(QIcon(':/assets/roundcross.svg'))
+                    self.add_logsheet.setIcon(QIcon(':/assets/roundcross.svg'))
 
-    def surveysettings(self, name):
+    def survey_settings_window(self, name):
         nameinput = name
         self.addsurvey = surveyDialog(self.currproject, nameinput, self.currpath)
         self.addsurvey.show()
 
-    def parametersettings(self):
+    def parameter_settings_window(self):
         self.paramsettings = parametersDialog(self.currproject, self.currpath)
         self.paramsettings.show()
 
-    def populatesurveys(self):
+    def populate_surveys(self):
         with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
 
@@ -507,185 +504,32 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
 
         for k in surveys:
             survey = QAction(k, self)
-            survey.triggered.connect(lambda checked, k=k: self.surveysettings(k))
-            self.surveyMenu.addAction(survey)
+            survey.triggered.connect(lambda checked, k=k: self.survey_settings_window(k))
+            self.survey_menu.addAction(survey)
 
-    def aboutinformation(self):
+    def about_information(self):
         message_box = hyproMessageBoxTemplate('About Hypro',
                                               'This is an experimental version of HyPro built using Python.',
                                               'about')
 
-    def showmanual(self):
+    def show_manual(self):
         file = 'C:/Users/she384/Documents/Tests/Manual.pdf'
         os.system('start ' + file)
 
     # Make parameters file if it doesn't currently exist - fill with defaults
-    def makeparamsfile(self):
+    def make_default_params_file(self):
+
+        """
+        Create the default parameters file for analysis and processing settings.
+        Pulls the default parameters from the style.py file (yes, I know, not very logical.)
+        :return:
+        """
+
         if os.path.isfile(self.params_path):
-            print('Parameter file checked')
+            pass
         else:
-            # TODO: make this a file to include into distribution
-            default_params = {
-                "nutrientprocessing": {
-                    "elementNames": {
-                        "silicateName": "SILICATE",
-                        "phosphateName": "PHOSPHATE",
-                        "nitrateName": "NOx",
-                        "nitriteName": "NITRITE",
-                        "ammoniaName": "AMMONIA"
-                    },
-                    "processingpars": {
-                        "silicate": {
-                            "peakPeriod": 80,
-                            "washPeriod": 40,
-                            "windowSize": 37,
-                            "windowStart": 36,
-                            "driftCorrType": "Piecewise",
-                            "baseCorrType": "Piecewise",
-                            "carryoverCorr": True,
-                            "calibration": "Linear",
-                            "calerror": 0.2
-                        },
-                        "phosphate": {
-                            "peakPeriod": 80,
-                            "washPeriod": 40,
-                            "windowSize": 29,
-                            "windowStart": 39,
-                            "driftCorrType": "Piecewise",
-                            "baseCorrType": "Piecewise",
-                            "carryoverCorr": True,
-                            "calibration": "Linear",
-                            "calerror": 0.02
-                        },
-                        "nitrate": {
-                            "peakPeriod": 80,
-                            "washPeriod": 40,
-                            "windowSize": 22,
-                            "windowStart": 40,
-                            "driftCorrType": "Piecewise",
-                            "baseCorrType": "Piecewise",
-                            "carryoverCorr": True,
-                            "calibration": "Linear",
-                            "calerror": 0.02
-                        },
-                        "nitrite": {
-                            "peakPeriod": 80,
-                            "washPeriod": 40,
-                            "windowSize": 29,
-                            "windowStart": 40,
-                            "driftCorrType": "Piecewise",
-                            "baseCorrType": "Piecewise",
-                            "carryoverCorr": True,
-                            "calibration": "Linear",
-                            "calerror": 0.02
-                        },
-                        "ammonia": {
-                            "peakPeriod": 80,
-                            "washPeriod": 40,
-                            "windowSize": 28,
-                            "windowStart": 45,
-                            "driftCorrType": "Piecewise",
-                            "baseCorrType": "Piecewise",
-                            "carryoverCorr": True,
-                            "calibration": "Linear",
-                            "calerror": 0.02
-                        }
-                    },
-                    "calibrants": {
-                        "maxnumber": "7",
-                        "cal0": "Cal 0",
-                        "cal1": "Cal 1",
-                        "cal2": "Cal 2",
-                        "cal3": "Cal 3",
-                        "cal4": "Cal 4",
-                        "cal5": "Cal 5",
-                        "cal6": "Cal 6"
-                    },
-                    "slkcolumnnames": {
-                        "sampleID": "Sample ID",
-                        "cupNumbers": "Cup Number",
-                        "cupTypes": "Cup Type",
-                        "dateTime": "Date Time Stamp"
-                    },
-                    "cupnames": {
-                        "primer": "PRIM",
-                        "recovery": "UNKNOWN",
-                        "drift": "DRIF",
-                        "baseline": "BASL",
-                        "calibrant": "CALB",
-                        "high": "HIGH",
-                        "low": "LOW ",
-                        "null": "NULL",
-                        "end": "END",
-                        "sample": "SAMP"
-                    },
-                    "qcsamplenames": {
-                        "rmns": "RMNS",
-                        "mdl": "MDL",
-                        "bqc": "BQC",
-                        "internalqc": "IntQC",
-                        "driftcheck": "Drift Sample Check",
-                        "underway": "UWY Sample"
-                    }
-                },
-                "analysisparams": {
-                    "seal": {
-                        "filePrefix": "",
-                        "runFormat": "RRR",
-                        "activated": False
-                    },
-                    "guildline": {
-                        "filePrefix": "",
-                        "runFormat": "RRR",
-                        "activated": False
-                    },
-                    "scripps": {
-                        "filePrefix": "",
-                        "runFormat": "RRR",
-                        "activated": False
-                    },
-                    "seasave": {
-                        "filePrefix": "",
-                        "runFormat": "RRR",
-                        "activated": False
-                    },
-                    "logsheet": {
-                        "filePrefix": "",
-                        "runFormat": "RRR",
-                        "activated": False
-                    }
-                },
-                "surveyparams": {
-                    "%s" % self.currproject: {
-                        "guildline": {
-                            "activated": False,
-                            "ctdsurvey": True,
-                            "decodesampleid": False,
-                            "surveyprefix": "",
-                            "decodedepfromid": False,
-                            "depformat": None,
-                            "usesampleid": False
-                        },
-                        "scripps": {
-                            "activated": False,
-                            "ctdsurvey": True,
-                            "decodesampleid": False,
-                            "surveyprefix": None,
-                            "decodedepfromid": False,
-                            "usesampleid": False
-                        },
-                        "seal": {
-                            "activated": False,
-                            "ctdsurvey": True,
-                            "decodesampleid": True,
-                            "surveyprefix": None,
-                            "decodedepfromid": True,
-                            "depformat": "DDBB",
-                            "usesampleid": False
-                        }
-                    }
-                }
-            }
+            default_params = style.default_params
+            default_params['surveyparams'][f'{self.currproject}'] = default_params['surveyparams'].pop('default')
 
             with open('C:/HyPro/hyprosettings.json', 'r') as f:
                 hyproprojs = json.load(f)
@@ -703,17 +547,16 @@ class Processingmenu(hyproMainWindowTemplate, QtWidgets.QPlainTextEdit):
             with open(self.params_path, 'w') as file:
                 json.dump(default_params, file)
             logging.info('Parameters file created successfully')
-            print('Parameter file created')
 
-    def rmnsstandards(self):
+    def rmns_standards_window(self):
         self.rmns = rmnsDialog()
         self.rmns.show()
 
-    def producestats(self):
+    def produce_stats_window(self):
         self.stats = statsDialog(self.currproject, self.db)
         self.stats.show()
 
     def closeEvent(self, event):
         # Closes everything if main processing window is closed
-        app = QtWidgets.QApplication.instance()
+        app = QApplication.instance()
         app.closeAllWindows()

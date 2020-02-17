@@ -1,4 +1,5 @@
 import os, sqlite3, logging, json, traceback
+from time import sleep
 from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
@@ -63,6 +64,7 @@ class refreshFunction():
                 # Go through each file and determine if it is in the database and if it has changed
                 # Not sure why I used o as the file name
                 for file in filesindirec:
+                    sleep(0.2)
                     if file != 'Hidden' or file != 'hidden':
                         if file not in filenames:
                             # Most likely first time processing this file

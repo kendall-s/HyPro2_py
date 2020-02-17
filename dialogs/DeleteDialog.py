@@ -93,7 +93,7 @@ class deleteDialog(hyproDialogTemplate):
             filetype = self.analysis_type.currentText()
 
             if self.itemselectedboolean == 1:
-                selectedfile = str(self.datafiles.currentItem().text())
+                selectedfile = str(self.data_files.currentItem().text())
 
                 conn = sqlite3.connect(self.db)
                 c = conn.cursor()
@@ -128,7 +128,7 @@ class deleteDialog(hyproDialogTemplate):
                     c.execute('DELETE from salinityFilesProcessed where filename=?', filename)
                     conn.commit()
                     conn.close()
-                    if self.deletefilescheckbox.isChecked():
+                    if self.delete_files_checkbox.isChecked():
                         print('Deleting data files as well')
                         file = self.currpath + '/' + 'Salinity' + '/' + selectedfile
                         os.remove(file)
@@ -143,7 +143,7 @@ class deleteDialog(hyproDialogTemplate):
                     c.execute('DELETE from oxygenFilesProcessed where filename=?', filename)
                     conn.commit()
                     conn.close()
-                    if self.deletefilescheckbox.isChecked():
+                    if self.delete_files_checkbox.isChecked():
                         print('Deleting data files as well')
                         file = self.currpath + '/' + 'Oxygen' + '/' + selectedfile
                         os.remove(file)
@@ -159,7 +159,7 @@ class deleteDialog(hyproDialogTemplate):
                     c.execute('DELETE from logsheetFilesProcessed where filename=?', filename)
                     conn.commit()
                     conn.close()
-                    if self.deletefilescheckbox.isChecked():
+                    if self.delete_files_checkbox.isChecked():
                         print('Deleting data files as well')
                         file = self.currpath + '/' + 'Sampling' + '/' + selectedfile
                         os.remove(file)

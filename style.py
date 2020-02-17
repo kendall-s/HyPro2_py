@@ -1,14 +1,14 @@
 import matplotlib as mpl
 
 mplstyle = {'normal': {'axes.edgecolor': '#000000', 'xtick.color': '#000000', 'ytick.color': '#000000',
-                        'axes.facecolor': '#FDFDFF', 'axes.labelcolor': '#000000', 'figure.facecolor': '#FDFDFF',
-                        'grid.color': '#000000', 'figure.frameon': False, 'axes.prop_cycle': mpl.cycler(color=['#191919'])},
+                       'axes.facecolor': '#FDFDFF', 'axes.labelcolor': '#000000', 'figure.facecolor': '#FDFDFF',
+                       'grid.color': '#000000', 'figure.frameon': False,
+                       'axes.prop_cycle': mpl.cycler(color=['#191919'])},
             'dark': {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
-                    'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
-                    'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
-                    'text.color': '#F5F5F5', 'axes.prop_cycle': mpl.cycler(color=['#F5F5F5']),
-                    'legend.facecolor': '#191919'}}
-
+                     'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
+                     'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
+                     'text.color': '#F5F5F5', 'axes.prop_cycle': mpl.cycler(color=['#F5F5F5']),
+                     'legend.facecolor': '#191919'}}
 
 stylesheet = {'normal': """
 /* -------------------------------- QMainWindow-----------
@@ -268,16 +268,16 @@ QMenuBar {
 
 """
 
-# ********************************************************************************************************************
+              # ********************************************************************************************************************
 
-#   Dark theme
+              #   Dark theme
 
-# Note font color in dark theme is to be F5F5F5, white can be too harsh of a contrast and actually make dark mode
-# not that nice to use. The very slight off white color is more pleasing on the eyes. Doesn't 'dazzle' as bad
+              # Note font color in dark theme is to be F5F5F5, white can be too harsh of a contrast and actually make dark mode
+              # not that nice to use. The very slight off white color is more pleasing on the eyes. Doesn't 'dazzle' as bad
 
-# ********************************************************************************************************************
+              # ********************************************************************************************************************
 
-, 'dark' : """
+    , 'dark': """
 /* --------------------------------- QTitleBar -----------
 
 ---------------------------------------------------------- */
@@ -608,4 +608,167 @@ QMenuBar:item:pressed {
 }
 
 """
+              }
+
+# Cheekily putting this in here for ease.
+default_params = {
+    "nutrientprocessing": {
+        "elementNames": {
+            "silicateName": "SILICATE",
+            "phosphateName": "PHOSPHATE",
+            "nitrateName": "NOx",
+            "nitriteName": "NITRITE",
+            "ammoniaName": "AMMONIA"
+        },
+        "processingpars": {
+            "silicate": {
+                "peakPeriod": 80,
+                "washPeriod": 40,
+                "windowSize": 37,
+                "windowStart": 36,
+                "driftCorrType": "Piecewise",
+                "baseCorrType": "Piecewise",
+                "carryoverCorr": True,
+                "calibration": "Linear",
+                "calerror": 0.2
+            },
+            "phosphate": {
+                "peakPeriod": 80,
+                "washPeriod": 40,
+                "windowSize": 29,
+                "windowStart": 39,
+                "driftCorrType": "Piecewise",
+                "baseCorrType": "Piecewise",
+                "carryoverCorr": True,
+                "calibration": "Linear",
+                "calerror": 0.02
+            },
+            "nitrate": {
+                "peakPeriod": 80,
+                "washPeriod": 40,
+                "windowSize": 22,
+                "windowStart": 40,
+                "driftCorrType": "Piecewise",
+                "baseCorrType": "Piecewise",
+                "carryoverCorr": True,
+                "calibration": "Linear",
+                "calerror": 0.02
+            },
+            "nitrite": {
+                "peakPeriod": 80,
+                "washPeriod": 40,
+                "windowSize": 29,
+                "windowStart": 40,
+                "driftCorrType": "Piecewise",
+                "baseCorrType": "Piecewise",
+                "carryoverCorr": True,
+                "calibration": "Linear",
+                "calerror": 0.02
+            },
+            "ammonia": {
+                "peakPeriod": 80,
+                "washPeriod": 40,
+                "windowSize": 28,
+                "windowStart": 45,
+                "driftCorrType": "Piecewise",
+                "baseCorrType": "Piecewise",
+                "carryoverCorr": True,
+                "calibration": "Linear",
+                "calerror": 0.02
+            }
+        },
+        "calibrants": {
+            "maxnumber": "7",
+            "cal0": "Cal 0",
+            "cal1": "Cal 1",
+            "cal2": "Cal 2",
+            "cal3": "Cal 3",
+            "cal4": "Cal 4",
+            "cal5": "Cal 5",
+            "cal6": "Cal 6"
+        },
+        "slkcolumnnames": {
+            "sampleID": "Sample ID",
+            "cupNumbers": "Cup Number",
+            "cupTypes": "Cup Type",
+            "dateTime": "Date Time Stamp"
+        },
+        "cupnames": {
+            "primer": "PRIM",
+            "recovery": "UNKNOWN",
+            "drift": "DRIF",
+            "baseline": "BASL",
+            "calibrant": "CALB",
+            "high": "HIGH",
+            "low": "LOW ",
+            "null": "NULL",
+            "end": "END",
+            "sample": "SAMP"
+        },
+        "qcsamplenames": {
+            "rmns": "RMNS",
+            "mdl": "MDL",
+            "bqc": "BQC",
+            "internalqc": "IntQC",
+            "driftcheck": "Drift Sample Check",
+            "underway": "UWY Sample"
+        }
+    },
+    "analysisparams": {
+        "seal": {
+            "filePrefix": "",
+            "runFormat": "RRR",
+            "activated": False
+        },
+        "guildline": {
+            "filePrefix": "",
+            "runFormat": "RRR",
+            "activated": False
+        },
+        "scripps": {
+            "filePrefix": "",
+            "runFormat": "RRR",
+            "activated": False
+        },
+        "seasave": {
+            "filePrefix": "",
+            "runFormat": "RRR",
+            "activated": False
+        },
+        "logsheet": {
+            "filePrefix": "",
+            "runFormat": "RRR",
+            "activated": False
+        }
+    },
+    "surveyparams": {
+        "default": {
+            "guildline": {
+                "activated": False,
+                "ctdsurvey": True,
+                "decodesampleid": False,
+                "surveyprefix": "",
+                "decodedepfromid": False,
+                "depformat": None,
+                "usesampleid": False
+            },
+            "scripps": {
+                "activated": False,
+                "ctdsurvey": True,
+                "decodesampleid": False,
+                "surveyprefix": None,
+                "decodedepfromid": False,
+                "usesampleid": False
+            },
+            "seal": {
+                "activated": False,
+                "ctdsurvey": True,
+                "decodesampleid": True,
+                "surveyprefix": None,
+                "decodedepfromid": True,
+                "depformat": "DDBB",
+                "usesampleid": False
+            }
+        }
+    }
 }

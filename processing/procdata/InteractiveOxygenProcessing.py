@@ -55,6 +55,7 @@ class processingOxygenWindow():
         c.execute(query, deployments)
 
         ctd_data = list(c.fetchall())
+        conn.close()
 
         if not ctd_data:
             logging.info(f'<b>The oxygen file {self.file} contains CTD samples - however there is no CTD sensor data in HyPro. The file'
@@ -69,7 +70,7 @@ class processingOxygenWindow():
                                                             f'The file is processed but no error plot appears because '
                                                             f'of this error. Once CTD data is imported, reprocess '
                                                             f'this file to see the error plot.')
-
+            time.sleep(0.2)
             self.proceed_processing()
 
         else:
@@ -89,7 +90,7 @@ class processingOxygenWindow():
                             ctd_data_to_plot['primary_difference'].append(oxygen_sensor_1[l] - oxygen_data.oxygen_mols[i])
                             ctd_data_to_plot['secondary_difference'].append(oxygen_sensor_2[l] - oxygen_data.oxygen_mols[i])
                             ctd_data_to_plot['dep_rosette_postion'].append(x + (oxygen_data.rosette[i] / 24))
-
+            time.sleep(0.2)
             self.oxygen_error_plot = oxygenErrorPlot(ctd_data_to_plot['dep_rosette_postion'],
                                                      ctd_data_to_plot['primary_difference'],
                                                      ctd_data_to_plot['secondary_difference'],
