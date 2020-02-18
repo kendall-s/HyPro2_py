@@ -161,6 +161,7 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
         [ad_data[ind] for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))] if p_s[0] != '#'
         else [ad_data[ind] for ind in list(range((int(p_s[1:]) + int(window_start)), (int(p_s) + window_end)))] for p_s
         in peak_starts[:-1]]
+
     time_values = [
         [ind for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))] if p_s[0] != '#'
         else [ind for ind in list(range((int(p_s[1:]) + int(window_start)), (int(p_s) + window_end)))] for p_s in

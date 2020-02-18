@@ -200,5 +200,6 @@ class refreshFunction():
                 logging.info('No new files to process')
 
         except Exception:
-            logging.error(traceback.print_exc())
-            print(traceback.print_exc())
+            pass
+            #logging.error(traceback.print_exc())
+            #print(traceback.print_exc())

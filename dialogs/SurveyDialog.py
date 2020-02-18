@@ -377,7 +377,8 @@ class surveyDialog(hyproDialogTemplate):
                                                       'usesampleid': self.sample_id_nutrient.isChecked(),
                                                       'surveyprefix': self.survey_prefix_nutrient.text(),
                                                       'decodedepfromid': self.decode_deployment_nutrient.isChecked(),
-                                                      'depformat': self.dep_rp_format_nutrient.text()}
+                                                      'depformat': self.dep_rp_format_nutrient.text(),
+                                                      'decodesampleid': self.decode_nutrient.isChecked()}
             if self.salt_active:
                 newsurvey[surveyname]['guildline'] = {'activated': self.activate_salt.isChecked(),
                                                          'ctdsurvey': self.ctd_survey_salt.isChecked(),

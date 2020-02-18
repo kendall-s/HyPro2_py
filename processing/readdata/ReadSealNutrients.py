@@ -100,14 +100,23 @@ def extract_chd_data(chd_path, slk_data):
     with open(chd_path) as file:
         readr = csv.reader(file, delimiter=';')
         readrlist = list(readr)
+    try:
+        for x in slk_data.active_nutrients:
+            chd_data.ad_data[x] = [int(row[int(slk_data.channel[x])]) for row in readrlist]
 
-    for x in slk_data.active_nutrients:
+    except IndexError:
+        with open(chd_path) as file:
+            readr = csv.reader(file, delimiter=',')
+            readrlist = list(readr)
         chd_data.ad_data[x] = [int(row[int(slk_data.channel[x])]) for row in readrlist]
+
 
     return chd_data
 
 
 def extract_slk_data(slk_path, processing_parameters):
+    error = ''
+
     data_hold = parse_slk(slk_path)
 
     slk_data = SLKData('unknown')
@@ -133,9 +142,14 @@ def extract_slk_data(slk_path, processing_parameters):
                 slk_data.calibrants[x] = [row[findy - 1] for row in data_hold[findx + 6:]]
                 slk_data.peak_starts[x] = [row[findy + 2] for row in data_hold[findx + 6:]]
 
+                if 'peak' in str(slk_data.peak_starts[x][0]).lower():
+                    error = 'Too many rows between analyte header and start of tray protocol.'
+                    raise TypeError
+
         findx, findy = getIndex(data_hold,
                                 '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['sampleID'] + '"')
-        slk_data.sample_ids = [row[findy][1:-1] for row in data_hold[findx + 1:]]
+        # Removes double quotes out of the sample ID name
+        slk_data.sample_ids = [row[findy].replace('"', '') for row in data_hold[findx + 1:]]
 
         findx, findy = getIndex(data_hold,
                                 '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupNumbers'] + '"')
@@ -156,8 +170,9 @@ def extract_slk_data(slk_path, processing_parameters):
         return slk_data
 
     except TypeError:
-        logging.error('Formatting error in .SLK file')
+        logging.error(f'Formatting error in .SLK file. {error}')
         traceback.print_exc()
+
 
 def getIndex(arr, searchitem):
     for i, x in enumerate(arr):
