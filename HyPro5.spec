@@ -26,8 +26,8 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           name='HyPro v0.02',
-          debug=True,
+          debug=False,
           strip=False,
           upx=False,
           runtime_tmpdir=None,
-          console=True, icon='assets/2dropsshadow.ico')
+          console=False, icon='assets/2dropsshadow.ico')

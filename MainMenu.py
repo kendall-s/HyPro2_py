@@ -1,14 +1,10 @@
 # old color fcfcfc
-import sys, os, sqlite3, json, subprocess
+import sys, os, sqlite3, json
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QPushButton, QLabel, QGridLayout,
-                             QInputDialog, QComboBox, QAction, QDesktopWidget, QFrame, QMdiArea,
-                             QMdiSubWindow)
-
+                             QInputDialog, QComboBox, QAction, QDesktopWidget, QFrame)
 from time import sleep
-import xarray
 import time
-from PyQt5.QtCore import pyqtSlot
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *

@@ -786,20 +786,11 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
                 if str(sample_id).isdigit():  # CTD sample is only numbers in name
                     if params['surveyparams'][surv]['seal']['ctdsurvey']:
                         survey = surv
-                        if params['surveyparams'][surv]['seal']['decodedepfromid']:
-                            depformat = params['surveyparams'][surv]['seal']['depformat']
-                            depformatlength = depformat.count('D')
-                            rpformatlength = depformat.count('B')
-                            if depformatlength > 0:
-                                if len(sample_id) < len(depformat):
-                                    depformatlength = depformatlength - 1
-                                rosettepos = sample_id[len(sample_id)-rpformatlength:]
-                                deployment = sample_id[0: depformatlength]
+                        rosettepos = sample_id[-2:]
+                        deployment = sample_id[:-2]
 
-                                return deployment, rosettepos, survey
-                        else:
-                            print('TODO pull dep/rp from logsheet instead')
-                            # TODO: pull dep/rp from logsheet option
+                        return deployment, rosettepos, survey
+
                 else:  # Sample id has more than just numbers in it
                     if params['surveyparams'][surv]['seal']['decodesampleid']:  # Decode the sample ID, needs a prefisurv too
                         surveyprefix = params['surveyparams'][surv]['seal']['surveyprefix']

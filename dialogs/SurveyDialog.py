@@ -79,9 +79,11 @@ class surveyDialog(hyproDialogTemplate):
                 self.add_analysis.setLayout(self.add_analysis.layout)
 
             save = QPushButton('Save', self)
+            save.setMinimumWidth(100)
             save.clicked.connect(self.savefunction)
 
             cancel = QPushButton('Cancel', self)
+            cancel.setMinimumWidth(100)
             cancel.clicked.connect(self.cancelfunction)
 
             self.grid_layout.addWidget(headerLabel, 0, 0)
@@ -104,7 +106,7 @@ class surveyDialog(hyproDialogTemplate):
 
                 self.ctd_survey_salt = QCheckBox('This is the survey for CTD samples ')
                 self.ctd_survey_salt_label = QLabel('<i>This is used for samples collected from a CTD and recorded '
-                                                      'with a logsheet. Tick if this is the CTD survey.</i>')
+                                                      'with a logsheet. Tick if this is the CTD survey. \n</i>')
                 self.ctd_survey_salt_label.setWordWrap(True)
 
                 self.decode_salt = QCheckBox('Decode Salinity file Sample ID value to a survey')
@@ -184,7 +186,7 @@ class surveyDialog(hyproDialogTemplate):
 
                 self.ctd_survey_oxygen = QCheckBox('This is the survey for CTD samples ')
                 self.ctd_survey_oxygen_label = QLabel('<i>This is used for samples collected from a CTD and recorded '
-                                                          'with a logsheet. Tick if this is the CTD survey.</i>')
+                                                          'with a logsheet. Tick if this is the CTD survey. \n</i>')
                 self.ctd_survey_oxygen_label.setWordWrap(True)
 
                 self.decode_oxygen = QCheckBox('Decode Oxygen file Station value to a survey')
