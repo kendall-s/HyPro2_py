@@ -19,6 +19,7 @@ import hyproicons
 
 
 # TODO: please clean me up - style sheet needs transfer to style file
+# TODO: Refactor code to suit current code style
 # TODO: re-write of QMainWindow to template for Main and processing menu. Total lines in half that way.
 # TODO: clean up Tools menu - revmoved ununsed. Change to Utility menu, include DO calc, QC stats
 
@@ -617,19 +618,21 @@ class Mainmenu(QMainWindow):
 
     # Opens the create a new project dialog
     def createnewproject(self):
-        self.createNewProj = createNewProject()
+        self.create_new_project_window = createNewProject()
+        self.create_new_project_window.new_project_created.connect(lambda: self.setprojectnamefromopen('new'))
 
     # Opens the load a project dialog
     def loadproject(self):
-        self.openProj = openProject()
-        self.openProj.selectbutton.clicked.connect(self.setprojectnamefromopen)
-        self.openProj.selectprojbox.doubleClicked.connect(self.setprojectnamefromopen)
+        self.open_existing_project = openProject()
+        self.open_existing_project.selectbutton.clicked.connect(lambda: self.setprojectnamefromopen('load'))
+        self.open_existing_project.selectprojbox.doubleClicked.connect(lambda: self.setprojectnamefromopen('load'))
 
     # Once a project is selected this updates the main menu
-    def setprojectnamefromopen(self):
-        self.currprojectdisp.setText(self.openProj.selectedproject)
-        with open('C:/HyPro/hyprosettings.json', 'r') as f:
-            hyprosettings = json.load(f)
+    def setprojectnamefromopen(self, method):
+        if method == 'new':
+            self.currprojectdisp.setText(self.create_new_project_window.project_prefix_str)
+        elif method == 'load':
+            self.currprojectdisp.setText(self.open_existing_project.selectedproject)
         try:
             self.populatedashboards()
         except Exception:
@@ -710,7 +713,7 @@ class Mainmenu(QMainWindow):
                 self.hide()
 
                 self.proccing.backToMain.connect(self.show)
-                self.proccing.output_box.close()
+                #self.proccing.backToMain.connect(self.proccing.output_box.close)
                 self.proccing.backToMain.connect(self.proccing.hide)
 
         except Exception as e:

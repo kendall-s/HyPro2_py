@@ -6,17 +6,20 @@
 from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox, QMessageBox, QFileDialog)
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
+from PyQt5.QtCore import pyqtSignal
 import os, logging, traceback, json
 from time import sleep
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
-
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 # Class for the functionality and interface for creating a new project
 
 
 class createNewProject(hyproDialogTemplate):
 
+    new_project_created = pyqtSignal()
+
     def __init__(self):
-        super().__init__(720, 150, 'HyPro - Create New Project')
+        super().__init__(650, 150, 'HyPro - Create New Project')
 
         self.init_ui()
 
@@ -62,11 +65,11 @@ class createNewProject(hyproDialogTemplate):
     # with the same name. This also creates the correct directories and the project file
     def createProj(self):
         try:
-            project_directorystr = str(self.project_directory.text())
-            project_prefix_str = str(self.project_prefix.text())
-            project_type_str = str(self.project_type.currentText())
+            self.project_directorystr = str(self.project_directory.text())
+            self.project_prefix_str = str(self.project_prefix.text())
+            self.project_type_str = str(self.project_type.currentText())
 
-            if (project_directorystr != '') & (project_prefix_str != ''):
+            if (self.project_directorystr != '') & (self.project_prefix_str != ''):
 
                 if os.path.exists(self.project_directory.text()):
 
@@ -77,19 +80,15 @@ class createNewProject(hyproDialogTemplate):
 
                     continuecreateproj = True
                     for x in self.params['projects'].keys():
-                        if project_prefix_str == x:
-                            messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Error',
-                                                     "There's already a project with that name, please choose a different name for the new project.",
-                                                     buttons=QtWidgets.QMessageBox.Ok, parent=self)
-                            messagebox.setIconPixmap(QPixmap(':/assets/exclamation.svg'))
-                            messagebox.setFont(QFont('Segoe UI'))
-                            messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-                            messagebox.exec_()
+                        if self.project_prefix_str == x:
+                            messagebox = hyproMessageBoxTemplate('Error',
+                                                                 'There is already a project with that name, please '
+                                                                 'choose a different name for the project.', 'error')
                             continuecreateproj = False
 
                     if continuecreateproj:
 
-                        newproj = {'%s' % project_prefix_str: {'path': project_directorystr, 'type': project_type_str}}
+                        newproj = {'%s' % self.project_prefix_str: {'path': project_directorystr, 'type': self.project_type_str}}
 
                         self.params['projects'].update(newproj)
 
@@ -112,49 +111,29 @@ class createNewProject(hyproDialogTemplate):
                             os.makedirs((project_directorystr + "/Sampling"))
 
                         # Make weird little hack 'hypro' file, used for when a project needs to be imported
-                        filebuffer = open(project_directorystr + '/' + project_prefix_str + '.hypro', 'w')
-                        filebuffer.write(project_prefix_str + '\n')
-                        filebuffer.write(project_type_str + '\n')
+                        filebuffer = open(project_directorystr + '/' + self.project_prefix_str + '.hypro', 'w')
+                        filebuffer.write(self.project_prefix_str + '\n')
+                        filebuffer.write(self.project_type_str + '\n')
                         filebuffer.write(project_directorystr + '\n')
                         filebuffer.close()
 
-                        messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Success',
-                                                 "A new project was successfully created.",
-                                                 buttons=QtWidgets.QMessageBox.Ok, parent=self)
-                        messagebox.setIconPixmap(QPixmap(':/assets/success.svg'))
-                        messagebox.setFont(QFont('Segoe UI'))
-                        messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-                        messagebox.exec_()
+
+                        messagebox = hyproMessageBoxTemplate('Success', 'A new project was successfully created.',
+                                                             'success')
                         sleep(0.4)
                         self.close()
                         sleep(0.5)
+                        self.new_project_created.emit()
 
                     else:
-                        messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Error',
-                                                 "There's already a project with that name, please choose a different name for the new project.",
-                                                 buttons=QtWidgets.QMessageBox.Ok, parent=self)
-                        messagebox.setIconPixmap(QPixmap(':/assets/exclamation.svg'))
-                        messagebox.setFont(QFont('Segoe UI'))
-                        messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-                        messagebox.exec_()
-
+                        messagebox = hyproMessageBoxTemplate('Error',
+                                                             'There is already a project with that name, please choose '
+                                                             'a different name for the project.', 'error')
                 else:
-                    messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Error',
-                                             "Provided path does not exist",
-                                             buttons=QtWidgets.QMessageBox.Ok, parent=self)
-                    messagebox.setIconPixmap(QPixmap(':/assets/exclamation.svg'))
-                    messagebox.setFont(QFont('Segoe UI'))
-                    messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-                    messagebox.exec_()
+                    messagebox = hyproMessageBoxTemplate('Error', 'Provided path does not exist', 'error')
 
             else:
-                messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Error',
-                                         "Fields are empty, please fill them in",
-                                         buttons=QtWidgets.QMessageBox.Ok, parent=self)
-                messagebox.setIconPixmap(QPixmap(':/assets/exclamation.svg'))
-                messagebox.setFont(QFont('Segoe UI'))
-                messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-                messagebox.exec_()
+                messagebox = hyproMessageBoxTemplate('Error', 'Fields are empty, please fill them in.', 'information')
 
         except Exception as e:
             logging.error(traceback.print_exc())

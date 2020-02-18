@@ -41,7 +41,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         super().__init__((screenwidth * 0.85), (screenheight * 0.85), 'HyPro - Process Nutrient Analysis')
 
         # Set flagging colours
-        self.FLAG_COLORS = {1: '#68C968', 2: '#3CB6C9', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#C9852B', 8: '#3CB6C9'}
+        self.FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#DC9530',
+                            91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
         self.FLAG_CONVERTER = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad',
                                91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
 
@@ -317,7 +318,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         for i, x in enumerate(w_d.time_values):
             self.main_trace.plot(x, w_d.window_values[i], color=self.FLAG_COLORS[w_d.quality_flag[i]], linewidth=2.5, label='top')
-
         #self.main_trace.plot(w_d.time_values, w_d.window_values, linewidth=0.25, color='#68C968', marker='o')
 
         self.main_trace.plot(w_d.baseline_peak_starts[:], w_d.baseline_medians[1:-1], linewidth=1, color="#d69f20", label='baseline')

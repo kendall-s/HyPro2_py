@@ -7,6 +7,7 @@ from processing.procdata.InteractiveOxygenProcessing import processingOxygenWind
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
 from processing.procdata.InteractiveNutrientsProcessing import processingNutrientsWindow
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
 
 # GUI interface for reprocessing any files, the files need to already be processed and ingested through the refresh
@@ -129,14 +130,9 @@ class rereadDialog(hyproDialogTemplate):
                                                                             self.currpath, self.interactive, True)
 
         else:
-            messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Error',
-                                     "Please select a file to reread...",
-                                     buttons=QtWidgets.QMessageBox.Ok, parent=self)
-            messagebox.setIconPixmap(QPixmap(':/assets/exclamation.svg'))
-            messagebox.setFont(QFont('Segoe UI'))
-            messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-            messagebox.exec_()
-
+            messagebox = hyproMessageBoxTemplate('Error',
+                                                 'Please select a file to reread...         ',
+                                                 'information')
     def cancel(self):
         self.close()
 

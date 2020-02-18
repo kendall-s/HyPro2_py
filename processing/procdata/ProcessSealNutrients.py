@@ -141,6 +141,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     print('Proc time: ' + str((time.time()) - st))
 
+
     return w_d
 
 
@@ -496,6 +497,7 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
     """
     repeat_calibration = True
     calibration_iteration = 0
+
     # TODO: Massive todo I've f'd this up royally, it works and works well, but it is not clean at all.
     # Subset on if the flag isn't bad
     medians_to_fit = [x for i, x in enumerate(calibrant_medians) if calibrant_flags[i] in [1, 2, 4, 6]]
@@ -510,15 +512,17 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
 
             if cal_type == 'Linear':
                 cal_coefficients = polyfit(medians_to_fit, concs_to_fit, 1, w=weightings_to_fit)
-
                 fp = nppoly1d(cal_coefficients)
                 y_fitted = [fp(x) for x in calibrant_medians]
 
                 cal_coefficients = list(cal_coefficients)
 
             elif cal_type == 'Quadratic':
-                pass
+                cal_coefficients = polyfit(medians_to_fit, concs_to_fit, 2, w=weightings_to_fit)
+                fp = nppoly1d(cal_coefficients)
+                y_fitted = [fp(x) for x in calibrant_medians]
 
+                cal_coefficients = list(cal_coefficients)
             else:
                 logging.error('ERROR: No calibration type specified for nutrient')
                 raise NameError('No calibration type could be applied')
@@ -560,7 +564,9 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
         except IndexError:
             pass
 
-    return cal_coefficients, calibrant_flags, calibrant_weightings, calibrant_residuals
+    final_residuals = [(x - fp(calibrant_medians[i])) for i, x in enumerate(calibrant_concentrations)]
+
+    return cal_coefficients, calibrant_flags, calibrant_weightings, final_residuals
 
 
 def apply_calibration(cal_type, window_medians, calibration_coefficients):
@@ -573,6 +579,9 @@ def apply_calibration(cal_type, window_medians, calibration_coefficients):
     """
     if cal_type == 'Linear':
         calculated_concentrations = [(x * calibration_coefficients[0]) + calibration_coefficients[1] for x in
+                                     window_medians]
+    elif cal_type == 'Quadratic':
+        calculated_concentrations = [(x**calibration_coefficients[0]) + (x * calibration_coefficients[1]) + calibration_coefficients[2] for x in
                                      window_medians]
 
         return calculated_concentrations

@@ -34,8 +34,6 @@ class deleteDialog(hyproDialogTemplate):
 
         data_files_label = QLabel('Select data to delete: ', self)
 
-        self.items_elected_boolean = 0
-
         self.data_files = QListWidget()
 
         self.delete_files_checkbox = QCheckBox('Delete data files as well?', self)
@@ -117,7 +115,7 @@ class deleteDialog(hyproDialogTemplate):
                         logging.info('CTD data - ' + str(selectedfile) + ' deleted')
 
                 if filetype == 'Nutrients':
-                    message = QMessageBox.about(self, "Success", "File was successfully processed")
+                    pass
                     # TODO: complete the section for nutrients
 
                 if filetype == 'Salinity':

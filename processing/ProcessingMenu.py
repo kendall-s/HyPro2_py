@@ -58,6 +58,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
 
     def init_ui(self):
+
+        print(self.parentWidget())
         self.make_default_params_file()
 
         file_menu = self.main_menu.addMenu('File')
@@ -556,6 +558,6 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.stats.show()
 
     def closeEvent(self, event):
-        # Closes everything if main processing window is closed
+        #Closes everything if main processing window is closed
         app = QApplication.instance()
         app.closeAllWindows()

@@ -497,15 +497,22 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
     fig.set_tight_layout(tight=True)
 
 def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
-
+    analyte_error = float(analyte_error)
     if len(axes.lines) > 0:
         del axes.lines[1:]
     else:
         axes.set_title('Calibrant Error')
         axes.set_xlabel('Calibrant Concentration')
         axes.set_ylabel('Error from fitted concentration')
-        axes.plot([0, max(cal)], [0, 0], lw=1.25, linestyle='--', alpha=0.7, zorder=2, color='#000000')
         axes.grid(alpha=0.3, zorder=1)
+
+    axes.plot([0, max(cal)], [0, 0], lw=1.75, linestyle='--', alpha=0.7, zorder=2, color='#14E43E')
+
+    axes.plot([0, max(cal)], [analyte_error, analyte_error], color='#5AD3E2', lw=1.25)
+    axes.plot([0, max(cal)], [-abs(analyte_error), -abs(analyte_error)], color='#5AD3E2', lw=1.25, label = '1X Analyte Error')
+
+    axes.plot([0, max(cal)], [(2*analyte_error), (2*analyte_error)], color='#F375E9', lw=1.25)
+    axes.plot([0, max(cal)], [(-2 * analyte_error), (-2 * analyte_error)], color='#F375E9', lw=1.25, label='2X Analyte Error')
 
     for i, x in enumerate(flags):
         if x == 1:
@@ -529,15 +536,11 @@ def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
         except IndexError:
             pass
 
-    axes.plot([0, max(cal)], [analyte_error, analyte_error], color='#5AD3E2', lw=1.25)
-    axes.plot([0, max(cal)], [(-1*analyte_error), (-1*analyte_error)], color='#5AD3E2', lw=1.25)
-
-    axes.plot([0, max(cal)], [(2*analyte_error), (2*analyte_error)], color='#C689C8', lw=1.25)
-    axes.plot([0, max(cal)], [(-2 * analyte_error), (-2 * analyte_error)], color='#C689C8', lw=1.25)
-
     handles, labels = axes.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     axes.legend(by_label.values(), by_label.keys())
+    axes.set_xlim((0-(max(cal)*0.05)), max(cal)*1.05)
+    axes.set_ylim(min(cal_error)*0.9, max(cal_error)*1.1)
 
     fig.set_tight_layout(tight=True)
 
