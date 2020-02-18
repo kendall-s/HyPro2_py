@@ -458,8 +458,8 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
         del axes.lines[:]
     else:
         axes.set_title('Calibration Curve')
-        axes.set_xlabel('Calibrant Concentrations')
-        axes.set_ylabel('A/D Medians')
+        axes.set_xlabel('A/D Medians')
+        axes.set_ylabel('Calibrant Concentrations')
         axes.grid(alpha=0.3, zorder=1)
 
     fit = np.poly1d(cal_coefficients)
@@ -492,7 +492,7 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
     handles, labels = axes.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     axes.legend(by_label.values(), by_label.keys())
-    axes.autoscale()
+    axes.set_ylim((0-(max(cal_concs)*0.05)), max(cal_concs)*1.05)
     #axes.plot(cal_medians, cal_concs, marker='o', mfc='none', lw=0, ms=11)
     fig.set_tight_layout(tight=True)
 
