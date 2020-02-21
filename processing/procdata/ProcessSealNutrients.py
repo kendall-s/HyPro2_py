@@ -500,10 +500,11 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
 
     # TODO: Massive todo I've f'd this up royally, it works and works well, but it is not clean at all.
     # Subset on if the flag isn't bad
-    medians_to_fit = [x for i, x in enumerate(calibrant_medians) if calibrant_flags[i] in [1, 2, 4, 6]]
-    concs_to_fit = [x for i, x in enumerate(calibrant_concentrations) if calibrant_flags[i] in [1, 2, 4, 6]]
-    weightings_to_fit = [x for i, x in enumerate(calibrant_weightings) if calibrant_flags[i] in [1, 2, 4, 6]]
-    original_indexes = [x for i, x in enumerate(range(len(calibrant_medians))) if calibrant_flags[i] in [1, 2, 4, 6]]
+
+    medians_to_fit = [x for i, x in enumerate(calibrant_medians) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
+    concs_to_fit = [x for i, x in enumerate(calibrant_concentrations) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
+    weightings_to_fit = [x for i, x in enumerate(calibrant_weightings) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
+    original_indexes = [x for i, x in enumerate(range(len(calibrant_medians))) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
     flags_to_fit = [x for x in calibrant_flags]
 
     while repeat_calibration:
@@ -577,14 +578,12 @@ def apply_calibration(cal_type, window_medians, calibration_coefficients):
     :param calibration_coefficients:
     :return:
     """
-    if cal_type == 'Linear':
-        calculated_concentrations = [(x * calibration_coefficients[0]) + calibration_coefficients[1] for x in
-                                     window_medians]
-    elif cal_type == 'Quadratic':
-        calculated_concentrations = [(x**calibration_coefficients[0]) + (x * calibration_coefficients[1]) + calibration_coefficients[2] for x in
-                                     window_medians]
 
-        return calculated_concentrations
+    fp = nppoly1d(calibration_coefficients)
+
+    calculated_concentrations = [fp(x) for x in window_medians]
+
+    return calculated_concentrations
 
 
 def apply_dilution(mdl_indexes, dilution_factors, calculated_concentrations):

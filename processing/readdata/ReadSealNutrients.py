@@ -179,4 +179,6 @@ def getIndex(arr, searchitem):
         for j, y in enumerate(x):
             if y == searchitem:
                 return i, j
+
+    logging.error(f'Could not find the searched term {searchitem} in the SLK file')
     return 'no', 'no'

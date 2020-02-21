@@ -493,6 +493,8 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
     by_label = dict(zip(labels, handles))
     axes.legend(by_label.values(), by_label.keys())
     axes.set_ylim((0-(max(cal_concs)*0.05)), max(cal_concs)*1.05)
+    axes.set_xlim((0-(max(cal_medians)*0.05)), max(cal_medians)*1.05)
+
     #axes.plot(cal_medians, cal_concs, marker='o', mfc='none', lw=0, ms=11)
     fig.set_tight_layout(tight=True)
 
@@ -586,35 +588,33 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
 
 def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
     nut_column = {'phosphate': 1, 'silicate': 3, 'nitrate': 5, 'nitrite': 7, 'ammonia': 9}
-    if len(axes.lines) == 1:
-        del axes.lines[:]
-    elif len(axes.lines) > 0:
-        del axes.lines[7:]
+
+    del axes.lines[:]
+
+    conn = sqlite3.connect('C:/HyPro/Settings/hypro.db')
+    c = conn.cursor()
+    c.execute('SELECT * from rmnsData')
+    rmns_data = c.fetchall()
+    rmns = (rmns.lower().replace("rmns", "").replace(" ", "")).swapcase()
+
+    current_rmns = [x for x in rmns_data if x[0] in rmns]
+    if current_rmns:
+        conc = current_rmns[0][nut_column[nutrient]]
+        axes.plot([min(indexes)-1, max(indexes)+1], [conc]*2, lw=1, linestyle='--', color='#8B8B8B', label='Certified Value')
+        axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.01]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
+        axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.99]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
+        axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.02]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
+        axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.98]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
+        axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.03]*2, lw=1, color= '#E54580', label = '3% Concentration Error')
+        axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.97]*2, lw=1, color= '#e56969', label = '3% Concentration Error')
+
     else:
-        conn = sqlite3.connect('C:/HyPro/Settings/hypro.db')
-        c = conn.cursor()
-        c.execute('SELECT * from rmnsData')
-        rmns_data = c.fetchall()
+        axes.annotate('No RMNS values found', [0.05, 0.05], xycoords='axes fraction')
 
-        current_rmns = [x for x in rmns_data if x[0] in rmns]
-        if current_rmns:
-            conc = current_rmns[0][nut_column[nutrient]]
-            axes.plot([min(indexes)-1, max(indexes)+1], [conc]*2, lw=1, linestyle='--', color='#8B8B8B', label='Certified Value')
-            axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.01]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
-            axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.99]*2, lw=1, color= '#12ba66', label = '1% Concentration Error')
-            axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.02]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
-            axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.98]*2, lw=1, color= '#63d0ff', label = '2% Concentration Error')
-            axes.plot([min(indexes)-1, max(indexes)+1], [conc*1.03]*2, lw=1, color= '#E54580', label = '3% Concentration Error')
-            axes.plot([min(indexes)-1, max(indexes)+1], [conc*0.97]*2, lw=1, color= '#e56969', label = '3% Concentration Error')
-
-
-        else:
-            axes.annotate('No RMNS values found', [0.05, 0.05], xycoords='axes fraction')
-
-        axes.set_title(str(nutrient).capitalize() + ' RMNS' + str(rmns), fontsize=12)
-        axes.set_xlabel('Peak Number')
-        axes.set_ylabel('Concentration (uM)')
-        axes.grid(alpha=0.2, zorder=1)
+    axes.set_title(str(nutrient).capitalize() + ' RMNS ' + str(rmns), fontsize=12)
+    axes.set_xlabel('Peak Number')
+    axes.set_ylabel('Concentration (uM)')
+    axes.grid(alpha=0.2, zorder=1)
 
     axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o')
     axes.set_ylim(min(concentrations) * 0.975, max(concentrations) * 1.025)
@@ -625,6 +625,7 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
     axes.legend(by_label.values(), by_label.keys())
 
 def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=False, run_nums=False):
+
     if len(axes.lines) > 0:
         del axes.lines[:]
     else:
@@ -658,7 +659,7 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=False, run_nums=F
     else: # Normal in processing plot
         mdl = 3 * statistics.stdev(concentrations)
         axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl,3)), ms=12, mfc='none', mec='#12BA66')
-        axes.set_ylim(min(concentrations)*0.99, max(concentrations)*1.01)
+        axes.set_ylim(min(concentrations)*0.95, max(concentrations)*1.05)
         axes.legend(fontsize=12)
 
     fig.set_tight_layout(tight=True)

@@ -396,8 +396,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         picked_peak_start = int(self.slk_data.peak_starts[self.current_nutrient][peak_index])
-        win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
-        win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
+        win_start = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'])
+        win_length = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'])
 
         if x_axis_time < (picked_peak_start + win_start + win_length):
 
@@ -430,8 +430,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         picked_peak_start = int(self.slk_data.peak_starts[self.current_nutrient][peak_index])
-        win_start = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
-        win_length = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize']
+        win_start = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'])
+        win_length = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'])
 
         print(x_axis_time)
         peak_window_start = picked_peak_start + win_start
@@ -600,6 +600,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         # Used to zoom to the tallest peak plus a little extra so it isn't touch the top
         ymin, ymax = self.main_trace.get_ybound()
         xmin, xmax = self.main_trace.get_xbound()
+        if xmin < 0:
+            xmin = 0
         maxheight = max(self.chd_data.ad_data[self.current_nutrient][int(xmin): int(xmax)])
         self.main_trace.set_ylim(ymin, maxheight * 1.02)
         self.tracecanvas.draw()
@@ -650,6 +652,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         for qc in qc_samps:
             if qc == 'driftcheck':
                 break
+            print(qc)
             if any(qc_samps[qc] in s_id for s_id in sample_ids_set if s_id[0:4].lower() != 'test'):
                 qc_name = ''.join(i for i in qc_samps[qc].replace(" ", "") if not i.isdigit())
                 setattr(self, "{}".format(qc_name + '_tab'), QWidget())
