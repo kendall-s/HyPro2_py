@@ -1,4 +1,4 @@
-import csv, time, calendar, logging, traceback
+import csv, time, calendar, logging, traceback, os
 from processing.algo.Structures import SLKData, CHDData
 import processing.procdata.ProcessSealNutrients as psn
 NUTRIENTS = ['nitrate', 'phosphate', 'silicate', 'nitrite', 'ammonia']
@@ -38,12 +38,13 @@ def parse_slk(slk_path):
     slk_path = slk_path
 
     # Open the file
-    try:
+    if os.path.isfile(slk_path):
         with open(slk_path) as file:
             readr = csv.reader(file, delimiter=';')
             readr_list = list(readr)
-    except FileNotFoundError:
-        logging.error('Could not find the nutrient file, is it in the right spot? Does a Nutrient folder exist?')
+    else:
+        raise FileNotFoundError
+
     # Now the .SLK will be parsed, this is messy because there are different 'versions' of the
     # .slk as there isn't a defined standard..
     # THe .slk is essentially a spreadsheet and it will be broken up into an array
@@ -63,7 +64,7 @@ def parse_slk(slk_path):
             if x[1][0] == 'Y':
                 h = int(x[1][1:])
 
-    data_hold = [['' for i in range(w)] for j in range(h)]
+    data_hold = [['' for w_i in range(w)] for h_i in range(h)]
 
     row = 0
     column = 0
@@ -80,7 +81,7 @@ def parse_slk(slk_path):
             if x[0][0] == 'F':
                 if len(x) == 4:
                     if x[3][0] == 'M':
-                        fake = 0
+                        pass
                     else:
                         column = int(x[3][1:]) - 1
                 else:
@@ -116,64 +117,58 @@ def extract_chd_data(chd_path, slk_data):
 
 
 def extract_slk_data(slk_path, processing_parameters):
-    error = ''
-
     data_hold = parse_slk(slk_path)
 
     slk_data = SLKData('unknown')
-    try:
-        # By finding where certain headers are the associated data can be found
-        findx, findy = getIndex(data_hold, '"TIME"')
-        slk_data.time = data_hold[findx][findy + 1][1:-1]
+    # By finding where certain headers are the associated data can be found
+    findx, findy = getIndex(data_hold, '"TIME"')
+    slk_data.time = data_hold[findx][findy + 1][1:-1]
 
-        findx, findy = getIndex(data_hold, '"DATE"')
-        slk_data.date = data_hold[findx][findy + 1][1:-1]
+    findx, findy = getIndex(data_hold, '"DATE"')
+    slk_data.date = data_hold[findx][findy + 1][1:-1]
 
-        findx, findy = getIndex(data_hold, '"OPER"')
-        slk_data.operator = data_hold[findx][findy + 1][1:-1]
+    findx, findy = getIndex(data_hold, '"OPER"')
+    slk_data.operator = data_hold[findx][findy + 1][1:-1]
 
-        for x in NUTRIENTS:
-            findx, findy = getIndex(data_hold, '"' + processing_parameters['nutrientprocessing']['elementNames']
-            ['%sName' % x] + '"')
-            if findx != 'no':
-                slk_data.active_nutrients.append(x)
-                slk_data.channel[x] = data_hold[findx - 1][findy]
-                slk_data.gains[x] = data_hold[findx + 3][findy]
-                slk_data.bases[x] = data_hold[findx + 2][findy]
-                slk_data.calibrants[x] = [row[findy - 1] for row in data_hold[findx + 6:]]
-                slk_data.peak_starts[x] = [row[findy + 2] for row in data_hold[findx + 6:]]
+    for x in NUTRIENTS:
+        findx, findy = getIndex(data_hold, '"' + processing_parameters['nutrientprocessing']['elementNames']
+        ['%sName' % x] + '"')
+        if findx != 'no':
+            slk_data.active_nutrients.append(x)
+            slk_data.channel[x] = data_hold[findx - 1][findy]
+            slk_data.gains[x] = data_hold[findx + 3][findy]
+            slk_data.bases[x] = data_hold[findx + 2][findy]
+            slk_data.calibrants[x] = [row[findy - 1] for row in data_hold[findx + 6:]]
+            slk_data.peak_starts[x] = [row[findy + 2].replace('"', '') for row in data_hold[findx + 6:]]
 
-                if 'peak' in str(slk_data.peak_starts[x][0]).lower():
-                    error = 'Too many rows between analyte header and start of tray protocol.'
-                    raise TypeError
+            if 'peak' in str(slk_data.peak_starts[x][0]).lower():
+                logging.error('Too many rows between analyte header and start of tray protocol.')
+                raise TypeError
+            if '' in slk_data.peak_starts[x]:
+                logging.error(f'There is a blank peak start value in the SLK file for nutrient {x}')
+                raise TypeError
 
-        findx, findy = getIndex(data_hold,
-                                '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['sampleID'] + '"')
-        # Removes double quotes out of the sample ID name
-        slk_data.sample_ids = [row[findy].replace('"', '') for row in data_hold[findx + 1:]]
+    findx, findy = getIndex(data_hold,
+                            '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['sampleID'] + '"')
+    # Removes double quotes out of the sample ID name
+    slk_data.sample_ids = [row[findy].replace('"', '') for row in data_hold[findx + 1:]]
 
-        findx, findy = getIndex(data_hold,
-                                '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupNumbers'] + '"')
-        slk_data.cup_numbers = [row[findy][:] for row in data_hold[findx + 1:]]
+    findx, findy = getIndex(data_hold,
+                            '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupNumbers'] + '"')
+    slk_data.cup_numbers = [row[findy][:] for row in data_hold[findx + 1:]]
 
-        findx, findy = getIndex(data_hold,
-                                '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupTypes'] + '"')
-        slk_data.cup_types = [row[findy][1:-1] for row in data_hold[findx + 1:]]
+    findx, findy = getIndex(data_hold,
+                            '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupTypes'] + '"')
+    slk_data.cup_types = [row[findy][1:-1] for row in data_hold[findx + 1:]]
 
-        findx, findy = getIndex(data_hold,
-                                '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['dateTime'] + '"')
+    findx, findy = getIndex(data_hold,
+                            '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['dateTime'] + '"')
+    slk_data.epoch_timestamps = [row[findy][1:-1] for row in data_hold[findx + 1:]]
+    format = '%d/%m/%Y %I:%M:%S %p'
+    structtime = [time.strptime(x, format) for x in slk_data.epoch_timestamps]
+    slk_data.epoch_timestamps = [calendar.timegm(x) for x in structtime]
 
-        slk_data.epoch_timestamps = [row[findy][1:-1] for row in data_hold[findx + 1:]]
-        format = '%d/%m/%Y %I:%M:%S %p'
-        structtime = [time.strptime(x, format) for x in slk_data.epoch_timestamps]
-        slk_data.epoch_timestamps = [calendar.timegm(x) for x in structtime]
-
-        return slk_data
-
-    except TypeError:
-        logging.error(f'Formatting error in .SLK file. {error}')
-        traceback.print_exc()
-
+    return slk_data
 
 def getIndex(arr, searchitem):
     for i, x in enumerate(arr):

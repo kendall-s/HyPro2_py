@@ -68,30 +68,38 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.w_d = WorkingData(file)
 
         # Pull out the data from the files in the directory
-        self.slk_data, self.chd_data, self.w_d, self.current_nutrient = rsn.get_data_routine(self.file_path,
-                                                                                             self.w_d,
-                                                                                             self.processing_parameters,
-                                                                                             self.database)
-        self.slk_data.run_number = int(file[len(self.processing_parameters['analysisparams']['seal']['filePrefix']):-4])
+        try:
+            self.slk_data, self.chd_data, self.w_d, self.current_nutrient = rsn.get_data_routine(self.file_path,
+                                                                                                 self.w_d,
+                                                                                                 self.processing_parameters,
+                                                                                                 self.database)
+            self.slk_data.run_number = int(file[len(self.processing_parameters['analysisparams']['seal']['filePrefix']):-4])
 
-        # Process the data and return calculated values
-        self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
-                                          self.current_nutrient)
+            # Process the data and return calculated values
+            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                              self.current_nutrient)
 
-        # If interactive processing is activated on the Processing Menu window, then continue to plot everything up
-        # Otherwise store data and exit without drawing or creating any UI elements
-        if interactive:
-            self.init_ui()
+            # If interactive processing is activated on the Processing Menu window, then continue to plot everything up
+            # Otherwise store data and exit without drawing or creating any UI elements
+            if interactive:
+                self.init_ui()
 
-            self.create_standard_qc_tabs()
-            qc_cups = self.processing_parameters['nutrientprocessing']['qcsamplenames']
-            self.create_custom_qc_tabs(self.slk_data.sample_ids, qc_cups)
+                self.create_standard_qc_tabs()
+                qc_cups = self.processing_parameters['nutrientprocessing']['qcsamplenames']
+                self.create_custom_qc_tabs(self.slk_data.sample_ids, qc_cups)
 
-            self.interactive_routine()
+                self.interactive_routine()
 
-        else:
-            # TODO: Store data if not interactive processing
-            sys.exit()
+            else:
+                # TODO: Store data if not interactive processing
+                sys.exit()
+
+        except TypeError:
+            logging.error(f'Formatting error in .SLK file. Processing aborted.')
+            #traceback.print_exc()
+
+        except FileNotFoundError:
+            logging.error('Could not find the nutrient file, is it in the right spot? Does a Nutrient folder exist?')
 
 
     def interactive_routine(self, trace_redraw=False):

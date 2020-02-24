@@ -202,4 +202,4 @@ class refreshFunction():
         except Exception:
             pass
             #logging.error(traceback.print_exc())
-            #print(traceback.print_exc())
+            print(traceback.print_exc())

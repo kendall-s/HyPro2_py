@@ -38,7 +38,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
     backToMain = pyqtSignal()
 
     def __init__(self, project, path):
-        super().__init__(820, 440, 'HyPro - Processing')
+        super().__init__(900, 440, 'HyPro - Processing')
 
         self.setProperty('ProcessingMenu', True)
 

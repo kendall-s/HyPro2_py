@@ -151,12 +151,12 @@ def match_click_to_peak(x_time, slk_data, current_nutrient):
     '''
     for i, x in enumerate(slk_data.peak_starts[current_nutrient]):
         if i < len(slk_data.peak_starts[current_nutrient]):
-            if x[1] == '#':
+            if x[0] == '#':
                 peak_start = x[2:-1]
             else:
                 peak_start = x
 
-            if slk_data.peak_starts[current_nutrient][i+1][1] == '#':
+            if slk_data.peak_starts[current_nutrient][i+1][0] == '#':
                 next_peak_start = slk_data.peak_starts[current_nutrient][i+1][2:-1]
             else:
                 next_peak_start = slk_data.peak_starts[current_nutrient][i+1]
@@ -196,5 +196,4 @@ def save_proc_settings(path, project, settings):
     except Exception as e:
         logging.error(
             'ERROR: Could not save to project parameters file, this should live within the project folder')
-
 

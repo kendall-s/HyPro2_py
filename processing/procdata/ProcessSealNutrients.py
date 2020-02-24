@@ -157,17 +157,20 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
     """
 
     window_end = int(window_start) + int(window_size)
+
+    # For now remove any hashes that are in the peak starts, this makes the following list comps cleaner.
+    peak_starts = [p_s.replace('#', '') for p_s in peak_starts]
+
     # This looks ugly, but it is 10x faster than an expanded for if else statement to accomplish the same thing
     # List comprehension to pull out the A/D values from the CHD based on the peak starts and window size
     window_values = [
-        [ad_data[ind] for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))] if p_s[0] != '#'
-        else [ad_data[ind] for ind in list(range((int(p_s[1:]) + int(window_start)), (int(p_s) + window_end)))] for p_s
-        in peak_starts[:-1]]
+        [ad_data[ind] for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))]
+        for p_s in peak_starts[:-1]]
 
     time_values = [
-        [ind for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))] if p_s[0] != '#'
-        else [ind for ind in list(range((int(p_s[1:]) + int(window_start)), (int(p_s) + window_end)))] for p_s in
-        peak_starts[:-1]]
+        [ind for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))]
+        for p_s in peak_starts[:-1]]
+
     return window_values, time_values
 
 
