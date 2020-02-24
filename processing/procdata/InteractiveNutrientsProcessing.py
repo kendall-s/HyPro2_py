@@ -349,16 +349,18 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         index = self.slk_data.active_nutrients.index(self.current_nutrient)
         try:
             self.current_nutrient = self.slk_data.active_nutrients[index+1]
-            self.analysistraceLabel.setText('<b>Analysis Trace: </b>' + str(self.current_nutrient))
-            self.w_d.analyte = self.current_nutrient
-            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
-                                              self.current_nutrient)
-            self.interactive_routine()
-           
         except IndexError:
             print('Processing completed')
             logging.info(f'Processing successfully completed for nutrient file - {self.file}')
             self.close()
+
+        self.analysistraceLabel.setText('<b>Analysis Trace: </b>' + str(self.current_nutrient))
+        self.w_d.analyte = self.current_nutrient
+        self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                          self.current_nutrient)
+        self.interactive_routine()
+           
+
 
     def cancel(self):
         self.close()
@@ -499,15 +501,15 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             else:
                 self.qctabs.setCurrentIndex(curr_tab+1)
         if event.key() == 90: # Assign Z to shift peak window left
-            ws = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
+            ws = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'])
             ws = ws - 2
             self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = ws
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
             self.interactive_routine()
         if event.key() == 67: # Assign C to shift peak window right
-            ws = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][
-                'windowStart']
+            ws = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][
+                'windowStart'])
             ws = ws + 2
             self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][
                 'windowStart'] = ws

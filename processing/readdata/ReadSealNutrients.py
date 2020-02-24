@@ -108,7 +108,8 @@ def extract_chd_data(chd_path, slk_data):
         with open(chd_path) as file:
             readr = csv.reader(file, delimiter=',')
             readrlist = list(readr)
-        chd_data.ad_data[x] = [int(row[int(slk_data.channel[x])]) for row in readrlist]
+        for x in slk_data.active_nutrients:
+            chd_data.ad_data[x] = [int(row[int(slk_data.channel[x])]) for row in readrlist]
 
 
     return chd_data

@@ -158,6 +158,7 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
 
     window_end = int(window_start) + int(window_size)
     # This looks ugly, but it is 10x faster than an expanded for if else statement to accomplish the same thing
+    # List comprehension to pull out the A/D values from the CHD based on the peak starts and window size
     window_values = [
         [ad_data[ind] for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))] if p_s[0] != '#'
         else [ad_data[ind] for ind in list(range((int(p_s[1:]) + int(window_start)), (int(p_s) + window_end)))] for p_s
