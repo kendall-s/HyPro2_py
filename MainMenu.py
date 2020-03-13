@@ -1,5 +1,5 @@
 # old color fcfcfc
-import sys, os, sqlite3, json
+import sys, os, sqlite3, json, traceback
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QPushButton, QLabel, QGridLayout,
                              QInputDialog, QComboBox, QAction, QDesktopWidget, QFrame)

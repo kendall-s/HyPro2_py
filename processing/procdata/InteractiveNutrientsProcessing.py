@@ -35,7 +35,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 
     """
-    def __init__(self, file, database, path, project, interactive=True, rereading=''):
+    def __init__(self, file, database, path, project, interactive=True, rereading=False):
         screenwidth = QDesktopWidget().availableGeometry().width()
         screenheight = QDesktopWidget().availableGeometry().height()
         super().__init__((screenwidth * 0.85), (screenheight * 0.85), 'HyPro - Process Nutrient Analysis')
@@ -54,6 +54,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.path = path
         self.project = project
         self.database = database
+        self.interactive = interactive
+        self.rereading = rereading
 
         # General HyPro settings, use for setting theme of window
         with open('C:/HyPro/hyprosettings.json', 'r') as temp:
@@ -81,7 +83,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             # If interactive processing is activated on the Processing Menu window, then continue to plot everything up
             # Otherwise store data and exit without drawing or creating any UI elements
-            if interactive:
+            if self.interactive:
                 self.init_ui()
 
                 self.create_standard_qc_tabs()
@@ -132,7 +134,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             fileMenu = mainMenu.addMenu('File')
             editMenu = mainMenu.addMenu('Edit')
 
-            self.analysistraceLabel = QLabel('<b>Analysis Trace: </b>' + str(self.current_nutrient))
+            self.analysistraceLabel = QLabel('<b>Processing file: </b>' + str(self.file) +
+                                             '   |   <b>Analysis Trace: </b>' + str(self.current_nutrient).capitalize())
+
             self.analysistraceLabel.setProperty('headertext', True)
 
             tracelabelframe = QFrame()
@@ -245,7 +249,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             # Initialise the trace figure for plotting to
             self.tracefigure = plt.figure(figsize=(6, 4))
             self.tracefigure.set_tight_layout(tight=True)
-            #self.tracefigure.set_facecolor('#f9fcff')
             self.tracecanvas = FigureCanvas(self.tracefigure)
             self.tracecanvas.setParent(self)
             self.tracetoolbar = NavigationToolbar(self.tracecanvas, self)
@@ -254,7 +257,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             # Setting everything into the layout
             self.grid_layout.addWidget(tracelabelframe, 0, 0, 1, 11)
-            self.grid_layout.addWidget(self.analysistraceLabel, 0, 0, 1, 3, Qt.AlignCenter)
+            self.grid_layout.addWidget(self.analysistraceLabel, 0, 0, 1, 5, Qt.AlignCenter)
 
             self.grid_layout.addWidget(qclabelframe, 0, 11, 1, 5)
             self.grid_layout.addWidget(self.qctabsLabel, 0, 11, 1, 1, Qt.AlignCenter)
@@ -360,17 +363,19 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         except IndexError:
             print('Processing completed')
             logging.info(f'Processing successfully completed for nutrient file - {self.file}')
+            #plt.close('all')
             self.close()
 
-        self.analysistraceLabel.setText('<b>Analysis Trace: </b>' + str(self.current_nutrient))
+        self.analysistraceLabel.setText('<b>Processing file: </b>' + str(self.file) +
+                                        '   |   <b>Analysis Trace: </b>' + str(self.current_nutrient).capitalize())
         self.w_d.analyte = self.current_nutrient
         self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                           self.current_nutrient)
         self.interactive_routine()
            
 
-
     def cancel(self):
+        plt.close('all')
         self.close()
 
     def on_click(self, event):
@@ -525,6 +530,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                               self.current_nutrient)
             self.draw_data(self.chd_data, self.w_d, self.current_nutrient, False)
             self.interactive_routine()
+
         # Below is only meant to be used for DEVELOPMENT PURPOSES, used to inject random values into peak picking
         # to check how the software responds, used to check speed of processing and robustness
         if event.key() == 82: # R Imitates changing peak windows etc, for testing optimisation of processing and draw
@@ -634,6 +640,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'baseline': 'Baseline Corr', 'drift': 'Drift Corr'}
+
+        if self.w_d.analyte == 'nitrate':
+            standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'recovery': 'NOx Recovery',
+                             'baseline': 'Baseline Corr', 'drift': 'Drift Corr'}
+
         for qc in standard_tabs:
             setattr(self, "{}".format(qc + str('_tab')), QWidget())
             self.qctabs.addTab(getattr(self, "{}".format(qc + str('_tab'))), str(standard_tabs[qc]))
@@ -656,14 +667,24 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :param qc_samps:
         :return:
         """
+        #Remove the drift check cup from the QC samples
+        del qc_samps['driftcheck']
+
         self.qc_tabs_in_existence = []
         self.rmns_plots = []
+
         sample_ids_set = set(sample_ids)
+        sample_ids_set_loop = [x for x in sample_ids_set]
+        # Got to remove the samples that have a TEST in their sample name
+        for s_id in sample_ids_set_loop:
+            if 'test' in s_id.lower():
+                sample_ids_set.remove(s_id)
+
+        # Iterate through the potential QC samples to create their plot tab
         for qc in qc_samps:
-            if qc == 'driftcheck':
-                break
-            print(qc)
-            if any(qc_samps[qc] in s_id for s_id in sample_ids_set if s_id[0:4].lower() != 'test'):
+            check_s_id_list = [(qc_samps[qc] in s_id) for s_id in sample_ids_set]
+            if any(check_s_id_list):
+                # If the QC sample was in the sample ID set then create its plot tab
                 qc_name = ''.join(i for i in qc_samps[qc].replace(" ", "") if not i.isdigit())
                 setattr(self, "{}".format(qc_name + '_tab'), QWidget())
 
@@ -673,6 +694,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 setattr(self, "{}".format(qc_name + '_fig'), plt.figure())
                 setattr(self, "{}".format(qc_name + '_canvas'), FigureCanvas(getattr(self, "{}".format(qc_name + '_fig'))))
 
+                # Slightly different for RMNS - got to create multiple subplots if there are more than 1 lot in the analysis
                 if qc == 'rmns':
                     rmns_list = [x for x in sample_ids_set if qc_samps[qc] in x and x[0:4].lower() != 'test']
                     for i, rmns in enumerate(rmns_list):
@@ -693,11 +715,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                    self.w_d.calibrant_medians, self.w_d.calibrant_concs,
                                    self.w_d.calibrant_flags, self.w_d.calibration_coefficients)
         self.cal_curve_canvas.draw()
+
         analyte_error = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['calerror']
         qcp.calibration_error_plot(self.cal_error_fig, self.cal_error_plot,
                                    self.w_d.calibrant_concs, self.w_d.calibrant_residuals, analyte_error,
                              self.w_d.calibrant_flags)
         self.cal_error_canvas.draw()
+
         qcp.basedrift_correction_plot(self.baseline_fig, self.baseline_plot,
                                       self.baseline_plot2, 'Baseline', self.w_d.baseline_indexes,
                                       self.w_d.baseline_corr_percent, self.w_d.baseline_medians, self.w_d.baseline_flags)
@@ -707,6 +731,15 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                       self.drift_plot2, 'Drift', self.w_d.drift_indexes,
                                       self.w_d.drift_corr_percent, self.w_d.drift_medians, self.w_d.drift_flags)
         self.drift_canvas.draw()
+
+
+        if self.w_d.analyte == 'nitrate':
+            qcp.recovery_plot(self.recovery_fig, self.recovery_plot, self.w_d.recovery_indexes,
+                              self.w_d.recovery_concentrations, self.w_d.recovery_ids,
+                              self.w_d.recovery_flags)
+
+            self.recovery_canvas.draw()
+
 
     def plot_custom_data(self):
         """

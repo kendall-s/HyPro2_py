@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget, QDesktopWidget, QApplication,
                              QFileDialog, QTabWidget, QGridLayout, QComboBox, QListWidget, QPushButton, QCheckBox)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+from matplotlib.collections import LineCollection
 from matplotlib.ticker import MaxNLocator
 from pylab import *
 import pandas as pd
@@ -27,6 +28,9 @@ mpl.rc('font', family = 'Segoe UI Symbol') # Cast Segoe UI font onto all plot te
 
 # TODO: Fix RMNS plot so it still works even if nominal RMNS values are not in the database
 # TODO: Delete the old classes and functions for plots that have been superseded
+
+FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4: '#3CB6C9', 5: '#C92724', 6: '#DC9530',
+                    91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
 
 class redfieldPlot(QMainPlotterTemplate):
     def __init__(self, database):
@@ -452,6 +456,55 @@ class rmnsPlot(QWidget):
 
         self.canvas.draw()
 
+
+def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
+
+    del axes.lines[:]
+    del axes.texts[:]
+
+    # Figure out which ones are which, make a sub index number to reference the concentrations and flags
+    # The indexes parameter function references the peak index relative to the whole run just FYI
+
+    if indexes:
+        # Get the subset indexes as lists, could be case where an analysis has multiple column checks
+        nitrite_stds_sub_index = [i for i, x in enumerate(ids) if '2' in x]
+        nitrate_stds_sub_index = [i for i, x in enumerate(ids) if '3' in x]
+
+        conversion_efficiency = []
+        plottable_index = []
+        flags_to_plot = []
+
+        for i, std in enumerate(nitrite_stds_sub_index):
+            eff_pct = (concentrations[std] / concentrations[nitrate_stds_sub_index[i]]) * 100
+            conversion_efficiency.append(eff_pct)
+            plottable_index.append(indexes[std]+1)
+            flags_to_plot.append(flags[std])
+
+        axes.grid(alpha=0.2, zorder=1)
+        # Loop through so different colours can be easily applied
+        for i, x in enumerate(conversion_efficiency):
+            axes.plot(plottable_index[i], conversion_efficiency[i], lw=0, marker='o', ms=25, color=FLAG_COLORS[flags_to_plot[i]])
+            axes.annotate(f'{round(conversion_efficiency[i], 1)}', [plottable_index[i], conversion_efficiency[i]],
+                          fontsize=10, ha='center', va='center', color='#FFFFFF', fontfamily='Arial')
+
+        axes.set_title(f'Mean efficiency: {round(statistics.mean(conversion_efficiency), 3)} %', fontsize=12)
+        axes.set_xlabel('Peak Number')
+        axes.set_ylabel('NO3 to NO2 Conversion Efficiency (%)')
+
+        # Add lines for reference to good and bad conversion efficiency
+        hundred_percent = [(0, 100), (100, 100)]
+        ninety_eight_percent = [(0, 98), (100, 98)]
+        axes.add_collection(LineCollection([hundred_percent], color='#7AAD84', lw=2, linestyle='--'))
+        axes.add_collection(LineCollection([ninety_eight_percent], color='#AD804A', lw=2, linestyle='--'))
+
+    else:
+        # Instead of not plotting at all - this error message was implemented so the user is aware
+        at = axes.annotate('No column recovery peaks were found. If this message is unexpected, check the '
+                      'project parameters and ensure the recovery cup type matches what is in the .SLK file.',
+                      [0.02, 0.5], xycoords='axes fraction', fontsize=14, wrap=True, fontname='Segoe UI Symbol',
+                    bbox=dict(facecolor='none', edgecolor='black', boxstyle='round,pad=1'))
+        axes.set_axis_off()
+    fig.set_tight_layout(tight=True)
 
 def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients):
     if len(axes.lines) > 0:

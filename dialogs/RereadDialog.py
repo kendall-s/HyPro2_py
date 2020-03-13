@@ -117,6 +117,7 @@ class rereadDialog(hyproDialogTemplate):
             if filetype == 'Nutrients':
                 self.initnutrientdata = processingNutrientsWindow(selectedfile, self.db, self.currpath,
                                                                   self.currproject, self.interactive, True)
+
             if filetype == 'Salinity':
                 self.initsaltdata = processingSalinityWindow(selectedfile, self.db, self.currpath, self.currproject,
                                                              self.interactive, True)

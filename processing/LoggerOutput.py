@@ -24,7 +24,7 @@ class QTextEditLogger(logging.Handler):
         self.log_path = log_path
         try:
             with open(self.log_path, mode='r+') as file:
-                self.widget.appendPlainText(file.read())
+                self.widget.appendPlainText(file.read()[-8000:])
 
         except IOError:
             with open(self.log_path, mode='w+') as file:

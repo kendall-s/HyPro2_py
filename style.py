@@ -135,7 +135,7 @@ QComboBox {
 
 ---------------------------------------------------------- */
 QCheckBox {
-    font: 14px;
+    font: 14px Segoe UI;
 }
 QCheckBox[survey_checkbox=true]:indicator {
     width: 50px;
@@ -239,6 +239,7 @@ QScrollBar::handle:vertical {
     background: #4e546c;
     min-height: 0px;
     border-radius: 3px;
+    min-height: 20px;
 }  
 QScrollBar::add-line:vertical {
     background: #999999;
@@ -512,7 +513,6 @@ QScrollBar:handle:vertical::pressed {
 }
 QScrollBar::handle:vertical {
     background: #717171;
-    min-height: 0px;
     border-radius: 3px;
 }  
 QScrollBar::add-line:vertical {

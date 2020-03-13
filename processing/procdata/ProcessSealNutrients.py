@@ -45,6 +45,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     high_cup_type = processing_parameters['nutrientprocessing']['cupnames']['high']
     low_cup_type = processing_parameters['nutrientprocessing']['cupnames']['low']
     drift_cup_type = processing_parameters['nutrientprocessing']['cupnames']['drift']
+    recovery_cup_type = processing_parameters['nutrientprocessing']['cupnames']['recovery']
     drift_corr_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['driftCorrType']
     calibrant_cup_type = processing_parameters['nutrientprocessing']['cupnames']['calibrant']
     cal_zero_label = processing_parameters['nutrientprocessing']['calibrants']['cal0']
@@ -129,7 +130,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes, w_d.calculated_concentrations,
                                                  w_d.quality_flag, cal_error_limit)
 
-    # ------ Pull out the data for the QC samples that were measured ---------------------------------------------
+    # ------------- Pull out the data for the QC samples that were measured --------------------------------------
     w_d.qc_present = find_qc_present(qc_cups, slk_data.sample_ids)
     for qc in w_d.qc_present:
         indexes = get_qc_index(qc, slk_data.sample_ids)
@@ -139,8 +140,16 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
         setattr(w_d, "{}".format(qc_name + '_concentrations'), medians)
         setattr(w_d, "{}".format(qc_name + '_flags'), flags)
 
-    print('Proc time: ' + str((time.time()) - st))
+    # ----------- Get NOx recovery peaks ---------------------------------------------------------------------------
+    if w_d.analyte == 'nitrate':
+        w_d.recovery_indexes = find_cup_indexes(recovery_cup_type, slk_data.cup_types)
+        w_d.recovery_ids = [slk_data.sample_ids[ind] for ind in w_d.recovery_indexes]
+        w_d.recovery_medians = [w_d.corr_window_medians[ind] for ind in w_d.recovery_indexes]
+        w_d.recovery_concentrations = [w_d.calculated_concentrations[ind] for ind in w_d.recovery_indexes]
+        w_d.recovery_flags = [w_d.quality_flag[ind] for ind in w_d.recovery_indexes]
 
+
+    print('Proc time: ' + str((time.time()) - st))
 
     return w_d
 
@@ -373,16 +382,6 @@ def carryover_correction(high_index, low_indexes, window_medians):
                           enumerate(window_medians)]
     # new_window_medians = [x - ((x-1) * carryover_coefficient) for x in window_medians]
     return new_window_medians, carryover_coefficient
-
-
-def find_drift_indexes(drift_cup_name, analysis_cups):
-    # TODO: Can I delete this ?
-    a_c = nparray(analysis_cups)
-
-    drift_indexes = npwhere(a_c == drift_cup_name)
-
-    clean_indexes = [x for x in drift_indexes[0]]
-    return clean_indexes
 
 
 def drift_correction(drift_indexes, drift_medians, correction_type, window_medians):

@@ -62,6 +62,12 @@ class WorkingData:
         self.calibrant_flags = []
         self.calibration_coefficients = []
 
+        self.recovery_ids = []
+        self.recovery_indexes = []
+        self.recovery_medians = []
+        self.recovery_concentrations = []
+        self.recovery_flags = []
+
         self.qc_present = []
 
 class SLKData:

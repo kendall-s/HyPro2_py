@@ -38,8 +38,6 @@ class refreshFunction():
                 else:
                     filesindirec = os.listdir(self.currpath + '/' + folder)
 
-                # print(filesindirec)
-
                 # Load up database where files already processed are stored
                 conn = sqlite3.connect(self.db)
                 c = conn.cursor()
@@ -65,7 +63,7 @@ class refreshFunction():
                 # Not sure why I used o as the file name
                 for file in filesindirec:
                     sleep(0.2)
-                    if file != 'Hidden' or file != 'hidden':
+                    if (file != 'Hidden' or file != 'hidden') & (not procfile):
                         if file not in filenames:
                             # Most likely first time processing this file
                             if folder == 'CTD' and self.params['analysisparams']['seasave']['activated'] == True:
