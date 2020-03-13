@@ -414,7 +414,7 @@ class Mainmenu(QMainWindow):
 
         button5 = QPushButton('Add Processor')
         button5.setProperty('sidebar', True)
-        button5.clicked.connect(self.addprocessor)
+        button5.clicked.connect(self.add_processor)
 
         button6 = QPushButton('View Data')
         button6.setProperty('sidebar', True)
@@ -475,7 +475,7 @@ class Mainmenu(QMainWindow):
         self.projectpath.setFont(deffont)
         self.projectpath.setProperty('stealth', True)
         self.projectpath.setMaximumWidth(400)
-        self.projectpath.clicked.connect(self.openexplorer)
+        self.projectpath.clicked.connect(self.open_explorer)
 
         # self.projecttype = QLabel(
         #    '<b>Project Type:</b> ' + hyprosettings['projects'][hyprosettings['activeproject']]['type'], self)
@@ -534,23 +534,65 @@ class Mainmenu(QMainWindow):
         analyses_activated_label = QLabel('<b>Analyses</b>')
         analyses_activated_label.setProperty('dashboardtext', True)
 
+        activated_label = QLabel('<b>Activated?</b>')
+        activated_label.setProperty('dashboardtext', True)
+
+        number_files_processed_label = QLabel('<b>Files processed:</b>')
+        number_files_processed_label.setProperty('dashboardtext', True)
+
+        number_samples_processed_label = QLabel('<b>Samples processed:</b>')
+        number_samples_processed_label.setProperty('dashboardtext', True)
+
         nutrients_activated_label = QLabel('Seal Nutrients')
         nutrients_activated_label.setProperty('dashboardtext', True)
+        self.nutrients_activated_state = QLabel('No')
+        self.nutrients_activated_state.setProperty('dashboardtext', True)
+        self.nutrients_files_processed = QLabel('0')
+        self.nutrients_files_processed.setProperty('dashboardtext', True)
+        self.nutrients_samples_processed = QLabel('0')
+        self.nutrients_samples_processed.setProperty('dashboardtext', True)
 
         salinity_activated_label = QLabel('Guildline Salinity')
         salinity_activated_label.setProperty('dashboardtext', True)
+        self.salinity_activated_state = QLabel('No')
+        self.salinity_activated_state.setProperty('dashboardtext', True)
+        self.salinity_files_processed = QLabel('0')
+        self.salinity_files_processed.setProperty('dashboardtext', True)
+        self.salinity_samples_processed = QLabel('0')
+        self.salinity_samples_processed.setProperty('dashboardtext', True)
 
         oxygen_activated_label = QLabel('Scripps Oxygen')
         oxygen_activated_label.setProperty('dashboardtext', True)
-        # TODO: finish file overview info
+        self.oxygen_activated_state = QLabel('No')
+        self.oxygen_activated_state.setProperty('dashboardtext', True)
+        self.oxygen_files_processed = QLabel('0')
+        self.oxygen_files_processed.setProperty('dashboardtext', True)
+        self.oxygen_samples_processed = QLabel('0')
+        self.oxygen_samples_processed.setProperty('dashboardtext', True)
+
         sub_grid_layout = QGridLayout()
         
         gridlayout.addWidget(analysisframe, 7, 1, 10, 3)
 
         sub_grid_layout.addWidget(analyses_activated_label, 0, 1)
+        sub_grid_layout.addWidget(activated_label, 0, 2)
+        sub_grid_layout.addWidget(number_files_processed_label, 0, 3)
+        sub_grid_layout.addWidget(number_samples_processed_label, 0, 4)
+
         sub_grid_layout.addWidget(nutrients_activated_label, 1, 1)
+        sub_grid_layout.addWidget(self.nutrients_activated_state, 1, 2)
+        sub_grid_layout.addWidget(self.nutrients_files_processed, 1, 3)
+        sub_grid_layout.addWidget(self.nutrients_samples_processed, 1, 4)
+        
         sub_grid_layout.addWidget(salinity_activated_label, 2, 1)
+        sub_grid_layout.addWidget(self.salinity_activated_state, 2, 2)
+        sub_grid_layout.addWidget(self.salinity_files_processed, 2, 3)
+        sub_grid_layout.addWidget(self.salinity_samples_processed, 2, 4)
+        
         sub_grid_layout.addWidget(oxygen_activated_label, 3, 1)
+        sub_grid_layout.addWidget(self.oxygen_activated_state, 3, 2)
+        sub_grid_layout.addWidget(self.oxygen_files_processed, 3, 3)
+        sub_grid_layout.addWidget(self.oxygen_samples_processed, 3, 4)
         
         gridlayout.addLayout(sub_grid_layout, 7, 1, 10, 3)
 
@@ -611,6 +653,49 @@ class Mainmenu(QMainWindow):
                                                        (hyprosettings['projects'][hyprosettings['activeproject']][
                                                             'path'] + '/' +
                                                         hyprosettings['activeproject'] + 'Data.db')))))))
+
+                with open(hyprosettings['projects'][hyprosettings['activeproject']]['path'] + '/' + hyprosettings['activeproject'] + 'Params.json', 'r') as file:
+                    params = json.loads(file.read())
+
+                if params['analysisparams']['seal']['activated']:
+                    self.nutrients_activated_state.setText('Yes')
+                if params['analysisparams']['guildline']['activated']:
+                    self.salinity_activated_state.setText('Yes')
+                if params['analysisparams']['scripps']['activated']:
+                    self.oxygen_activated_state.setText('Yes')
+
+                db_path = hyprosettings['projects'][hyprosettings['activeproject']]['path'] + '/' + hyprosettings['activeproject'] + 'Data.db'
+                conn = sqlite3.connect(db_path)
+                c = conn.cursor()
+
+                c.execute('''SELECT COUNT(*) FROM oxygenData''')
+                oxy_count = c.fetchone()
+                self.oxygen_samples_processed.setText(str(oxy_count[0]))
+                c.execute('''SELECT COUNT(*) FROM oxygenFilesProcessed''')
+                oxy_count = c.fetchone()
+                self.oxygen_files_processed.setText(str(oxy_count[0]))
+
+                c.execute('''SELECT COUNT(*) FROM salinityData''')
+                sal_count = c.fetchone()
+                self.salinity_samples_processed.setText(str(sal_count[0]))
+                c.execute('''SELECT COUNT(*) FROM salinityFilesProcessed''')
+                sal_count = c.fetchone()
+                self.salinity_files_processed.setText(str(sal_count[0]))
+
+                c.execute('''SELECT COUNT(*) FROM nutrientFilesProcessed''')
+                nut_count = c.fetchone()
+                self.nutrients_files_processed.setText(str(nut_count[0]))
+
+                nuts = ['nitrate', 'phosphate', 'silicate', 'nitrite', 'ammonia']
+                counts = []
+                for nut in nuts:
+                    c.execute(f'''SELECT COUNT(*) from {nut}Data''')
+                    nut_count = c.fetchone()
+                    counts.append(nut_count[0])
+                self.nutrients_samples_processed.setText(str(max(counts)))
+
+                c.close()
+
             except Exception:
                 self.projectmodified.setText('Not yet accessed...')
         except Exception:
@@ -665,7 +750,7 @@ class Mainmenu(QMainWindow):
         self.update()
 
     # Opens a dialog to add a new processor
-    def addprocessor(self):
+    def add_processor(self):
         try:
             inp = QInputDialog(self)
             inp.setFont(QFont('Segoe UI'))
@@ -734,7 +819,7 @@ class Mainmenu(QMainWindow):
             print(e)
 
     # Opens windows explorer to look a the project path
-    def openexplorer(self):
+    def open_explorer(self):
         path = self.projectpath.text()
         if os.path.isdir(path):
             os.startfile(path)
