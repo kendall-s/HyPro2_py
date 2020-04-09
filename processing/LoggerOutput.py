@@ -12,7 +12,7 @@ class QTextEditLogger(logging.Handler):
     def __init__(self, parent, log_path):
         super().__init__()
 
-        self.widget = QtWidgets.QPlainTextEdit(parent)
+        self.widget = QtWidgets.QPlainTextEdit()
         self.widget.setProperty('output', True)
         self.widget.setReadOnly(True)
         self.widget.setFont(QFont('Segoe UI'))

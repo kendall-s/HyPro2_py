@@ -140,6 +140,7 @@ class OxygenData:
 class SalinityData:
     def __init__(self):
 
+        self.file = ''
         self.run = ''
 
         self.sample_id = []

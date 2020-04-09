@@ -909,7 +909,7 @@ def generate_rvi_timestamps(epoch_date, length):
 def match_lat_lons_routine(path, project, database, current_nut, parameters, working_data, slk_data):
     """
     This is the routine that handles the processing workflow of matching up underway data to the RV Investigator
-    merged underway instrument file. Completes te time matching, finding Latitude/Longitudes and then packages the
+    merged underway instrument file. Completes the time matching, finding Latitude/Longitudes and then packages the
     data to be stored in the database.
     :param path:
     :param project:
@@ -954,14 +954,17 @@ def match_lat_lons_routine(path, project, database, current_nut, parameters, wor
 
 
 def extract_underway_samples(sample_ids, cup_types, quality_flags, time_stamps, concentrations, sample_id_name, cup_name):
+
     """
     Finds the underway samples and pulls out the time stamps and the relevant concentrations from the run data
+    :param sample_ids:
     :param cup_types:
     :param quality_flags:
     :param time_stamps:
     :param concentrations:
-    :param sample_name:
-    :return: sample_times, sample_concentrations
+    :param sample_id_name:
+    :param cup_name:
+    :return:
     """
     sample_times = []
     sample_concs = []

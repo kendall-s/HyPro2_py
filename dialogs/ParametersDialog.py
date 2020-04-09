@@ -121,6 +121,8 @@ class parametersDialog(hyproDialogTemplate):
             self.bqc = QLineEdit(self)
             intqclabel = QLabel('Internal QC:', self)
             self.intqc = QLineEdit(self)
+            uwylabel = QLabel('Underway Sample:', self)
+            self.uwy = QLineEdit(self)
 
             self.generaltab.layout.addWidget(slkcolumnlabel, 0, 0, 1, 2, QtCore.Qt.AlignCenter)
             self.generaltab.layout.addWidget(sampleidlabel, 1, 0)
@@ -169,6 +171,8 @@ class parametersDialog(hyproDialogTemplate):
             self.generaltab.layout.addWidget(self.bqc, 22, 1)
             self.generaltab.layout.addWidget(intqclabel, 23, 0)
             self.generaltab.layout.addWidget(self.intqc, 23, 1)
+            self.generaltab.layout.addWidget(uwylabel, 24, 0)
+            self.generaltab.layout.addWidget(self.uwy, 24, 1)
 
             self.generaltab.setLayout(self.generaltab.layout)
 
@@ -406,6 +410,7 @@ class parametersDialog(hyproDialogTemplate):
         self.mdl.setText(params['nutrientprocessing']['qcsamplenames']['mdl'])
         self.bqc.setText(params['nutrientprocessing']['qcsamplenames']['bqc'])
         self.intqc.setText(params['nutrientprocessing']['qcsamplenames']['internalqc'])
+        self.uwy.setText(params['nutrientprocessing']['qcsamplenames']['underway'])
 
         self.nitratename.setText(params['nutrientprocessing']['elementNames']['nitrateName'])
         self.nitratewindowsize.setText(str(params['nutrientprocessing']['processingpars']['nitrate']['windowSize']))
@@ -481,6 +486,7 @@ class parametersDialog(hyproDialogTemplate):
             params['nutrientprocessing']['qcsamplenames']['mdl'] = self.mdl.text()
             params['nutrientprocessing']['qcsamplenames']['bqc'] = self.bqc.text()
             params['nutrientprocessing']['qcsamplenames']['internalqc'] = self.intqc.text()
+            params['nutrientprocessing']['qcsamplenames']['underway'] = self.uwy.text()
 
             params['nutrientprocessing']['elementNames']['nitrateName'] = self.nitratename.text()
             params['nutrientprocessing']['processingpars']['nitrate']['windowSize'] = self.nitratewindowsize.text()

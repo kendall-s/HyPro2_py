@@ -1,13 +1,16 @@
 import matplotlib as mpl
 
+# Color cycle is a very slightly modified Seaborn Muted palette (removed the grey color)
 mplstyle = {'normal': {'axes.edgecolor': '#000000', 'xtick.color': '#000000', 'ytick.color': '#000000',
                        'axes.facecolor': '#FDFDFF', 'axes.labelcolor': '#000000', 'figure.facecolor': '#FDFDFF',
-                       'grid.color': '#000000', 'figure.frameon': False,
-                       'axes.prop_cycle': mpl.cycler(color=['#191919'])},
+                       'grid.color': '#000000', 'figure.frameon': False, 'legend.facecolor': '#fdfdfd',
+                       'text.color': '#050505',
+                       'axes.prop_cycle': mpl.cycler(color=['#191919', '#4878d0', '#ee864a', '#6acc64', '#d65f5f',
+                                                            '#956cb4', '#8c613c', '#dc7ec0', '#d5bb67', '#82c6e2'])},
             'dark': {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
                      'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
                      'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
-                     'text.color': '#F5F5F5', 'axes.prop_cycle': mpl.cycler(color=['#F5F5F5']),
+                     'text.color': '#F5F5F5', 'axes.prop_cycle': mpl.cycler(color=['#F5F5F5', '#4878d0', '#ee864a']),
                      'legend.facecolor': '#191919'}}
 
 stylesheet = {'normal': """
@@ -265,20 +268,27 @@ QMenuBar {
     font: 13px Segoe UI;
 }
 
+/* --------------------------------------- QToolTip ---------
 
+---------------------------------------------------------- */
 
-"""
+QToolTip {
+    font: 15px Segoe UI;
+}
+""",
 
-              # ********************************************************************************************************************
+'''
+****************************************************************************************************
 
-              #   Dark theme
+  Dark theme
 
-              # Note font color in dark theme is to be F5F5F5, white can be too harsh of a contrast and actually make dark mode
-              # not that nice to use. The very slight off white color is more pleasing on the eyes. Doesn't 'dazzle' as bad
+  Note font color in dark theme is to be F5F5F5, white can be too harsh of a contrast and actually makes dark mode
+  not that nice to use. The very slight off white color is more pleasing on the eyes. Doesn't 'dazzle' as bad
 
-              # ********************************************************************************************************************
-
-    , 'dark': """
+*****************************************************************************************************
+'''
+              
+'dark': """
 /* --------------------------------- QTitleBar -----------
 
 ---------------------------------------------------------- */
@@ -567,14 +577,14 @@ QFrame[frameShape="4"][frameShadow="48"] {
 }
 
 QFrame[dashboardFrame=true] {
-    background-color: #191919;
+    background-color: #202020;
 }
 QFrame[sideBarFrame=true]{
-    background-color: #191919;
+    background-color: #202020;
     border-radius: 1px;
 }
 QFrame[topBarFrame=true]{
-    background-color: #191919;
+    background-color: #202020;
 }
 QFrame[sideHeaderFrame=true]{
     background-color: #1C1C1C;
@@ -605,6 +615,19 @@ QMenuBar:item:selected {
 }
 QMenuBar:item:pressed {
     background-color: #333333;
+}
+
+
+/* --------------------------------------- QToolTip ---------
+
+---------------------------------------------------------- */
+
+QToolTip {
+    color: #F5F5F5;
+    font: 15px Segoe UI;
+    background-color: black;
+    border: 1px solid black;
+    border-radius 2px;   
 }
 
 """

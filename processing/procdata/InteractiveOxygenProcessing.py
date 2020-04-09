@@ -9,7 +9,7 @@ import processing.RefreshFunction
 import processing.procdata.ProcessScrippsOxygen as pso
 import processing.readdata.ReadScrippsOxygen as rso
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-from processing.plotting.QCPlots import oxygenErrorPlot
+from processing.plotting.QCPlots import oxygenDifferencesPlot
 
 
 class processingOxygenWindow():
@@ -36,8 +36,10 @@ class processingOxygenWindow():
                 pso.populate_oxygen_survey(self.oxygen_data.station, self.oxygen_data.cast,
                                            self.oxygen_data.rosette, self.oxygen_data.bottle_id,
                                            self.database, params)
-
-                self.call_plot(self.oxygen_data)
+                if interactive:
+                    self.call_plot(self.oxygen_data)
+                else:
+                    self.proceed_processing()
 
         except Exception:
             traceback.print_exc()
@@ -53,11 +55,13 @@ class processingOxygenWindow():
 
         query = 'SELECT * FROM ctdData WHERE deployment IN (%s)' % built_query
         c.execute(query, deployments)
-
         ctd_data = list(c.fetchall())
         conn.close()
 
-        if not ctd_data:
+        deps_comparison = [x for x in deployments if x < 900]
+
+        # If there is not the correct CTD burst data in HyPro raise this warning - plot will not be created.
+        if not ctd_data or sum(deps_comparison) != sum(set([x[0] for x in ctd_data])):
             logging.info(f'<b>The oxygen file {self.file} contains CTD samples - however there is no CTD sensor data in HyPro. The file'
                          ' is processed but no error plot appears because of this error. Once CTD data is imported, '
                          'reprocess this file to see the error plot. </b>')
@@ -67,9 +71,9 @@ class processingOxygenWindow():
                                                   'information',
                                                   long_text=f'The oxygen file {self.file} contains CTD samples, '
                                                             f'however there is no matching CTD sensor data in HyPro. '
-                                                            f'The file is processed but no error plot appears because '
-                                                            f'of this error. Once CTD data is imported, reprocess '
-                                                            f'this file to see the error plot.')
+                                                            f'The file is processed but no plot appears because of this '
+                                                            f'error. Once CTD deployment {deps_comparison} data is '
+                                                            f'imported, reprocess this file to see the error plot.')
             time.sleep(0.2)
             self.proceed_processing()
 
@@ -78,30 +82,58 @@ class processingOxygenWindow():
             oxygen_sensor_2 = [x[6] for x in ctd_data]
             ctd_deployment = [x[0] for x in ctd_data]
             ctd_rosette_positions = [x[11] for x in ctd_data]
+            ctd_depths = [x[7] for x in ctd_data]
 
-            ctd_data_to_plot = {'primary_difference': [], 'secondary_difference': [], 'dep_rosette_postion': [],
-                                'rosette_position_to_plot': []}
+            ctd_data_to_plot = {'primary_oxygen': [], 'secondary_oxygen': [], 'dep_rosette_postion': [],
+                                'rosette_position_to_plot': [], 'deployment': [], 'depths': [], 'bottle_oxy': []}
 
+            # Need to keep a reference to the original indexes so that flags can be pulled back and updated
+            reference_indexes = []
+
+            # Got to match the bottle data up to the CTD burst data, keep a reference index back to the original file
+            # data so that flags can be replaced back into the data after processing.
             for i, x in enumerate(oxygen_data.station):
                 for l, m in enumerate(ctd_deployment):
                     if x == m:
                         if oxygen_data.rosette[i] == ctd_rosette_positions[l]:
+                            reference_indexes.append(i)
+                            ctd_data_to_plot['bottle_oxy'].append(oxygen_data.oxygen_mols[i])
+                            ctd_data_to_plot['deployment'].append(x)
                             ctd_data_to_plot['rosette_position_to_plot'].append(oxygen_data.rosette[i])
-                            ctd_data_to_plot['primary_difference'].append(oxygen_sensor_1[l] - oxygen_data.oxygen_mols[i])
-                            ctd_data_to_plot['secondary_difference'].append(oxygen_sensor_2[l] - oxygen_data.oxygen_mols[i])
-                            ctd_data_to_plot['dep_rosette_postion'].append(x + (oxygen_data.rosette[i] / 24))
+                            ctd_data_to_plot['depths'].append(ctd_depths[l])
+                            ctd_data_to_plot['primary_oxygen'].append(oxygen_sensor_1[l])
+                            ctd_data_to_plot['secondary_oxygen'].append(oxygen_sensor_2[l])
+
+            if max(ctd_data_to_plot['rosette_position_to_plot']) > 24:
+                max_rp = 36
+            else:
+                max_rp = 24
+
+            # Create the X data for the plot - x data is calculated as RP times Deployment, meaning x data will
+            # go up continually from 1. i.e. deployment 2 RP 5 will equal x data of 41
+            ctd_data_to_plot['dep_rosette_postion'] = [(((x-1) * max_rp) + ctd_data_to_plot['rosette_position_to_plot'][i])
+                                                       for i, x in enumerate(ctd_data_to_plot['deployment'])]
+
             time.sleep(0.2)
-            self.oxygen_error_plot = oxygenErrorPlot(ctd_data_to_plot['dep_rosette_postion'],
-                                                     ctd_data_to_plot['primary_difference'],
-                                                     ctd_data_to_plot['secondary_difference'],
-                                                     max(ctd_data_to_plot['rosette_position_to_plot']),
-                                                     self.interactive)
+            self.oxygen_error_plot = oxygenDifferencesPlot(ctd_data_to_plot['deployment'],
+                                                           ctd_data_to_plot['dep_rosette_postion'],
+                                                           ctd_data_to_plot['bottle_oxy'],
+                                                           ctd_data_to_plot['primary_oxygen'],
+                                                           ctd_data_to_plot['secondary_oxygen'],
+                                                           ctd_data_to_plot['depths'],
+                                                           max_rp,
+                                                           reference_indexes,
+                                                           oxygen_data)
 
             self.oxygen_error_plot.proceed.clicked.connect(self.proceed_processing)
 
     def proceed_processing(self):
-
         last_modified_time = float(os.path.getmtime(self.file_path))
+
+        # Pull through the edited flags from the interactive plot
+        if self.interactive:
+            edited_flags = self.oxygen_error_plot.working_quality_flags
+            self.oxygen_data.quality_flag = edited_flags
 
         pso.store_data(self.database, self.oxygen_data, self.file, last_modified_time)
 

@@ -17,6 +17,8 @@ def parse_lst(lst_path, current_path, current_project, file_name):
 
         oxygen_data = OxygenData()
 
+        oxygen_data.file = file_name
+
         prefixlength = len(params['analysisparams']['scripps']['filePrefix'])
         runformatlength = len(params['analysisparams']['scripps']['runFormat'])
         oxygen_data.run = file_name[prefixlength: (prefixlength + runformatlength)]

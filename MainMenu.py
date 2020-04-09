@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QPushButton, QL
                              QInputDialog, QComboBox, QAction, QDesktopWidget, QFrame)
 from time import sleep
 import time
+import logging
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -265,7 +266,7 @@ class Mainmenu(QMainWindow):
         gridlayout.setSpacing(6)
         gridlayout.setContentsMargins(0, 0, 5, 0)
 
-        self.setGeometry(400, 400, 820, 440)
+        self.setGeometry(400, 400, 900, 440)
         qtRectangle = self.frameGeometry()
         screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
         centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
@@ -278,7 +279,6 @@ class Mainmenu(QMainWindow):
 
         # Initialise menu buttons and options
         mainMenu = self.menuBar()
-        #mainMenu.setFont(QFont('Segoe UI'))
         fileMenu = mainMenu.addMenu('File')
         editMenu = mainMenu.addMenu('Edit')
         viewMenu = mainMenu.addMenu('View')
@@ -344,7 +344,7 @@ class Mainmenu(QMainWindow):
         # Labels
         headerframe = QFrame()
         headerframe.setProperty('headerframe', True)
-        headerlabel = QLabel('   HyPro②')
+        headerlabel = QLabel('    HyPro②')
         headerlabel.setProperty('headertext', True)
 
         currprojectframe = QFrame(self)
@@ -426,7 +426,7 @@ class Mainmenu(QMainWindow):
 
         # Set up grid layout
         gridlayout.addWidget(headerframe, 0, 0, 3, 1)
-        gridlayout.addWidget(headerlogo, 0, 0, 2, 1, QtCore.Qt.AlignLeading)
+        gridlayout.addWidget(headerlogo, 0, 0, 2, 1, QtCore.Qt.AlignLeft)
         gridlayout.addWidget(headerlabel, 0, 0, 2, 1, QtCore.Qt.AlignCenter)
 
         gridlayout.addWidget(currprojectframe, 0, 1, 2, 3)
@@ -531,10 +531,10 @@ class Mainmenu(QMainWindow):
         analysisframeshadow.setXOffset(3)
         analysisframe.setGraphicsEffect(analysisframeshadow)
 
-        analyses_activated_label = QLabel('<b>Analyses</b>')
+        analyses_activated_label = QLabel('<b>Analysis</b>')
         analyses_activated_label.setProperty('dashboardtext', True)
 
-        activated_label = QLabel('<b>Activated?</b>')
+        activated_label = QLabel('<b>Active</b>')
         activated_label.setProperty('dashboardtext', True)
 
         number_files_processed_label = QLabel('<b>Files processed:</b>')
@@ -716,6 +716,8 @@ class Mainmenu(QMainWindow):
     def setprojectnamefromopen(self, method):
         if method == 'new':
             self.currprojectdisp.setText(self.create_new_project_window.project_prefix_str)
+            self.currproject = self.create_new_project_window.project_prefix_str
+
         elif method == 'load':
             self.currprojectdisp.setText(self.open_existing_project.selectedproject)
         try:
@@ -799,6 +801,8 @@ class Mainmenu(QMainWindow):
 
                 self.proccing.backToMain.connect(self.show)
                 #self.proccing.backToMain.connect(self.proccing.output_box.close)
+                self.proccing.backToMain.connect(lambda: self.proccing.output_box.widget.close())
+                self.proccing.backToMain.connect(lambda: logging.shutdown())
                 self.proccing.backToMain.connect(self.proccing.hide)
 
         except Exception as e:
@@ -822,6 +826,7 @@ class Mainmenu(QMainWindow):
     def open_explorer(self):
         path = self.projectpath.text()
         if os.path.isdir(path):
+            time.sleep(0.2)
             os.startfile(path)
 
     # Message box including about info

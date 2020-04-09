@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QMessageBox,
                              QCheckBox, QListWidget)
+from PyQt5 import QtCore
 import os, sqlite3, logging, traceback
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
@@ -17,7 +18,7 @@ class deleteDialog(hyproDialogTemplate):
 
         self.init_ui()
 
-        self.populatefileslist()
+        self.populate_files_list()
 
         self.show()
 
@@ -28,18 +29,18 @@ class deleteDialog(hyproDialogTemplate):
 
         self.analysis_type = QComboBox()
         self.analysis_type.addItems(analysis_types_list)
-        self.analysis_type.activated.connect(self.populatefileslist)
+        self.analysis_type.activated.connect(self.populate_files_list)
         self.analysis_type.setEditable(True)
         self.analysis_type.setEditable(False)
 
-        data_files_label = QLabel('Select data to delete: ', self)
+        data_files_label = QLabel('Select data to delete from HyPro: ', self)
 
         self.data_files = QListWidget()
 
         self.delete_files_checkbox = QCheckBox('Delete data files as well?', self)
 
         ok_but = QPushButton('Delete Data', self)
-        ok_but.clicked.connect(self.deletedata)
+        ok_but.clicked.connect(self.delete_data)
 
         cancel_but = QPushButton('Cancel', self)
         cancel_but.clicked.connect(self.cancel)
@@ -50,12 +51,12 @@ class deleteDialog(hyproDialogTemplate):
         self.grid_layout.addWidget(data_files_label, 2, 0, 1, 2)
         self.grid_layout.addWidget(self.data_files, 3, 0, 1, 2)
 
-        self.grid_layout.addWidget(self.delete_files_checkbox, 4, 0, 1, 2)
+        self.grid_layout.addWidget(self.delete_files_checkbox, 4, 0, 1, 2, QtCore.Qt.AlignCenter)
 
         self.grid_layout.addWidget(ok_but, 5, 0)
         self.grid_layout.addWidget(cancel_but, 5, 1)
 
-    def populatefileslist(self):
+    def populate_files_list(self):
         # Fill the list with the files that have already been processed
         filetype = self.analysis_type.currentText()
 
@@ -82,7 +83,7 @@ class deleteDialog(hyproDialogTemplate):
 
         self.data_files.addItems(filenames)
 
-    def deletedata(self):
+    def delete_data(self):
         try:
             filetype = self.analysis_type.currentText()
 

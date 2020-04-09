@@ -298,7 +298,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def draw_data(self, chd_data, w_d, current_nutrient, trace_redraw):
         """
-        Draws the relevant data to the figures that are already intialised in init_ui. Removes lines on each call of
+        Draws the relevant data to the figures that are already initialised in init_ui. Removes lines on each call of
         this function so that memory and performance are preserved.
         :param chd_data:
         :param w_d:
@@ -329,7 +329,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         for i, x in enumerate(w_d.time_values):
             self.main_trace.plot(x, w_d.window_values[i], color=self.FLAG_COLORS[w_d.quality_flag[i]], linewidth=2.5, label='top')
-        #self.main_trace.plot(w_d.time_values, w_d.window_values, linewidth=0.25, color='#68C968', marker='o')
+        # self.main_trace.plot(w_d.time_values, w_d.window_values, linewidth=0.25, color='#68C968', marker='o')
 
         self.main_trace.plot(w_d.baseline_peak_starts[:], w_d.baseline_medians[1:-1], linewidth=1, color="#d69f20", label='baseline')
         self.main_trace.plot(w_d.drift_peak_starts[:], w_d.raw_drift_medians[:], linewidth=1, color="#c6c600", label='drift')
@@ -397,6 +397,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                    self.w_d.calculated_concentrations[peak_index],
                                                    self.w_d.quality_flag[peak_index],
                                                    self.w_d.dilution_factor[peak_index], 'Trace')
+
                 self.peak_display.setStart.connect(lambda: self.move_peak_start(x_axis_time, peak_index))
                 self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_axis_time, peak_index))
                 self.peak_display.saveSig.connect(lambda: self.update_from_dialog(peak_index))
@@ -772,6 +773,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 #     qcp.intqc_plot(self.IntQC_fig, self.IntQC_plot, self.w_d.)
                     # pass
 
+    def closeEvent(self, event):
+        plt.close('all')
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

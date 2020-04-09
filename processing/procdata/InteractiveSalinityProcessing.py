@@ -1,9 +1,17 @@
-import os, logging, traceback, json, sqlite3, time
-from processing.plotting.QCPlots import saltErrorPlot
+import json
+import logging
+import os
+import sqlite3
+import time
+import traceback
+
 import processing.RefreshFunction
 import processing.procdata.ProcessGuildlineSalinity as pgs
 import processing.readdata.ReadGuildlineSalinity as rgs
-from dialogs.templates.MessageBoxTemplate import  hyproMessageBoxTemplate
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
+from processing.plotting.QCPlots import salinityDifferencesPlot
+
+
 # Loads in the salinity data from the Salinometer software, this is an excel file
 # No processing needs to be done just read in and pack into the project database file
 
@@ -76,22 +84,33 @@ class processingSalinityWindow():
             ctd_rp = [x[11] for x in ctd_data]
             print(ctd_data)
             ctd_data_to_plot = {'primary_difference': [], 'secondary_difference': [], 'dep_rosette_postion': [],
-                                'rosette_positon_to_plot': []}
+                                'rosette_position_to_plot': [], 'deployment': []}
 
             for i, x in enumerate(deployments):
                 for l, m in enumerate(ctd_dep):
                     if x == m:
                         if rosette_positions[i] == ctd_rp[l]:
-                            ctd_data_to_plot['rosette_positon_to_plot'].append(rosette_positions[i])
+                            ctd_data_to_plot['deployment'].append(x)
+                            ctd_data_to_plot['rosette_position_to_plot'].append(rosette_positions[i])
                             ctd_data_to_plot['primary_difference'].append(ctd_salt1[l] - salinity[i])
                             ctd_data_to_plot['secondary_difference'].append(ctd_salt2[l] - salinity[i])
-                            ctd_data_to_plot['dep_rosette_postion'].append(x + (rosette_positions[i] / 24))
+
+            if max(ctd_data_to_plot['rosette_position_to_plot']) > 24:
+                max_rp = 36
+            else:
+                max_rp = 24
+
+            # Create the X data for the plot - x data is calculated as RP times Deployment, meaning x data will
+            # go up continually from 1. i.e. deployment 2 RP 5 will equal x data of 41
+            ctd_data_to_plot['dep_rosette_position'] = [(((x - 1) * max_rp) + ctd_data_to_plot['rosette_position_to_plot'][i])
+                                                        for i, x in enumerate(ctd_data_to_plot['deployment'])]
+
             time.sleep(0.2)
-            self.salinity_error_plot = saltErrorPlot(ctd_data_to_plot['dep_rosette_postion'],
-                                                     ctd_data_to_plot['primary_difference'],
-                                                     ctd_data_to_plot['secondary_difference'],
-                                                     max(ctd_data_to_plot['dep_rosette_postion']),
-                                                     self.interactive)
+            self.salinity_error_plot = salinityDifferencesPlot(ctd_data_to_plot['dep_rosette_position'],
+                                                               ctd_data_to_plot['primary_difference'],
+                                                               ctd_data_to_plot['secondary_difference'],
+                                                               max_rp,
+                                                               self.interactive)
 
             self.salinity_error_plot.proceed.clicked.connect(self.proceed_processing)
 

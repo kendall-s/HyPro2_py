@@ -299,6 +299,7 @@ class surveyDialog(hyproDialogTemplate):
                 self.dep_rp_format_nutrient.setPlaceholderText('e.g. DDDBB')
 
                 self.sample_id_nutrient = QCheckBox('Just use sample ID', self)
+                self.sample_id_nutrient.setToolTip('Please be aware this will supersede any other sample id matching.')
 
                 sample_id_nutrient_label = QLabel('<i>Use sample ID value instead of dep/rp label decoding'
                                                   'system, beware this overrides all other decoding of IDs')

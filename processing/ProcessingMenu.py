@@ -161,6 +161,14 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         redfield_plots.triggered.connect(self.redfield)
         nutrient_qc_menu.addAction(redfield_plots)
 
+        duplicate_plots = QAction('Duplicates', self)
+        duplicate_plots.triggered.connect(self.duplicate)
+        nutrient_qc_menu.addAction(duplicate_plots)
+
+        nutrient_trace = QAction('Analysis Trace', self)
+        nutrient_trace.triggered.connect(self.analysis_trace)
+        nutrient_qc_menu.addAction(nutrient_trace)
+
         salinity_error_plot = QAction('Salinity - CTD Error', self)
         salinity_error_plot.triggered.connect(self.salinityerror)
         salinity_qc_menu.addAction(salinity_error_plot)
@@ -224,7 +232,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         output_frame_shadow.setXOffset(3)
         #outputboxframe.setGraphicsEffect(outputboxframeshadow)
 
-        output_label = QLabel(' Output: ')
+        output_label = QLabel('  Processing Output: ')
         output_label.setProperty('dashboardText', True)
 
         logged_path = self.currpath + '/' +self.currproject + '.txt'
@@ -255,6 +263,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         refresh_button.setProperty('sideBarButton', True)
         # refresh_button.setIcon(QIcon('roundrefresh'))
 
+        open_directory_button = QPushButton('Open Directory')
+        open_directory_button.setProperty('sideBarButton', True)
+
         options_label = QLabel('<b>Options</b>')
         options_label.setProperty('sideBarText', True)
 
@@ -273,23 +284,25 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.grid_layout.addWidget(process_data_label, 5, 0, Qt.AlignCenter)
         self.grid_layout.addWidget(refresh_button, 6, 0)
         self.grid_layout.addWidget(reread_button, 7, 0)
+        self.grid_layout.addWidget(open_directory_button, 8, 0)
 
-        self.grid_layout.addWidget(options_label, 9, 0, Qt.AlignCenter)
-        self.grid_layout.addWidget(view_data_button, 10, 0)
-        self.grid_layout.addWidget(delete_data_button, 11, 0)
+        self.grid_layout.addWidget(options_label, 10, 0, Qt.AlignCenter)
+        self.grid_layout.addWidget(view_data_button, 11, 0)
+        self.grid_layout.addWidget(delete_data_button, 12, 0)
 
         self.grid_layout.addWidget(self.interactive_processing, 17, 0, Qt.AlignHCenter)
 
         self.grid_layout.addWidget(top_h_frame, 0, 1, 3, 3)
 
         self.grid_layout.addWidget(output_frame, 3, 1, 15, 3)
-        self.grid_layout.addWidget(output_label, 3, 1, 1, 2)
-        self.grid_layout.addWidget(self.output_box.widget, 4, 1, 14, 3)
+        self.grid_layout.addWidget(output_label, 0, 1, 3, 2, Qt.AlignVCenter)
+        self.grid_layout.addWidget(self.output_box.widget, 3, 1, 15, 3)
 
         reread_button.clicked.connect(self.reread)
         view_data_button.clicked.connect(self.view_data_window)
         refresh_button.clicked.connect(self.refresh)
         delete_data_button.clicked.connect(self.delete_files_window)
+        open_directory_button.clicked.connect(self.open_directory)
 
     def user_prompter(self):
         with open(self.params_path, 'r') as file:
@@ -323,7 +336,12 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
     def refresh(self):
         self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState())
 
+    def open_directory(self):
+        if os.path.isdir(self.currpath):
+            os.startfile(self.currpath)
+
     def backtomenufunction(self):
+        logging.getLogger().removeHandler(self.output_box)
         self.backToMain.emit()
 
     def rmnsplots(self):
@@ -337,6 +355,12 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
     def redfield(self):
         self.redfieldWindow = qcp.redfieldPlot(self.db)
+
+    def duplicate(self):
+        pass
+
+    def analysis_trace(self):
+        pass
 
     def salinityerror(self):
         pass
@@ -561,3 +585,4 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         app = QApplication.instance()
         app.closeAllWindows()
         #self.backToMain.emit()
+
