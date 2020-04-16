@@ -35,7 +35,8 @@ class processingSalinityWindow():
 
             if self.salinity_data:
                 self.salinity_data.run = pgs.determine_run(self.file, params)
-                
+                self.salinity_data.file = self.file
+
                 self.salinity_data.deployment, self.salinity_data.rosette_position, self.salinity_data.survey = \
                     pgs.populate_salinity_survey(self.salinity_data.sample_id, self.salinity_data.bottle_id,
                                                  self.database, params)
@@ -80,20 +81,25 @@ class processingSalinityWindow():
         else:
             ctd_salt1 = [x[8] for x in ctd_data]
             ctd_salt2 = [x[9] for x in ctd_data]
-            ctd_dep = [x[0] for x in ctd_data]
+            ctd_deployment = [x[0] for x in ctd_data]
             ctd_rp = [x[11] for x in ctd_data]
-            print(ctd_data)
-            ctd_data_to_plot = {'primary_difference': [], 'secondary_difference': [], 'dep_rosette_postion': [],
-                                'rosette_position_to_plot': [], 'deployment': []}
+            ctd_depths = [x[7] for x in ctd_data]
 
-            for i, x in enumerate(deployments):
-                for l, m in enumerate(ctd_dep):
-                    if x == m:
+            ctd_data_to_plot = {'primary_sal': [], 'secondary_sal': [], 'dep_rosette_postion': [],
+                                'rosette_position_to_plot': [], 'deployment': [], 'depths': [], 'bottle_sal': []}
+
+            reference_indexes = []
+            for i, bottle_dep in enumerate(deployments):
+                for l, ctd_dep in enumerate(ctd_deployment):
+                    if bottle_dep == ctd_dep:
                         if rosette_positions[i] == ctd_rp[l]:
-                            ctd_data_to_plot['deployment'].append(x)
+                            reference_indexes.append(i)
+                            ctd_data_to_plot['bottle_sal'].append(salinity[i])
+                            ctd_data_to_plot['deployment'].append(bottle_dep)
+                            ctd_data_to_plot['depths'].append(ctd_depths[l])
                             ctd_data_to_plot['rosette_position_to_plot'].append(rosette_positions[i])
-                            ctd_data_to_plot['primary_difference'].append(ctd_salt1[l] - salinity[i])
-                            ctd_data_to_plot['secondary_difference'].append(ctd_salt2[l] - salinity[i])
+                            ctd_data_to_plot['primary_sal'].append(ctd_salt1[l])
+                            ctd_data_to_plot['secondary_sal'].append(ctd_salt2[l])
 
             if max(ctd_data_to_plot['rosette_position_to_plot']) > 24:
                 max_rp = 36
@@ -106,16 +112,26 @@ class processingSalinityWindow():
                                                         for i, x in enumerate(ctd_data_to_plot['deployment'])]
 
             time.sleep(0.2)
-            self.salinity_error_plot = salinityDifferencesPlot(ctd_data_to_plot['dep_rosette_position'],
-                                                               ctd_data_to_plot['primary_difference'],
-                                                               ctd_data_to_plot['secondary_difference'],
+            self.salinity_error_plot = salinityDifferencesPlot(ctd_data_to_plot['deployment'],
+                                                               ctd_data_to_plot['dep_rosette_position'],
+                                                               ctd_data_to_plot['bottle_sal'],
+                                                               ctd_data_to_plot['primary_sal'],
+                                                               ctd_data_to_plot['secondary_sal'],
+                                                               ctd_data_to_plot['depths'],
                                                                max_rp,
-                                                               self.interactive)
+                                                               reference_indexes,
+                                                               self.salinity_data)
 
             self.salinity_error_plot.proceed.clicked.connect(self.proceed_processing)
 
     def proceed_processing(self):
         modified_time = float(os.path.getmtime(self.filepath))
+
+        # Pull through the edited flags from the interactive plot
+        if self.interactive:
+            edited_flags = self.salinity_error_plot.working_quality_flags
+            self.salinity_data.quality_flag = edited_flags
+
         pgs.store_data(self.database, self.salinity_data, self.file, modified_time)
 
         logging.info('Salinity file - ' + self.file + ' successfully processed')

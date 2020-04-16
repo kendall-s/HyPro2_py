@@ -28,7 +28,6 @@ mpl.rc('font', family = 'Segoe UI Symbol') # Cast Segoe UI font onto all plot te
 # own window
 
 # TODO: Fix RMNS plot so it still works even if nominal RMNS values are not in the database
-# TODO: Delete the old classes and functions for plots that have been superseded
 
 FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4: '#3CB6C9', 5: '#C92724', 6: '#DC9530',
                     91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
@@ -380,109 +379,6 @@ class mdlPlotWindowTemplate(QMainPlotterTemplate):
 
 
 
-class rmnsPlot(QWidget):
-    def __init__(self, lot, nutrient, xdata, ydata):
-        super().__init__()
-
-        self.lot = lot
-        self.nutrient = nutrient
-        self.xdata = xdata
-        self.ydata = ydata
-
-        self.qvboxlayout = QVBoxLayout()
-
-        self.figure = plt.figure()
-        self.figure.set_tight_layout(tight=True)
-        self.figure.set_facecolor('#f9fcff')
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setParent(self)
-        self.toolbar = NavigationToolbar(self.canvas, self)
-
-        self.qvboxlayout.addWidget(self.canvas)
-        self.qvboxlayout.addWidget(self.toolbar)
-        self.setLayout(self.qvboxlayout)
-
-        self.mainplot = self.figure.add_subplot(111)
-
-        conn = sqlite3.connect('C:/HyPro/Settings/hypro.db')
-        c = conn.cursor()
-        c.execute('SELECT * from rmnsData')
-        rmnsdata = list(c.fetchall())
-
-        lotnames = [x[0] for x in rmnsdata]
-        for i, x in enumerate(lotnames):
-            if x == self.lot:
-                ind = i
-
-        rmns = rmnsdata[ind]
-
-        if self.nutrient == 'silicate':
-            rmnsmean = rmns[3]
-            rmnsuncertainty = rmns[4]
-        if self.nutrient == 'phosphate':
-            rmnsmean = rmns[1]
-            rmnsuncertainty = rmns[2]
-        if self.nutrient == 'nitrate':
-            rmnsmean = rmns[5]
-            rmnsuncertainty = rmns[6]
-        if self.nutrient == 'nitrite':
-            rmnsmean = rmns[7]
-            rmnsuncertainty = rmns[8]
-        if self.nutrient == 'ammonia':
-            rmnsmean = rmns[9]
-            rmnsuncertainty = rmns[10]
-
-        self.xmin = min(self.xdata) - 1
-        self.xmax = max(self.xdata) + 1
-
-        self.mainplot.set_xlim(self.xmin, self.xmax)
-
-        self.mainplot.grid(linewidth=0.5, alpha=0.2)
-
-        self.mainplot.plot((self.xmin, self.xmax), (rmnsmean, rmnsmean), linewidth=1, color='#999da3', linestyle='--')
-
-        if rmnsmean * 0.01 > 0.02:
-            self.ymin = rmnsmean * 0.96
-            self.ymax = rmnsmean * 1.04
-
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean * 0.99, rmnsmean * 0.99), linewidth=1, color='#2baf69')
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean * 1.01, rmnsmean * 1.01), linewidth=1, color='#2baf69')
-
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean * 0.98, rmnsmean * 0.98), linewidth=1, color='#c874db')
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean * 1.02, rmnsmean * 1.02), linewidth=1, color='#c874db')
-
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean * 0.97, rmnsmean * 0.97), linewidth=1, color='#e56969')
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean * 1.03, rmnsmean * 1.03), linewidth=1, color='#e56969')
-        else:
-            self.ymin = rmnsmean - 0.08
-            self.ymax = rmnsmean + 0.08
-
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean - 0.02, rmnsmean - 0.02), linewidth=1, color='#2baf69')
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean + 0.02, rmnsmean + 0.02), linewidth=1, color='#2baf69')
-
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean - 0.04, rmnsmean - 0.04), linewidth=1, color='#c874db')
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean + 0.04, rmnsmean + 0.04), linewidth=1, color='#c874db')
-
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean - 0.06, rmnsmean - 0.06), linewidth=1, color='#e56969')
-            self.mainplot.plot((self.xmin, self.xmax), (rmnsmean + 0.06, rmnsmean + 0.06), linewidth=1, color='#e56969')
-
-        self.mainplot.set_ylim(self.ymin, self.ymax)
-
-        self.mainplot.plot((self.xmin, self.xmax), (rmnsmean + rmnsuncertainty, rmnsmean + rmnsuncertainty),
-                           linewidth=1, color='#6986e5')
-        self.mainplot.plot((self.xmin, self.xmax), (rmnsmean - rmnsuncertainty, rmnsmean - rmnsuncertainty),
-                           linewidth=1, color='#6986e5')
-
-        self.mainplot.set_title('RMNS %s' % str(self.lot))
-        self.mainplot.set_xlabel('Peak Number')
-        self.mainplot.set_ylabel('Concentration')
-
-        self.mainplot.plot(self.xdata, self.ydata, mfc='none', linewidth=0.75, linestyle=':', mec="#12ba66",
-                           marker='o', markersize=14, color="#25543b")
-
-        self.canvas.draw()
-
-
 def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
 
     del axes.lines[:]
@@ -764,413 +660,145 @@ def bqc_plot(fig, axes, indexes, concentrations, flags):
     fig.set_tight_layout(tight=True)
 
 
-class saltErrorPlot(QMainWindow):
-    def __init__(self, xdata, ydata1, ydata2, maxrp, interactive):
-        super().__init__()
+def sensor_difference_plot(fig, axes, x_data, difference, max_rp, sensor='Primary', clear_plot=True):
 
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
+    if (len(axes.lines) > 0) & clear_plot:
+        del axes.lines[:]
 
-        self.setWindowIcon(QIcon(':/assets/icon.svg'))
+    if sensor == 'Primary':
+        col = '#4068ce'
+    else:
+        col = '#71ce40'
 
-        self.xdata = xdata
-        self.ydata1 = ydata1
-        self.ydata2 = ydata2
-        self.maxrp = maxrp
-        self.interactive = interactive
+    axes.plot(x_data, difference, linewidth=0.75, linestyle=':', marker='o', markersize=13, mfc='none',
+              color=col, picker=7)
 
-        self.init_ui()
+    labels = axes.get_xticks().tolist()
+    new_labels = []
+    for x_tick_label in labels:
+        deployment_label = int(x_tick_label / max_rp) + 1
+        new_label = str(deployment_label) + '/' + str(int(x_tick_label - ((deployment_label - 1) * max_rp)))
+        new_labels.append(new_label)
 
-        self.setStyleSheet(style.stylesheet['normal'])
+    axes.set_xticklabels(new_labels)
+    axes.plot([-9999, 9999], [0, 0], linewidth=1.2, linestyle='--', color='#303030')
+    axes.set_xlim(min(x_data) - 3, max(x_data) + 3)
 
-    def init_ui(self):
-        try:
-            self.setFont(QFont('Segoe UI'))
+    fig.set_tight_layout(tight=True)
 
-            self.setGeometry(0, 0, 600, 870)
-            qtRectangle = self.frameGeometry()
-            centerPoint = QDesktopWidget().availableGeometry().center()
-            qtRectangle.moveCenter(centerPoint)
-            self.move(qtRectangle.topLeft())
-            self.setWindowModality(QtCore.Qt.ApplicationModal)
 
-            self.setWindowTitle('HyPro - CTD/Bottle Salinity Error')
+def sensor_difference_pressure_plot(fig, axes, difference, pressures, deployments=None):
+    if len(axes.lines) > 0:
+        del axes.lines[:]
 
-            self.qvboxlayout = QVBoxLayout()
+    if deployments:
+        for dep in sorted(list(set(deployments))):
+            plotting_indexes = []
+            for i, x in enumerate(deployments):
+                if dep == x:
+                    plotting_indexes.append(i)
+            pressure_dep_subset = [pressures[x] for x in plotting_indexes]
+            difference_dep_subset = [difference[x] for x in plotting_indexes]
+            axes.plot(difference_dep_subset, pressure_dep_subset, marker='o', lw=0.3, mfc='None', markersize=5,
+                      linestyle=':', label=f'Deployment {dep}')
+        axes.legend()
+    else:
+        axes.plot(difference, pressures, marker='o', lw=0, mfc='None', markersize=5, alpha=0.8)
 
-            mainMenu = self.menuBar()
-            fileMenu = mainMenu.addMenu('File')
-            editMenu = mainMenu.addMenu('Edit')
 
-            exportPlot = QAction(QIcon(':/assets/archivebox.svg'), 'Export Sensor 1 Plot', self)
-            exportPlot.triggered.connect(self.exportsens1plot)
-            fileMenu.addAction(exportPlot)
+def sensor_profile_plot(fig, axes, pressure, bottle, flags, flag_indexes, primary=None, secondary=None, deployments=None):
+    if deployments:
+        for dep in sorted(list(set(deployments))):
+            plotting_indexes = []
+            for i, x in enumerate(deployments):
+                if dep == x:
+                    plotting_indexes.append(i)
+            bottle_oxy_dep_subset = [bottle[x] for x in plotting_indexes]
+            pressure_dep_subset = [pressure[x] for x in plotting_indexes]
 
-            exportPlot = QAction(QIcon(':/assets/archivebox.svg'), 'Export Sensor 2 Plot', self)
-            exportPlot.triggered.connect(self.exportsens2plot)
-            fileMenu.addAction(exportPlot)
+            axes.plot(bottle_oxy_dep_subset, pressure_dep_subset, marker='o', lw=1, mfc='None', markersize=0,
+                      label=f'Deployment {dep}')
 
-            copyPlot = QAction(QIcon(':/assets/newdoc.svg'), 'Copy', self)
-            copyPlot.triggered.connect(self.copyplot)
-            editMenu.addAction(copyPlot)
+            if primary:
+                primary_dep_subset = [primary[x] for x in plotting_indexes]
+                axes.plot(primary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='-.', color='#2b9997',
+                          alpha=0.8, label=f'Primary Sens: Dep {dep}')
 
-            self.proceed = QPushButton('Proceed', self)
-            self.proceed.clicked.connect(self.proceedprocessing)
-            self.proceed.setFixedWidth(180)
+            if secondary:
+                secondary_dep_subset = [secondary[x] for x in plotting_indexes]
+                axes.plot(secondary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='--', color='#2b9997',
+                          alpha=0.8, label=f'Secondary Sens: Dep {dep}')
 
-            self.tabs = QTabWidget()
+    else:
+        axes.plot(bottle, pressure, marker='o', lw=1, mfc='None', markersize=0)
 
-            self.sensor1tab = QWidget()
-            self.sensor1tab.layout = QVBoxLayout()
-            self.tabs.addTab(self.sensor1tab, 'Primary Sensor')
+    for i, ind in enumerate(flag_indexes):
+        axes.scatter(bottle[i], pressure[i], alpha=0.8, s=18, color=FLAG_COLORS[flags[ind]], zorder=10)
 
-            self.sensor2tab = QWidget()
-            self.sensor2tab.layout = QVBoxLayout()
-            self.tabs.addTab(self.sensor2tab, 'Secondary Sensor')
+    axes.plot(bottle, pressure, linewidth=0, linestyle=':', marker='o', markersize=0, mfc='none', picker=5)
+    axes.set_ylabel('Pressure (dbar)')
+    axes.legend()
 
-            self.bothsenstab = QWidget()
-            self.bothsenstab.layout = QVBoxLayout()
-            self.tabs.addTab(self.bothsenstab, 'Both Sensors')
-
-            self.sens1figure = plt.figure()
-            self.sens1figure.set_tight_layout(tight=True)
-            self.sens1canvas = FigureCanvas(self.sens1figure)
-            self.sens1canvas.setParent(self)
-            # self.sens1toolbar = NavigationToolbar(self.sens1canvas, self)
-
-            self.sensor1tab.layout.addWidget(self.sens1canvas)
-            # self.sensor1tab.layout.addWidget(self.sens1toolbar)
-            self.sensor1tab.setLayout(self.sensor1tab.layout)
-
-            self.sens2figure = plt.figure()
-            self.sens2figure.set_tight_layout(tight=True)
-            self.sens2canvas = FigureCanvas(self.sens2figure)
-            self.sens2canvas.setParent(self)
-            # self.sens2toolbar = NavigationToolbar(self.sens2canvas, self)
-
-            self.sensor2tab.layout.addWidget(self.sens2canvas)
-            # self.sensor2tab.layout.addWidget(self.sens2toolbar)
-            self.sensor2tab.setLayout(self.sensor2tab.layout)
-
-            self.bothsensfigure = plt.figure()
-            self.bothsensfigure.set_tight_layout(tight=True)
-            self.bothsenscanvas = FigureCanvas(self.bothsensfigure)
-            self.bothsenscanvas.setParent(self)
-            self.bothsenstoolbar = NavigationToolbar(self.bothsenscanvas, self)
-
-            self.bothsenstab.layout.addWidget(self.bothsenscanvas)
-            self.bothsenstab.layout.addWidget(self.bothsenstoolbar)
-            self.bothsenstab.setLayout(self.bothsenstab.layout)
-
-            self.qvboxlayout.addWidget(self.tabs)
-
-            self.qvboxlayout.addWidget(self.proceed, QtCore.Qt.AlignHCenter)
-
-            self.centralWidget().setLayout(self.qvboxlayout)
-
-            self.show()
-
-            sens1plot = self.sens1figure.add_subplot(111)
-
-            sens2plot = self.sens2figure.add_subplot(111)
-
-            bothsensplot = self.bothsensfigure.add_subplot(111)
-
-            # Primary sensor plot
-            sens1plot.set_title('Primary Sensor | Salinity Error: CTD - Bottle')
-            sens1plot.set_xlabel('Dep/Bottle')
-            sens1plot.set_ylabel('Error (CTD - Bottle)')
-
-            sens1plot.plot(self.xdata, self.ydata1, linewidth=0.75, linestyle=':', marker='o', markersize=13,
-                           mfc='none', color='#4068ce')
-            sens1plot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-            if max(self.ydata1) < 0:
-                sens1plot.set_ylim(-0.01, 0.01)
-
-            sens1plot.set_xlim(min(self.xdata) - 0.1, max(self.xdata) + 0.1)
-            sens1plot.grid(color="#0a2b60", alpha=0.1)
-
-            self.sens1canvas.draw()
-
-            labels = sens1plot.get_xticks().tolist()
-            newlabels = []
-            for x in labels:
-                rpfraction = x % 1
-                rp = int(rpfraction * 24)
-                newlabel = str(int(x)) + '/' + str(rp)
-                newlabels.append(newlabel)
-            sens1plot.set_xticklabels(newlabels)
-
-            # Secondary sensor plot
-            sens2plot.set_title('Secondary Sensor | Salinity Error: CTD - Bottle')
-            sens2plot.set_xlabel('Dep/Bottle')
-            sens2plot.set_ylabel('Error (CTD - Bottle)')
-
-            sens2plot.plot(self.xdata, self.ydata2, linewidth=0.75, linestyle=':', marker='o', markersize=13,
-                           mfc='none', color='#71ce40')
-            sens2plot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-            if max(self.ydata2) < 0:
-                sens2plot.set_ylim(-0.01, 0.01)
-            sens2plot.set_xlim(min(self.xdata) - 0.1, max(self.xdata) + 0.1)
-
-            sens2plot.grid(color="#0a2b60", alpha=0.1)
-
-            self.sens2canvas.draw()
-
-            labels = sens2plot.get_xticks().tolist()
-            newlabels = []
-            for x in labels:
-                rpfraction = x % 1
-                rp = int(rpfraction * 36)
-                newlabel = str(int(x)) + '/' + str(rp)
-                newlabels.append(newlabel)
-            sens2plot.set_xticklabels(newlabels)
-
-            # Both sensors plot
-            bothsensplot.set_title('Both Sensors | Salinity Error: CTD - Bottle')
-            bothsensplot.set_xlabel('Dep/Bottle')
-            bothsensplot.set_ylabel('Error (CTD - Bottle)')
-
-            bothsensplot.plot(self.xdata, self.ydata1, linewidth=0.75, linestyle=':', marker='o', markersize=13,
-                              mfc='none', color='#4068ce')
-
-            bothsensplot.plot(self.xdata, self.ydata2, linewidth=0.75, linestyle=':', marker='o', markersize=13,
-                              mfc='none', color='#71ce40')
-
-            bothsensplot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-            if max(self.ydata1) < 0:
-                bothsensplot.set_ylim(-0.01, 0.01)
-            bothsensplot.set_xlim(min(self.xdata) - 0.1, max(self.xdata) + 0.1)
-
-            bothsensplot.grid(color="#0a2b60", alpha=0.1)
-
-            bothsensplot.legend(['Primary Sensor', 'Secondary Sensor'])
-
-            self.bothsenscanvas.draw()
-
-            labels = bothsensplot.get_xticks().tolist()
-            newlabels = []
-            for x in labels:
-                rpfraction = x % 1
-                rp = int(rpfraction * 36)
-                newlabel = str(int(x)) + '/' + str(rp)
-                newlabels.append(newlabel)
-            bothsensplot.set_xticklabels(newlabels)
-
-        except Exception:
-            logging.error(traceback.print_exc())
-
-    def exportsens1plot(self):
-        filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.png')
-        if filedialog[0]:
-            self.sens1figure.savefig(filedialog[0] + filedialog[1], dpi=400)
-
-    def exportsens2plot(self):
-        filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.png')
-        if filedialog[0]:
-            self.sens2figure.savefig(filedialog[0] + filedialog[1], dpi=400)
-
-    def exportsensduoplot(self):
-        filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.png')
-        if filedialog[0]:
-            self.bothsensfigure.savefig(filedialog[0] + filedialog[1], dpi=400)
-
-    def copyplot(self):
-        buffer = io.BytesIO()
-        current_tab = self.tabs.currentIndex()
-
-        if current_tab == 0:
-            self.sens1figure.savefig(buffer, dpi = 400)
-        if current_tab == 1:
-            self.sens2figure.savefig(buffer, dpi = 400)
-        if current_tab == 2:
-            self.bothsensfigure.savefig(buffer, dpi = 400)
-
-        QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
-
-    def proceedprocessing(self):
-        self.close()
 
 class salinityDifferencesPlot(hyproProcPlotWindow):
-    def __init__(self, x_data, y_data_1, y_data_2, max_rp, interactive):
-        super().__init__(600, 870, 'HyPro - CTD/Bottle Salinity Error', 'Salinity')
-
-        if not interactive:
-            self.close()
-        else:
-            """
-
-            ** Primary sensor comparison plot **
-
-            """
-            self.sensor_one_plot.plot(x_data, y_data_1, linewidth=0.75, linestyle=':', marker='o', markersize=13,
-                                      mfc='none', color='#4068ce')
-
-            labels = self.sensor_one_plot.get_xticks().tolist()
-            new_labels = []
-            for x_tick_label in labels:
-                deployment = int(x_tick_label / max_rp) + 1
-                new_label = str(deployment) + '/' + str(int(x_tick_label - ((deployment - 1) * max_rp)))
-                new_labels.append(new_label)
-
-            self.sensor_one_plot.set_xticklabels(new_labels)
-            self.sensor_one_plot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-            self.sensor_one_plot.set_xlim(min(x_data) - 3, max(x_data) + 3)
-
-            """
-
-            ** Secondary sensor comparison plot **
-
-            """
-            self.sensor_two_plot.plot(x_data, y_data_2, linewidth=0.75, linestyle=':', marker='o', markersize=13,
-                                      mfc='none', color='#71ce40')
-            labels = self.sensor_two_plot.get_xticks().tolist()
-            new_labels = []
-            for x_tick_label in labels:
-                deployment = int(x_tick_label / max_rp) + 1
-                new_label = str(deployment) + '/' + str(int(x_tick_label - ((deployment-1)*max_rp)))
-                new_labels.append(new_label)
-
-            self.sensor_two_plot.set_xticklabels(new_labels)
-            self.sensor_two_plot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-            self.sensor_two_plot.set_xlim(min(x_data) - 3, max(x_data) + 3)
-
-            """
-
-            ** Both sensors comparison plot **
-
-            """
-            self.both_sensor_plot.plot(x_data, y_data_1, linewidth=0.75, linestyle=':', marker='o', markersize=13,
-                                       mfc='none', color='#4068ce', label='Primary Sensor')
-            self.both_sensor_plot.plot(x_data, y_data_2, linewidth=0.75, linestyle=':', marker='o', markersize=13,
-                                       mfc='none', color='#71ce40', label='Secondary Sensor')
-            labels = self.both_sensor_plot.get_xticks().tolist()
-            new_labels = []
-            for x_tick_label in labels:
-                deployment = int(x_tick_label / max_rp) + 1
-                new_label = str(deployment) + '/' + str(int(x_tick_label - ((deployment-1)*max_rp)))
-                new_labels.append(new_label)
-
-            self.both_sensor_plot.set_xticklabels(new_labels)
-            self.both_sensor_plot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-            self.both_sensor_plot.set_xlim(min(x_data) - 3, max(x_data) + 3)
-            self.both_sensor_plot.legend()
-
-
-
-class oxygenDifferencesPlot(hyproProcPlotWindow):
-    def __init__(self, deployment, x_data, bottle_oxy, primary_oxy, secondary_oxy, depths, max_rp, ref_ind, oxygen_data):
-        super().__init__(600, 870, 'HyPro - CTD/Bottle Oxygen Error', 'Oxygen', ref_ind, oxygen_data)
+    def __init__(self, deployment, x_data, bottle, primary, secondary, depths, max_rp, ref_ind, full_data):
+        super().__init__(600, 870, 'HyPro - CTD/Bottle Salinity Error', 'Salinity', ref_ind, full_data)
 
         self.deployment = deployment
         self.x_data = x_data
-        self.bottle_oxy = bottle_oxy
-        self.primary_oxy = primary_oxy
-        self.secondary_oxy = secondary_oxy
+        self.bottle = bottle
+        self.primary = primary
+        self.secondary = secondary
         self.depths = depths
         self.max_rp = max_rp
         self.ref_ind = ref_ind
-        self.oxygen_data = oxygen_data
+        self.full_data = full_data
 
         self.plot()
 
     def plot(self):
 
         """
-        
         ** Primary sensor comparison plot **
-        
         """
-
         plottable_flags = []
 
-        primary_difference = [(self.primary_oxy[i] - bottle) for i, bottle in enumerate(self.bottle_oxy)]
+        primary_difference = [(self.primary[i] - bottle) for i, bottle in enumerate(self.bottle)]
 
-        self.sensor_one_plot.plot(self.x_data, primary_difference, linewidth=0.75, linestyle=':',
-                                  marker='o', markersize=13, mfc='none', color='#4068ce', picker=7)
-        labels = self.sensor_one_plot.get_xticks().tolist()
-        new_labels = []
-        for x_tick_label in labels:
-            deployment_label = int(x_tick_label / self.max_rp) + 1
-            new_label = str(deployment_label) + '/' + str(int(x_tick_label - ((deployment_label-1)*self.max_rp)))
-            new_labels.append(new_label)
+        sensor_difference_plot(self.sensor_one_figure, self.sensor_one_plot, self.x_data, primary_difference,
+                               self.max_rp, sensor='Primary')
+        sensor_difference_pressure_plot(self.sensor_one_figure, self.sensor_one_depth_plot, primary_difference,
+                                        self.depths, deployments=self.deployment)
 
-        self.sensor_one_plot.set_xticklabels(new_labels)
-        self.sensor_one_plot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-        self.sensor_one_plot.set_xlim(min(self.x_data) - 3, max(self.x_data) + 3)
 
         """
-        
         ** Secondary sensor comparison plot **
-        
         """
-        secondary_difference = [(self.secondary_oxy[i] - bottle) for i, bottle in enumerate(self.bottle_oxy)]
-        self.sensor_two_plot.plot(self.x_data, secondary_difference, linewidth=0.75, linestyle=':', marker='o',
-                                  markersize=13, mfc='none', color='#71ce40', picker=7)
-        labels = self.sensor_two_plot.get_xticks().tolist()
-        new_labels = []
-        for x_tick_label in labels:
-            deployment_label = int(x_tick_label / self.max_rp) + 1
-            new_label = str(deployment_label) + '/' + str(int(x_tick_label - ((deployment_label-1)*self.max_rp)))
-            new_labels.append(new_label)
+        secondary_difference = [(self.secondary[i] - bottle) for i, bottle in enumerate(self.bottle)]
 
-        self.sensor_two_plot.set_xticklabels(new_labels)
-        self.sensor_two_plot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-        self.sensor_two_plot.set_xlim(min(self.x_data) - 3, max(self.x_data) + 3)
+        sensor_difference_plot(self.sensor_two_figure, self.sensor_two_plot, self.x_data, secondary_difference,
+                               self.max_rp, sensor='Secondary')
+        sensor_difference_pressure_plot(self.sensor_two_figure, self.sensor_two_depth_plot, secondary_difference,
+                                        self.depths, deployments=self.deployment)
 
         """
-        
         ** Both sensors comparison plot **
-        
         """
-        self.both_sensor_plot.plot(self.x_data, primary_difference, linewidth=0.75, linestyle=':', marker='o',
-                                   markersize=13, mfc='none', color='#4068ce', label='Primary Sensor', picker=7)
-        self.both_sensor_plot.plot(self.x_data, secondary_difference, linewidth=0.75, linestyle=':', marker='o',
-                                   markersize=13, mfc='none', color='#71ce40', label='Secondary Sensor', picker=7)
-        labels = self.both_sensor_plot.get_xticks().tolist()
-        new_labels = []
-        for x_tick_label in labels:
-            deployment_label = int(x_tick_label / self.max_rp) + 1
-            new_label = str(deployment_label) + '/' + str(int(x_tick_label - ((deployment_label-1)*self.max_rp)))
-            new_labels.append(new_label)
 
-        self.both_sensor_plot.set_xticklabels(new_labels)
-        self.both_sensor_plot.plot([-9999, 9999], [0, 0], linewidth=1, linestyle='--', color='#a0a0a0')
-        self.both_sensor_plot.set_xlim(min(self.x_data) - 3, max(self.x_data) + 3)
-        self.both_sensor_plot.legend()
+        sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, primary_difference,
+                               self.max_rp, sensor='Primary')
+        sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, secondary_difference,
+                               self.max_rp, sensor='Secondary', clear_plot=False)
+        #self.both_sensor_plot.legend()
 
         """
-        
         ** Profile plot **
-
         """
-        for dep in sorted(list(set(self.deployment))):
-            plotting_indexes = []
-            for i, x in enumerate(self.deployment):
-                if dep == x:
-                    plotting_indexes.append(i)
-            bottle_oxy_dep_subset = [self.bottle_oxy[x] for x in plotting_indexes]
-            depths_dep_subset = [self.depths[x] for x in plotting_indexes]
-            primary_dep_subset = [self.primary_oxy[x] for x in plotting_indexes]
-            secondary_dep_subset = [self.secondary_oxy[x] for x in plotting_indexes]
 
-            self.profile_plot.plot(primary_dep_subset, depths_dep_subset, lw=0.75, linestyle='-.', color='#2b9997',
-                                   alpha=0.8, label=f'Primary Sens: Dep {dep}')
-            self.profile_plot.plot(secondary_dep_subset, depths_dep_subset, lw=0.75, linestyle='--', color='#2b9997',
-                                   alpha=0.8, label=f'Secondary Sens: Dep {dep}')
-
-            self.profile_plot.plot(bottle_oxy_dep_subset, depths_dep_subset, marker='o', lw=1, mfc='None', markersize=0,
-                                   label=f'Deployment {dep}')
-        for i, ind in enumerate(self.ref_ind):
-            self.profile_plot.scatter(self.bottle_oxy[i], self.depths[i], alpha=0.8,
-                                      s=18, color=FLAG_COLORS[self.oxygen_data.quality_flag[ind]], zorder=10)
-
-        self.profile_plot.plot(self.bottle_oxy, self.depths, linewidth=0, linestyle=':',
-                               marker='o', markersize=0, mfc='none', picker=5)
-
-        self.profile_plot.set_xlabel('Oxygen Concentration (uM)')
-        self.profile_plot.set_ylabel('Pressure (dbar)')
-        self.profile_plot.legend()
+        sensor_profile_plot(self.profile_figure, self.profile_plot, self.depths, self.bottle,
+                            self.full_data.quality_flag, self.ref_ind, primary=self.primary,
+                            secondary=self.secondary, deployments=self.deployment)
+        self.profile_plot.set_xlabel('Salinity (PSU)')
 
         self.redraw.connect(self.redraw_on_update)
 
@@ -1180,7 +808,84 @@ class oxygenDifferencesPlot(hyproProcPlotWindow):
         del self.both_sensor_plot.lines[:]
         del self.profile_plot.lines[:]
 
-        self.oxygen_data.quality_flag = self.working_quality_flags
+        self.full_data.quality_flag = self.working_quality_flags
+
+        self.plot()
+        self.sensor_one_canvas.draw()
+        self.sensor_two_canvas.draw()
+        self.both_sensor_canvas.draw()
+        self.profile_canvas.draw()
+
+
+class oxygenDifferencesPlot(hyproProcPlotWindow):
+    def __init__(self, deployment, x_data, bottle, primary, secondary, depths, max_rp, ref_ind, full_data):
+        super().__init__(600, 870, 'HyPro - CTD/Bottle Oxygen Error', 'Oxygen', ref_ind, full_data)
+
+        self.deployment = deployment
+        self.x_data = x_data
+        self.bottle = bottle
+        self.primary = primary
+        self.secondary = secondary
+        self.depths = depths
+        self.max_rp = max_rp
+        self.ref_ind = ref_ind
+        self.full_data = full_data
+
+        self.plot()
+
+    def plot(self):
+
+        """
+        ** Primary sensor comparison plot **
+        """
+        plottable_flags = []
+
+        primary_difference = [(self.primary[i] - bottle) for i, bottle in enumerate(self.bottle)]
+
+        sensor_difference_plot(self.sensor_one_figure, self.sensor_one_plot, self.x_data, primary_difference,
+                               self.max_rp, sensor='Primary')
+        sensor_difference_pressure_plot(self.sensor_one_figure, self.sensor_one_depth_plot, primary_difference,
+                                        self.depths, deployments=self.deployment)
+
+
+        """
+        ** Secondary sensor comparison plot **
+        """
+        secondary_difference = [(self.secondary[i] - bottle) for i, bottle in enumerate(self.bottle)]
+
+        sensor_difference_plot(self.sensor_two_figure, self.sensor_two_plot, self.x_data, secondary_difference,
+                               self.max_rp, sensor='Secondary')
+        sensor_difference_pressure_plot(self.sensor_two_figure, self.sensor_two_depth_plot, secondary_difference,
+                                        self.depths, deployments=self.deployment)
+
+        """
+        ** Both sensors comparison plot **
+        """
+
+        sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, primary_difference,
+                               self.max_rp, sensor='Primary')
+        sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, secondary_difference,
+                               self.max_rp, sensor='Secondary', clear_plot=False)
+        self.both_sensor_plot.legend()
+
+        """
+        ** Profile plot **
+        """
+
+        sensor_profile_plot(self.profile_figure, self.profile_plot, self.depths, self.bottle,
+                            self.full_data.quality_flag, self.ref_ind, primary=self.primary,
+                            secondary=self.secondary, deployments=self.deployment)
+        self.profile_plot.set_xlabel('Oxygen Concentration (uM)')
+
+        self.redraw.connect(self.redraw_on_update)
+
+    def redraw_on_update(self):
+        del self.sensor_one_plot.lines[:]
+        del self.sensor_two_plot.lines[:]
+        del self.both_sensor_plot.lines[:]
+        del self.profile_plot.lines[:]
+
+        self.full_data.quality_flag = self.working_quality_flags
 
         self.plot()
         self.sensor_one_canvas.draw()

@@ -109,11 +109,17 @@ class hyproProcPlotWindow(QMainWindow):
         self.sensor_one_tab.layout.addWidget(self.sensor_one_canvas)
         self.sensor_one_tab.setLayout(self.sensor_one_tab.layout)
 
-        self.sensor_one_plot = self.sensor_one_figure.add_subplot(111)
+        self.sensor_one_plot = self.sensor_one_figure.add_subplot(211)
         self.sensor_one_plot.set_title(f'Primary Sensor | {type} Error: CTD - Bottle')
         self.sensor_one_plot.set_xlabel('Deployment/Bottle')
         self.sensor_one_plot.set_ylabel('Error (CTD - Bottle)')
         self.sensor_one_plot.grid(alpha=0.1, zorder=0)
+
+        self.sensor_one_depth_plot = self.sensor_one_figure.add_subplot(212)
+        self.sensor_one_depth_plot.set_xlabel('Error (CTD - Bottle)')
+        self.sensor_one_depth_plot.set_ylabel('Pressure (db)')
+        self.sensor_one_depth_plot.grid(alpha=0.1, zorder=0)
+        self.sensor_one_depth_plot.invert_yaxis()
 
         """
         
@@ -133,11 +139,17 @@ class hyproProcPlotWindow(QMainWindow):
         self.sensor_two_tab.layout.addWidget(self.sensor_two_canvas)
         self.sensor_two_tab.setLayout(self.sensor_two_tab.layout)
 
-        self.sensor_two_plot = self.sensor_two_figure.add_subplot(111)
+        self.sensor_two_plot = self.sensor_two_figure.add_subplot(211)
         self.sensor_two_plot.set_title(f'Secondary Sensor | {type} Error: CTD - Bottle')
         self.sensor_two_plot.set_xlabel('Deployment/Bottle')
         self.sensor_two_plot.set_ylabel('Error (CTD - Bottle)')
         self.sensor_two_plot.grid(alpha=0.1, zorder=0)
+
+        self.sensor_two_depth_plot = self.sensor_two_figure.add_subplot(212)
+        self.sensor_two_depth_plot.set_xlabel('Error (CTD - Bottle)')
+        self.sensor_two_depth_plot.set_ylabel('Pressure (db)')
+        self.sensor_two_depth_plot.grid(alpha=0.1, zorder=0)
+        self.sensor_two_depth_plot.invert_yaxis()
 
         """ 
         
@@ -161,6 +173,12 @@ class hyproProcPlotWindow(QMainWindow):
         self.both_sensor_plot.set_xlabel('Deployment/Bottle')
         self.both_sensor_plot.set_ylabel('Error (CTD - Bottle)')
         self.both_sensor_plot.grid(alpha=0.1, zorder=0)
+
+        # self.both_sensor_depth_plot = self.both_sensor_figure.add_subplot(212)
+        # self.both_sensor_depth_plot.set_xlabel('Error (CTD - Bottle)')
+        # self.both_sensor_depth_plot.set_ylabel('Pressure (db)')
+        # self.both_sensor_depth_plot.grid(alpha=0.1, zorder=0)
+        # self.both_sensor_depth_plot.invert_yaxis()
 
         """
         
@@ -241,7 +259,7 @@ class hyproProcPlotWindow(QMainWindow):
             concentration = self.full_data.salinity[referenced_index]
 
         self.bottle_sel = bottleSelection(self.full_data.file, self.full_data.deployment[referenced_index],
-                                          self.full_data.rosette[referenced_index],
+                                          self.full_data.rosette_position[referenced_index],
                                           self.full_data.bottle_id[referenced_index],
                                           concentration, self.full_data.quality_flag[referenced_index])
 
@@ -251,5 +269,7 @@ class hyproProcPlotWindow(QMainWindow):
         rev_flag_converter = {x: y for y, x in flag_converter.items()}
         numeric_flag = rev_flag_converter[self.bottle_sel.flag_box.currentText()]
         self.working_quality_flags[index] = numeric_flag
+        print(self.working_quality_flags)
+
         self.redraw.emit()
 

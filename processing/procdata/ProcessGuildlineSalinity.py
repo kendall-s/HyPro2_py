@@ -95,12 +95,13 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
 def store_data(database, salinity_data, file, last_modified_time):
     try:
         run_list = [salinity_data.run for x in salinity_data.sample_id]
-        flag_list = [1 for x in salinity_data.sample_id]
+        #flag_list = [1 for x in salinity_data.sample_id]
 
         packed_data = list(zip(run_list, salinity_data.sample_id, salinity_data.bottle_id, salinity_data.date_time,
                                salinity_data.uncorrected_ratio, salinity_data.uncorrected_ratio_stdev,
-                               salinity_data.salinity, salinity_data.salinity_stdev, salinity_data.comments, flag_list,
-                               salinity_data.deployment, salinity_data.rosette_position, salinity_data.survey))
+                               salinity_data.salinity, salinity_data.salinity_stdev, salinity_data.comments,
+                               salinity_data.quality_flag, salinity_data.deployment, salinity_data.rosette_position,
+                               salinity_data.survey))
 
         # Put packed up data into database file
         conn = sqlite3.connect(database)

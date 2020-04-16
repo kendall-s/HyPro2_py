@@ -34,7 +34,7 @@ class processingOxygenWindow():
 
                 self.oxygen_data.deployment, self.oxygen_data.rosette_position, self.oxygen_data.survey = \
                 pso.populate_oxygen_survey(self.oxygen_data.station, self.oxygen_data.cast,
-                                           self.oxygen_data.rosette, self.oxygen_data.bottle_id,
+                                           self.oxygen_data.niskin, self.oxygen_data.bottle_id,
                                            self.database, params)
                 if interactive:
                     self.call_plot(self.oxygen_data)
@@ -95,11 +95,11 @@ class processingOxygenWindow():
             for i, x in enumerate(oxygen_data.station):
                 for l, m in enumerate(ctd_deployment):
                     if x == m:
-                        if oxygen_data.rosette[i] == ctd_rosette_positions[l]:
+                        if oxygen_data.niskin[i] == ctd_rosette_positions[l]:
                             reference_indexes.append(i)
                             ctd_data_to_plot['bottle_oxy'].append(oxygen_data.oxygen_mols[i])
                             ctd_data_to_plot['deployment'].append(x)
-                            ctd_data_to_plot['rosette_position_to_plot'].append(oxygen_data.rosette[i])
+                            ctd_data_to_plot['rosette_position_to_plot'].append(oxygen_data.rosette_position[i])
                             ctd_data_to_plot['depths'].append(ctd_depths[l])
                             ctd_data_to_plot['primary_oxygen'].append(oxygen_sensor_1[l])
                             ctd_data_to_plot['secondary_oxygen'].append(oxygen_sensor_2[l])

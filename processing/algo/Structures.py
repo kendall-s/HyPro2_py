@@ -118,7 +118,7 @@ class OxygenData:
 
         self.station = []
         self.cast = []
-        self.rosette = []
+        self.niskin = []
         self.bottle_id = []
         self.flask_vol = []
         self.raw_titer = []

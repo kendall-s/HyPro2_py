@@ -52,7 +52,7 @@ def parse_lst(lst_path, current_path, current_project, file_name):
 
         oxygen_data.station = [int(x[0]) for x in results]
         oxygen_data.cast = [int(x[1]) for x in results]
-        oxygen_data.rosette = [int(x[2]) for x in results]
+        oxygen_data.niskin = [int(x[2]) for x in results]
         oxygen_data.bottle_id = [int(x[3]) for x in results]
         oxygen_data.flask_vol = [float(x[4]) for x in results]
         oxygen_data.raw_titer = [float(x[5]) for x in results]
