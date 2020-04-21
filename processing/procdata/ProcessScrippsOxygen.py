@@ -11,7 +11,7 @@ def store_data(database, oxygen_data, file, last_modified_time):
     c = conn.cursor()
     run_list = [oxygen_data.run for x in oxygen_data.station]
 
-    submit = zip(run_list, oxygen_data.station, oxygen_data.cast, oxygen_data.rosette,
+    submit = zip(run_list, oxygen_data.station, oxygen_data.cast, oxygen_data.niskin,
                  oxygen_data.bottle_id, oxygen_data.flask_vol, oxygen_data.raw_titer, oxygen_data.titer,
                  oxygen_data.oxygen, oxygen_data.oxygen_mols, oxygen_data.thio_temp, oxygen_data.draw_temp,
                  oxygen_data.final_volts, oxygen_data.time, oxygen_data.quality_flag, oxygen_data.deployment,

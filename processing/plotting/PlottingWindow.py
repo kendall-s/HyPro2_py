@@ -5,8 +5,10 @@ import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QDesktopWidget, QAction, QVBoxLayout, QFileDialog, QApplication,
                              QGridLayout, QLabel, QListWidget, QCheckBox, QPushButton, QAbstractItemView, QFrame)
 from PyQt5.QtGui import QFont, QIcon, QImage
-import io, json
+import io, json, sqlite3
 import hyproicons, style
+from dialogs.TraceSelectionDialog import traceSelection
+from dialogs.BottleSelectionDialog import bottleSelection
 
 class QMainPlotterTemplate(QMainWindow):
     def __init__(self):
@@ -46,19 +48,19 @@ class QMainPlotterTemplate(QMainWindow):
         self.qvbox_frame_holder.setLayout(self.qvbox_layout)
         self.grid_layout = QGridLayout()
 
-        mainMenu = self.menuBar()
-        fileMenu = mainMenu.addMenu('File')
-        editMenu = mainMenu.addMenu('Edit')
+        self.main_menu = self.menuBar()
+        self.file_menu = self.main_menu.addMenu('File')
+        self.edit_menu = self.main_menu.addMenu('Edit')
 
-        exportPlot = QAction(QIcon(':/assets/archivebox.svg'), 'Export Plot', self)
-        exportPlot.triggered.connect(self.export_plot)
-        fileMenu.addAction(exportPlot)
+        export = QAction(QIcon(':/assets/archivebox.svg'), 'Export Plot', self)
+        export.triggered.connect(self.export_plot)
+        self.file_menu.addAction(export)
 
-        copyPlot = QAction(QIcon(':/assets/newdoc.svg'), 'Copy', self)
-        copyPlot.triggered.connect(self.copy_plot)
-        editMenu.addAction(copyPlot)
+        copy = QAction(QIcon(':/assets/newdoc.svg'), 'Copy', self)
+        copy.triggered.connect(self.copy_plot)
+        self.edit_menu.addAction(copy)
 
-        run_list_label = QLabel('Select Run:', self)
+        self.run_list_label = QLabel('Select Run:', self)
         self.run_list = QListWidget(self)
         self.run_list.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.run_list.setMaximumWidth(120)
@@ -84,15 +86,13 @@ class QMainPlotterTemplate(QMainWindow):
         self.grid_layout.addWidget(self.canvas, 0, 1)
         self.grid_layout.addWidget(self.qvbox_frame_holder, 0, 0)
 
-        self.qvbox_layout.addWidget(run_list_label)
+        self.qvbox_layout.addWidget(self.run_list_label)
         self.qvbox_layout.addWidget(self.run_list)
         self.qvbox_layout.addWidget(self.show_bad_data)
         self.qvbox_layout.addWidget(self.mark_bad_data)
         self.qvbox_layout.addWidget(self.apply_button)
 
         self.centralWidget().setLayout(self.grid_layout)
-
-        clicker = self.figure.canvas.mpl_connect("button_press_event", self.on_click)
 
     def export_plot(self):
         filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.png')
@@ -104,7 +104,33 @@ class QMainPlotterTemplate(QMainWindow):
         self.figure.savefig(buffer, dpi=300)
         QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
 
-    def on_click(self, event):
-        tb = get_current_fig_manager().toolbar
-        if event.button == 1 and event.inaxes and tb.mode == '':
-            print(event.xdata)
+    def base_on_pick(self, event, database, runs, peak_nums, nutrient=None, oxygen=None, salinity=None):
+        plotted_data_index = event.ind[0]
+        picked_run_number = runs[plotted_data_index]
+        picked_peak_number = peak_nums[plotted_data_index]
+
+        conn = sqlite3.connect(database)
+
+        if nutrient:
+            c = conn.cursor()
+            c.execute('SELECT * FROM %sData WHERE runNumber = ? and peakNumber = ?' % nutrient,
+                      (picked_run_number, picked_peak_number))
+            data = list(c.fetchall())[0]
+            conn.close()
+            self.picked_peak_dialog = traceSelection(data[2], data[1], data[3], data[5], data[6], data[10], data[11], 'Plot')
+
+        else:
+            c = conn.cursor()
+            if oxygen:
+                c.execute('SELECT * from oxygenData WHERE deployment = ? and rosettePosition = ?', (picked_run_number,
+                                                                                                    picked_peak_number))
+                data = list(c.fetchall())[0]
+                conn.close()
+                self.picked_bottle_dialog = bottleSelection(data[0], data[15], data[16], data[4], round(data[9], 3), data[14])
+
+            elif salinity:
+                c.execute('SELECT * from salinityData WHERE deployment = ? and rosettePosition = ?', (picked_run_number,
+                                                                                                    picked_peak_number))
+                data = list(c.fetchall())[0]
+                conn.close()
+                self.picked_bottle_dialog = bottleSelection(data[0], data[10], data[11], data[2], data[6], data[9])

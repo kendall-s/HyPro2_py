@@ -19,6 +19,7 @@ class openProject(hyproDialogTemplate):
         selectprojlabel = QLabel('Select an existing project:', self)
 
         self.selectprojbox = QListWidget(self)
+        self.selectprojbox.setProperty('other', True)
         self.selectprojbox.doubleClicked.connect(self.selection)
 
         self.selectbutton = QPushButton('Select', self)

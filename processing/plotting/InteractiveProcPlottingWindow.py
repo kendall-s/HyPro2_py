@@ -4,6 +4,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QImage
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from processing.algo.HyproComplexities import find_closest, update_annotation, check_hover
 from dialogs.BottleSelectionDialog import bottleSelection
 import json
 import time
@@ -16,15 +17,18 @@ flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Sh
 class hyproProcPlotWindow(QMainWindow):
     redraw = pyqtSignal()
 
-    def __init__(self, width, height, title, type, ref_ind, full_data):
+    def __init__(self, width, height, title, type, ref_ind, depths, full_data):
         super().__init__()
+
+        self.initial_figure_save = True
 
         self.type = type
         self.working_quality_flags = full_data.quality_flag
 
         # Reference index back to the full data file of the plotted data. E.g. plotted data point 10 may be data point
-        # 12 in the file. Len(ref_ind) will always be less than Len(values_in_file)
+        # 12 in the file. len(ref_ind) will always be less than len(values_in_file)
         self.ref_ind = ref_ind
+        self.depths = depths
         self.full_data = full_data
 
         # Set stylesheet to the one selected by the user.
@@ -105,6 +109,7 @@ class hyproProcPlotWindow(QMainWindow):
         self.sensor_one_canvas = FigureCanvas(self.sensor_one_figure)
         self.sensor_one_canvas.setParent(self)
         self.sensor_one_canvas.mpl_connect('pick_event', self.on_pick)
+        self.sensor_one_canvas.mpl_connect('motion_notify_event', self.on_hover)
 
         self.sensor_one_tab.layout.addWidget(self.sensor_one_canvas)
         self.sensor_one_tab.setLayout(self.sensor_one_tab.layout)
@@ -115,11 +120,17 @@ class hyproProcPlotWindow(QMainWindow):
         self.sensor_one_plot.set_ylabel('Error (CTD - Bottle)')
         self.sensor_one_plot.grid(alpha=0.1, zorder=0)
 
+        self.sensor_one_plot_anno = self.sensor_one_plot.annotate("", xy=(0, 0), xycoords="data", zorder=5)
+        self.sensor_one_plot_anno.set_visible(False)
+
         self.sensor_one_depth_plot = self.sensor_one_figure.add_subplot(212)
         self.sensor_one_depth_plot.set_xlabel('Error (CTD - Bottle)')
         self.sensor_one_depth_plot.set_ylabel('Pressure (db)')
         self.sensor_one_depth_plot.grid(alpha=0.1, zorder=0)
         self.sensor_one_depth_plot.invert_yaxis()
+
+        self.sensor_one_depth_plot_anno = self.sensor_one_depth_plot.annotate("", xy=(0, 0), xycoords="data", zorder=5)
+        self.sensor_one_depth_plot_anno.set_visible(False)
 
         """
         
@@ -135,6 +146,7 @@ class hyproProcPlotWindow(QMainWindow):
         self.sensor_two_canvas = FigureCanvas(self.sensor_two_figure)
         self.sensor_two_canvas.setParent(self)
         self.sensor_two_figure.canvas.mpl_connect('pick_event', self.on_pick)
+        self.sensor_two_canvas.mpl_connect('motion_notify_event', self.on_hover)
 
         self.sensor_two_tab.layout.addWidget(self.sensor_two_canvas)
         self.sensor_two_tab.setLayout(self.sensor_two_tab.layout)
@@ -145,11 +157,17 @@ class hyproProcPlotWindow(QMainWindow):
         self.sensor_two_plot.set_ylabel('Error (CTD - Bottle)')
         self.sensor_two_plot.grid(alpha=0.1, zorder=0)
 
+        self.sensor_two_plot_anno = self.sensor_two_plot.annotate("", xy=(0, 0), xycoords="data", zorder=5)
+        self.sensor_two_plot_anno.set_visible(False)
+
         self.sensor_two_depth_plot = self.sensor_two_figure.add_subplot(212)
         self.sensor_two_depth_plot.set_xlabel('Error (CTD - Bottle)')
         self.sensor_two_depth_plot.set_ylabel('Pressure (db)')
         self.sensor_two_depth_plot.grid(alpha=0.1, zorder=0)
         self.sensor_two_depth_plot.invert_yaxis()
+
+        self.sensor_two_depth_plot_anno = self.sensor_two_depth_plot.annotate("", xy=(0, 0), xycoords="data", zorder=5)
+        self.sensor_two_depth_plot_anno.set_visible(False)
 
         """ 
         
@@ -195,6 +213,7 @@ class hyproProcPlotWindow(QMainWindow):
         self.profile_canvas = FigureCanvas(self.profile_figure)
         self.profile_canvas.setParent(self)
         self.profile_canvas.mpl_connect('pick_event', self.on_pick)
+        self.profile_canvas.mpl_connect('motion_notify_event', self.on_hover)
 
         self.profile_tab.layout.addWidget(self.profile_canvas)
         self.profile_tab.setLayout(self.profile_tab.layout)
@@ -205,6 +224,9 @@ class hyproProcPlotWindow(QMainWindow):
         self.profile_plot.set_ylabel('Pressure (dbar)')
         self.profile_plot.grid(alpha=0.1, zorder=0)
         self.profile_plot.invert_yaxis()
+
+        self.profile_plot_anno = self.profile_plot.annotate("", xy=(0, 0), xycoords="data", zorder=5)
+        self.profile_plot_anno.set_visible(False)
 
         # Add tabs to window layout
         self.qv_box_layout.addWidget(self.tabs)
@@ -269,7 +291,65 @@ class hyproProcPlotWindow(QMainWindow):
         rev_flag_converter = {x: y for y, x in flag_converter.items()}
         numeric_flag = rev_flag_converter[self.bottle_sel.flag_box.currentText()]
         self.working_quality_flags[index] = numeric_flag
-        print(self.working_quality_flags)
+
+        self.initial_figure_save = True
 
         self.redraw.emit()
 
+    def on_hover(self, event):
+
+        x_data = event.xdata
+        y_data = event.ydata
+        xy_data = (x_data, y_data)
+        if event.inaxes == self.profile_plot:
+            check_result = check_hover(event, self.profile_plot)
+            if check_result:
+                x_point, y_point, xy_points = check_result
+                index = find_closest(xy_data, xy_points)
+                new_text = f'Bottle ID: {str(self.full_data.bottle_id[self.ref_ind[index]])}'
+                update_annotation(self.profile_plot_anno, x_point[index], y_point[index], new_text,
+                                  self.profile_plot, self.profile_canvas)
+
+        elif event.inaxes == self.sensor_one_plot:
+            check_result = check_hover(event, self.sensor_one_plot)
+            if check_result:
+                x_point, y_point, xy_points = check_result
+                # Lambda function gets index of value closest to picked X data point (thanks SO)
+                index = min(range(len(x_point)), key=lambda i: abs(x_point[i] - x_data))
+
+                picked_deployment = self.full_data.deployment[self.ref_ind[index]]
+                picked_rosette_pos = self.full_data.rosette_position[self.ref_ind[index]]
+                picked_depth = self.depths[index]
+
+                new_text = f'{picked_deployment}/{picked_rosette_pos}'
+                update_annotation(self.sensor_one_plot_anno, x_point[index], y_point[index], new_text,
+                                  self.sensor_one_plot, self.sensor_one_canvas)
+
+                for line in self.sensor_one_depth_plot.get_lines():
+                    if line.get_gid() == 'picking_line':
+                        x_depth_point = line.get_xdata(orig=True)[index]
+
+                update_annotation(self.sensor_one_depth_plot_anno, x_depth_point, picked_depth, new_text,
+                                  self.sensor_one_depth_plot, self.sensor_one_canvas)
+
+        elif event.inaxes == self.sensor_two_plot:
+            check_result = check_hover(event, self.sensor_two_plot)
+            if check_result:
+                x_point, y_point, xy_points = check_result
+                # Lambda function gets index of value closest to picked X data point (thanks SO)
+                index = min(range(len(x_point)), key=lambda i: abs(x_point[i] - x_data))
+
+                picked_deployment = self.full_data.deployment[self.ref_ind[index]]
+                picked_rosette_pos = self.full_data.rosette_position[self.ref_ind[index]]
+                picked_depth = self.depths[index]
+
+                new_text = f'{picked_deployment}/{picked_rosette_pos}'
+                update_annotation(self.sensor_two_plot_anno, x_point[index], y_point[index], new_text,
+                                  self.sensor_two_plot, self.sensor_two_canvas)
+
+                for line in self.sensor_two_depth_plot.get_lines():
+                    if line.get_gid() == 'picking_line':
+                        x_depth_point = line.get_xdata(orig=True)[index]
+
+                update_annotation(self.sensor_two_depth_plot_anno, x_depth_point, picked_depth, new_text,
+                                  self.sensor_two_depth_plot, self.sensor_two_canvas)

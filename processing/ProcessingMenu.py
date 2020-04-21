@@ -17,6 +17,7 @@ from dialogs.ParametersDialog import parametersDialog
 from processing.QCStats import statsDialog
 import processing.readdata.InitialiseTables as inittabs
 import processing.plotting.QCPlots as qcp
+from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow
 import sqlite3
 from netCDF4 import Dataset
 import numpy as np
@@ -345,16 +346,15 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.backToMain.emit()
 
     def rmnsplots(self):
-        self.rmnsWindow = qcp.rmnsPlotWindowTemplate(self.db, self.params_path)
-        self.rmnsWindow.show()
+        self.rmns_window = RMNSWindow.rmnsPlotWindowTemplate(self.db, self.params_path)
+        self.rmns_window.show()
 
     def mdlplots(self):
-        #self.mdlWindow = qcp.mdlPlotWindow(self.currproject, self.currpath, self.db)
-        self.mdlWindow = qcp.mdlPlotWindowTemplate(self.db, self.params_path)
-        self.mdlWindow.show()
+        self.mdl_window = MDLWindow.mdlPlotWindowTemplate(self.db, self.params_path)
+        self.mdl_window.show()
 
     def redfield(self):
-        self.redfieldWindow = qcp.redfieldPlot(self.db)
+        self.redfield_window = RedfieldWindow.redfieldPlot(self.db)
 
     def duplicate(self):
         pass
@@ -363,13 +363,15 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         pass
 
     def salinityerror(self):
-        pass
+        self.salinity_error_window = SensorDiffWindow.ctdSensorDifferencePlot(self.db, 'Salinity')
+        self.salinity_error_window.show()
 
     def salinitystandards(self):
         pass
 
     def oxygenerror(self):
-        pass
+        self.oxygen_error_window = SensorDiffWindow.ctdSensorDifferencePlot(self.db, 'Oxygen')
+        self.oxygen_error_window.show()
 
     def oxygenstandards(self):
         pass

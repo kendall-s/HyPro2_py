@@ -8,8 +8,9 @@ import traceback
 import processing.RefreshFunction
 import processing.procdata.ProcessScrippsOxygen as pso
 import processing.readdata.ReadScrippsOxygen as rso
+from processing.algo.HyproComplexities import get_max_rp
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-from processing.plotting.QCPlots import oxygenDifferencesPlot
+from processing.plotting.OxygenProcessingWindow import oxygenDifferencesPlot
 
 
 class processingOxygenWindow():
@@ -104,12 +105,9 @@ class processingOxygenWindow():
                             ctd_data_to_plot['primary_oxygen'].append(oxygen_sensor_1[l])
                             ctd_data_to_plot['secondary_oxygen'].append(oxygen_sensor_2[l])
 
-            if max(ctd_data_to_plot['rosette_position_to_plot']) > 24:
-                max_rp = 36
-            else:
-                max_rp = 24
+            max_rp = get_max_rp(ctd_data_to_plot['rosette_position_to_plot'])
 
-            # Create the X data for the plot - x data is calculated as RP times Deployment, meaning x data will
+            # Create the X data for the plot - x data is calculated as RP times Deployment + max RP, meaning x data will
             # go up continually from 1. i.e. deployment 2 RP 5 will equal x data of 41
             ctd_data_to_plot['dep_rosette_postion'] = [(((x-1) * max_rp) + ctd_data_to_plot['rosette_position_to_plot'][i])
                                                        for i, x in enumerate(ctd_data_to_plot['deployment'])]

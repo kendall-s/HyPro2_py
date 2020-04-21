@@ -1,4 +1,5 @@
-import sqlite3, logging, traceback, json
+import sqlite3, logging, traceback, json, time
+from numpy import asarray, sum, argmin
 
 # This file contains some more of the complicated functions that are required for hypro, namely determining a survey..
 
@@ -140,9 +141,44 @@ def determineSurvey(database, params, analyte, sampleid, bottleid = None):
     except Exception:
         print(traceback.print_exc())
 
+def get_max_rp(rosette_positions):
+    if max(rosette_positions) > 24:
+        max_rp = 36
+    else:
+        max_rp = 24
+
+    return max_rp
+
+def check_hover(event, axes):
+    for line in axes.get_lines():
+        if line.get_gid() == 'picking_line':
+            if line.contains(event)[0]:
+                x_point = line.get_xdata(orig=True)
+                y_point = line.get_ydata(orig=True)
+                xy_points = line.get_xydata()
+
+                return x_point, y_point, xy_points
+    return None
+
+def find_closest(picked_xy, plot_xy):
+    nodes = asarray(plot_xy)
+    dist_sq = sum((nodes - picked_xy) ** 2, axis=1)
+    return argmin(dist_sq)
+
+def update_annotation(anno, new_x, new_y, new_text, axes, canvas):
+    xlim = axes.get_xlim()
+    xlim_shift_coeff = (xlim[1] - xlim[0]) * 0.05
+
+    anno.xy = (new_x - xlim_shift_coeff, new_y)
+    anno.xyann = (new_x - xlim_shift_coeff, new_y)
+    anno.set_text(new_text)
+    anno.set_visible(True)
+
+    canvas.draw()
 
 def match_click_to_peak(x_time, slk_data, current_nutrient):
     '''
+
     Finds the closest peak to where was clicked on the trace, returns the index of this peak
     :param x_time:
     :param slk_data:

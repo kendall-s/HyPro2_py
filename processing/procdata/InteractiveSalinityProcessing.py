@@ -9,7 +9,7 @@ import processing.RefreshFunction
 import processing.procdata.ProcessGuildlineSalinity as pgs
 import processing.readdata.ReadGuildlineSalinity as rgs
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-from processing.plotting.QCPlots import salinityDifferencesPlot
+from processing.plotting.SalinityProcessingWindow import salinityDifferencesPlot
 
 
 # Loads in the salinity data from the Salinometer software, this is an excel file

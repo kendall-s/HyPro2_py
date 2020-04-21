@@ -307,32 +307,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         """
         st = time.time()
 
-        if len(self.main_trace.lines) == 0:
-            self.main_trace.grid(alpha=0.1)
-            self.main_trace.set_xlabel('Time (s)')
-            self.main_trace.set_ylabel('A/D Value')
+        qcp.draw_trace(self.tracefigure, self.main_trace, self.chd_data.ad_data[current_nutrient],
+                       trace_redraw=trace_redraw)
 
-            self.main_trace.plot(range(len(chd_data.ad_data[current_nutrient])), chd_data.ad_data[current_nutrient],
-                                 linewidth = 0.9, label='trace')
+        qcp.draw_peak_windows(self.tracefigure, self.main_trace, w_d.time_values, w_d.window_values, w_d.quality_flag)
 
-            self.main_trace.set_xlim(0, len(chd_data.ad_data[current_nutrient]))
-            self.main_trace.set_ylim(0, max(chd_data.ad_data[current_nutrient])*1.1)
-
-        if len(self.main_trace.lines) > 1:
-            del self.main_trace.lines[1:]
-            del self.main_trace.artists[1:]
-
-        if trace_redraw:
-            del self.main_trace.lines[:]
-            self.main_trace.plot(range(len(chd_data.ad_data[current_nutrient])), chd_data.ad_data[current_nutrient],
-                                 linewidth=0.9, label='trace')
-
-        for i, x in enumerate(w_d.time_values):
-            self.main_trace.plot(x, w_d.window_values[i], color=self.FLAG_COLORS[w_d.quality_flag[i]], linewidth=2.5, label='top')
-        # self.main_trace.plot(w_d.time_values, w_d.window_values, linewidth=0.25, color='#68C968', marker='o')
-
-        self.main_trace.plot(w_d.baseline_peak_starts[:], w_d.baseline_medians[1:-1], linewidth=1, color="#d69f20", label='baseline')
-        self.main_trace.plot(w_d.drift_peak_starts[:], w_d.raw_drift_medians[:], linewidth=1, color="#c6c600", label='drift')
+        qcp.draw_drifts_baselines(self.tracefigure, self.main_trace, w_d.baseline_peak_starts,
+                                  w_d.baseline_medians[1:-1], w_d.drift_peak_starts, w_d.raw_drift_medians)
 
         self.tracecanvas.draw()
 
@@ -385,8 +366,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         event2 = event
-        tb = get_current_fig_manager().toolbar
-        if event.button == 1 and event.inaxes and tb.mode == '':
+        tb_mode = self.tracetoolbar.mode
+        if event.button == 1 and event.inaxes and tb_mode == '':
             x_axis_time = int(event.xdata)
             exists, peak_index = match_click_to_peak(x_axis_time, self.slk_data, self.current_nutrient)
             if exists:

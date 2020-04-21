@@ -4,7 +4,7 @@ import matplotlib as mpl
 mplstyle = {'normal': {'axes.edgecolor': '#000000', 'xtick.color': '#000000', 'ytick.color': '#000000',
                        'axes.facecolor': '#FDFDFF', 'axes.labelcolor': '#000000', 'figure.facecolor': '#FDFDFF',
                        'grid.color': '#000000', 'figure.frameon': False, 'legend.facecolor': '#fdfdfd',
-                       'text.color': '#050505',
+                       'text.color': '#050505', 'lines.color': '#02020B',
                        'axes.prop_cycle': mpl.cycler(color=['#191919', '#4878d0', '#ee864a', '#6acc64', '#d65f5f',
                                                             '#956cb4', '#8c613c', '#dc7ec0', '#d5bb67', '#82c6e2'])},
             'dark': {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
@@ -275,7 +275,7 @@ QMenuBar {
 QToolTip {
     font: 15px Segoe UI;
 }
-""",
+"""
 
 '''
 ****************************************************************************************************
@@ -288,7 +288,7 @@ QToolTip {
 *****************************************************************************************************
 '''
               
-'dark': """
+,'dark': """
 /* --------------------------------- QTitleBar -----------
 
 ---------------------------------------------------------- */
@@ -385,7 +385,19 @@ QPushButton[sideBarButton=true]:pressed {
 QPushButton[msgBox=true] {
     width: 85px;
 }
-
+QPushButton[nutrientControls=true] {
+    border: 1px solid #858585;
+    background-color: #333333;
+    border-radius: 2px;
+}
+QPushButton[nutrientControls=true]:hover {
+    color: #ccd5e0;
+    border: 1px solid #6C676A;
+}
+QPushButton[nutrientControls=true]:pressed {
+    color: #6bb7ff;
+    background-color: #3A3A3A;
+}
 
 /* ---------------------------------- QComboBox ----------
 
@@ -589,6 +601,11 @@ QFrame[topBarFrame=true]{
 QFrame[sideHeaderFrame=true]{
     background-color: #1C1C1C;
     border-radius: 1px;
+}
+QFrame[nutrientButtonFrame=true] {
+    background-color:#191919;
+    border: 1px solid #141414;
+    border-radius: 3px;
 }
 
 

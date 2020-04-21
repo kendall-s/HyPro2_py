@@ -1,382 +1,59 @@
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-import io
 import json
 import sqlite3
 import statistics
 import traceback
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtGui import QFont, QIcon, QImage
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QDesktopWidget, QApplication, QVBoxLayout, QAction, QLabel,
-                             QFileDialog, QTabWidget, QGridLayout, QComboBox, QListWidget, QPushButton, QCheckBox)
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import (QLabel, QComboBox)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.collections import LineCollection
 from matplotlib.ticker import MaxNLocator
 from pylab import *
 import pandas as pd
+import numpy as np
 import style
 import hyproicons
+from processing.algo.HyproComplexities import get_max_rp
 from processing.plotting.InteractiveProcPlottingWindow import hyproProcPlotWindow
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.plotting.PlottingWindow import QMainPlotterTemplate
 
 mpl.rc('font', family = 'Segoe UI Symbol') # Cast Segoe UI font onto all plot text
-
-# File contains classes to produce various specific plots, all classes that utilise QWidget are apart of the
-# nutrient processing workflow
-# The other classes using QMainWindow are plots that are called on manually and are then displayed in their
-# own window
-
-# TODO: Fix RMNS plot so it still works even if nominal RMNS values are not in the database
-
 FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4: '#3CB6C9', 5: '#C92724', 6: '#DC9530',
                     91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
 
-class redfieldPlot(QMainPlotterTemplate):
-    def __init__(self, database):
-        super().__init__()
-        self. database = database
+# File contains methods to produce various specific plots with the very specific nature of it
+#
+# TODO: Fix RMNS plot so it still works even if nominal RMNS values are not in the database
 
-        self.apply_button.clicked.connect(self.draw_data)
+def draw_trace(fig, axes, ad_data, trace_redraw=None):
+    if len(axes.lines) == 0:
+        axes.grid(alpha=0.1)
+        axes.set_xlabel('Time (s)')
+        axes.set_ylabel('A/D Value')
 
-        self.setWindowTitle('Redfield Ratio Plot')
+        axes.plot(range(len(ad_data)), ad_data, lw=0.9, label='trace')
 
-        self.main_plot.set_title('Redfield Ratio', fontsize=18)
-        self.main_plot.set_xlabel('[NOx] (uM)', fontsize=15)
-        self.main_plot.set_ylabel('[Phosphate] (uM)', fontsize=15)
+        axes.set_xlim(0, len(ad_data))
+        axes.set_ylim(0, max(ad_data))
 
-        self.main_plot.grid(alpha=0.1)
-        survey_label = QLabel('Survey to use:', self)
-        #survey_label.setFont(QFont('Segoe UI'))
-        self.survey_selector = QComboBox()
-        self.survey_selector.setFont(QFont('Segoe UI'))
+    if len(axes.lines) > 1:
+        del axes.lines[1:]
+        del axes.artists[1:]
 
-        self.qvbox_layout.insertWidget(0, survey_label)
-        self.qvbox_layout.insertWidget(1, self.survey_selector)
+    if trace_redraw:
+        del axes.lines[:]
+        axes.plot(range(len(ad_data)), ad_data, lw=0.9, label='trace')
 
-        self.populate_fields()
-        self.show()
+def draw_peak_windows(fig, axes, time_values, window_values, flags):
 
-    def populate_fields(self):
+    for i, time_arr in enumerate(time_values):
+        axes.plot(time_arr, window_values[i], color=FLAG_COLORS[flags[i]], linewidth=2.5, label='p_windows')
 
-        conn = sqlite3.connect(self.database)
-        c = conn.cursor()
-        c.execute('SELECT DISTINCT runNumber FROM nitrateData')
-        nitrate_runs = sorted(list(c.fetchall()))
-        c.execute('SELECT DISTINCT runNumber FROM phosphateData')
-        phosphate_runs = list(c.fetchall())
+def draw_drifts_baselines(fig, axes, basl_peak_st, basl_medians, drift_peak_st, drift_medians):
 
-        runs = []
-        for x in nitrate_runs:
-            if x in phosphate_runs:
-                runs.append(x[0])
-                self.run_list.addItem(str(x[0]))
-        query_placeholder = ', '.join('?' for unused in runs)
-        c.execute(f'SELECT DISTINCT survey from nitrateData WHERE runNumber in ({query_placeholder})', (runs))
-        distinct_surveys = list(c.fetchall())
-        c.close()
-        for x in distinct_surveys:
-            self.survey_selector.addItem(x[0])
-
-
-    def draw_data(self):
-        selected = self.run_list.selectedItems()
-        selected_runs = [int(item.text()) for item in selected]
-
-        if selected_runs:
-            conn = sqlite3.connect(self.database)
-            query_placeholder = ', '.join('?' for unused in selected_runs)
-            nox_df = pd.read_sql_query(f"SELECT * FROM nitrateData WHERE runNumber IN ({query_placeholder})", conn,
-                                       params=selected_runs)
-            phos_df = pd.read_sql_query(f"SELECT * FROM phosphateData WHERE runNumber IN ({query_placeholder})", conn,
-                                       params=selected_runs)
-            conn.close()
-            nox_plottable = []
-            phos_plottable = []
-            for nox_row in nox_df.itertuples():
-                phos_point = phos_df.loc[(phos_df['runNumber'] == nox_row[1]) & (phos_df['peakNumber'] == nox_row[4])]
-                nox_plottable.append(nox_row[7])
-                phos_plottable.append(float(phos_point['concentration']))
-
-            self.main_plot.scatter(nox_plottable, phos_plottable, marker='o', facecolors='#FFB186', edgecolors='#EF8A68',
-                                   alpha=0.75)
-
-            self.canvas.draw()
-
-class rmnsPlotWindowTemplate(QMainPlotterTemplate):
-    def __init__(self, database, params_path):
-        super().__init__()
-        self. database = database
-        with open(params_path, 'r') as file:
-            self.params = json.loads(file.read())
-
-        self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
-                             'Ammonia': 'ammonia'}
-
-        self.rmnscols = {'NOx': 5, 'Phosphate': 1, 'Silicate': 3, 'Nitrite': 7, 'Ammonia': 9}
-
-        self.setWindowTitle('HyPro - RMNS')
-
-        self.main_plot.set_title('RMNS', fontsize=18)
-        self.main_plot.set_xlabel('Run/Peak Number', fontsize=15)
-        self.main_plot.set_ylabel('Concentration (uM)', fontsize=15)
-
-        self.main_plot.grid(alpha=0.1)
-
-        nutrient_label = QLabel('Nutrient', self)
-        self.nutrient = QComboBox(self)
-        self.nutrient.addItems(['NOx', 'Phosphate', 'Silicate', 'Nitrite', 'Ammonia'])
-        self.nutrient.currentIndexChanged.connect(self.populate_rmns)
-
-        rmns_type_label = QLabel('RMNS Lot')
-        self.rmns_type = QComboBox(self)
-        self.rmns_type.currentIndexChanged.connect(self.populate_run_list)
-
-        self.qvbox_layout.insertWidget(0, nutrient_label)
-        self.qvbox_layout.insertWidget(1, self.nutrient)
-        self.qvbox_layout.insertWidget(2, rmns_type_label)
-        self.qvbox_layout.insertWidget(3, self.rmns_type)
-
-        self.apply_button.clicked.connect(self.draw_data)
-
-        self.populate_rmns()
-        self.populate_run_list()
-        self.show()
-
-    def populate_rmns(self):
-        try:
-            nut = self.nutrient.currentText()
-            nutq = self.nut_converter[nut]
-            conn = sqlite3.connect(self.database)
-            c = conn.cursor()
-            c.execute('SELECT runNumber, sampleID FROM %sData' % nutq)
-            data = list(c.fetchall())
-            c.close()
-            rmnsnamelength = len(self.params['nutrientprocessing']['qcsamplenames']['rmns'])
-            listofrmns = []
-            for i, x in enumerate(data):
-                if x[1][:rmnsnamelength] == self.params['nutrientprocessing']['qcsamplenames']['rmns']:
-                    listofrmns.append(x)
-            rmnslots = set([x[1][rmnsnamelength:(rmnsnamelength + 3)] for x in listofrmns])
-
-            self.rmns_type.clear()
-            self.rmns_type.addItems(rmnslots)
-
-        except Exception:
-            print(traceback.print_exc())
-
-    def populate_run_list(self):
-        try:
-            nut = self.nutrient.currentText()
-            nutq = self.nut_converter[nut]
-            rmns = self.rmns_type.currentText()
-
-            conn = sqlite3.connect(self.database)
-            c = conn.cursor()
-            c.execute('SELECT runNumber, sampleID FROM %sData' % nutq)
-            data = list(c.fetchall())
-            c.close()
-
-            runnums = []
-            for i, x in enumerate(data):
-                if rmns in x[1]:
-                    runnums.append(x[0])
-
-            self.run_list.clear()
-            rn = sorted(list(set(runnums)))
-            for x in rn:
-                self.run_list.addItem(str(x))
-        except Exception:
-            print(traceback.print_exc())
-
-    def draw_data(self):
-        try:
-            del self.main_plot.lines[:]
-            nut = self.nutrient.currentText()
-            nutq = self.nut_converter[nut]
-            rmns = self.rmns_type.currentText()
-            selected = self.run_list.selectedItems()
-            selected_runs = [item.text() for item in selected]
-
-            queryq = '?'
-            queryplaceruns = ', '.join(queryq for unused in selected_runs)
-            conn = sqlite3.connect(self.database)
-            c = conn.cursor()
-            c.execute(
-                'SELECT peakNumber, runNumber, sampleID, concentration, flag FROM %sData WHERE runNumber IN (%s)' % (
-                    nutq, queryplaceruns), (selected_runs))
-            data = list(c.fetchall())
-            c.close()
-
-            self.runs = []
-            self.conctoplot = []
-            self.peaknums = []
-            sampleid = []
-            self.flagtoplot = []
-            for x in data:
-                if rmns in x[2]:
-                    self.peaknums.append(x[0])
-                    self.runs.append(x[1])
-                    sampleid.append(x[2])
-                    self.conctoplot.append(x[3])
-                    self.flagtoplot.append(x[4])
-
-            runpeaknumhold = []
-            self.runpeaknumtoplot = []
-            runs = sorted(set(self.runs))
-
-            for x in runs:
-                runpeaknumhold.append(self.runs.count(x))
-
-            for i, x in enumerate(runpeaknumhold):
-                for y in range(x):
-                    if y > 0:
-                        self.runpeaknumtoplot.append(runs[i] + (y / ((x - 1) * 1.6)))
-                    else:
-                        self.runpeaknumtoplot.append(runs[i])
-
-
-            rmns_plot(self.figure, self.main_plot, self.runpeaknumtoplot, self.conctoplot, self.flagtoplot, rmns, nutq)
-            self.canvas.draw()
-        except Exception:
-            print(traceback.print_exc())
-    def matchclicktopeak(self, xval, yval):
-        found = False
-        for i, x in enumerate(self.runpeaknumtoplot):
-            if abs(x - xval) < 0.09: # Check x coords to where was clicked
-                if abs(self.conctoplot[i] - yval) < 0.01: # Check y coords to where was clicked if less than threshold
-                                                           # then pick this peak
-                    runnum = self.runs[i]
-                    peaknum = self.peaknums[i]
-                    found = True
-                    break  # Break here because we've found the peak
-
-        if found:  # Complete rest of function because we've found a peak, pull up the peaks information
-            nutq = self.nutconverter[self.nutrient.currentText()]
-            conn = sqlite3.connect(self.database)
-            c = conn.cursor()
-            c.execute(
-                'SELECT sampleID, cupType, correctedAD, concentration, flag, dilution '
-                'FROM %sData WHERE runNumber=? AND peakNumber=?' % nutq, (runnum, peaknum))
-            data = list(c.fetchall())
-            c.close()
-            # Display the peak information dialog, no point assigning variables just pull from data call of db
-            # aka  in SampleID, CupType, CorrAD, Conc, Flag, Dilution, PlotType
-            self.selection = traceSelection(sampleid=data[0][0], cuptype=data[0][1], peaknumber=peaknum,
-                                            admedian=data[0][2], conc=data[0][3], flag=data[0][4], dil=data[0][5],
-                                            type='Plot')
-            self.selection.show()
-
-class mdlPlotWindowTemplate(QMainPlotterTemplate):
-    def __init__(self, database, params_path):
-        super().__init__()
-        self. database = database
-        with open(params_path, 'r') as file:
-            self.params = json.loads(file.read())
-
-        self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
-                             'Ammonia': 'ammonia'}
-
-        self.setWindowTitle('HyPro - MDL')
-        self.main_plot.set_title('MDL', fontsize=18)
-        self.main_plot.set_xlabel('Run/Peak Number', fontsize=15)
-        self.main_plot.set_ylabel('Concentration (uM)', fontsize=15)
-
-        self.main_plot.grid(alpha=0.1)
-
-        nutrient_label = QLabel('Nutrient', self)
-        self.nutrient = QComboBox(self)
-        self.nutrient.addItems(['NOx', 'Phosphate', 'Silicate', 'Nitrite', 'Ammonia'])
-        self.nutrient.currentIndexChanged.connect(self.populate_run_list)
-
-
-        self.qvbox_layout.insertWidget(0, nutrient_label)
-        self.qvbox_layout.insertWidget(1, self.nutrient)
-
-        self.apply_button.clicked.connect(self.draw_data)
-
-        self.populate_run_list()
-
-    def populate_run_list(self):
-        try:
-            nut = self.nutrient.currentText()
-            nutq = self.nut_converter[nut]
-
-            conn = sqlite3.connect(self.database)
-            c = conn.cursor()
-            c.execute('SELECT runNumber, sampleID FROM %sData' % nutq)
-            data = list(c.fetchall())
-            c.close()
-
-            mdl = self.params['nutrientprocessing']['qcsamplenames']['mdl']
-            runnums = []
-            for i, x in enumerate(data):
-                if mdl in x[1]:
-                    runnums.append(x[0])
-            self.run_list.clear()
-            rn = sorted(list(set(runnums)))
-            for x in rn:
-                self.run_list.addItem(str(x))
-
-        except Exception:
-            print(traceback.print_exc())
-
-    def draw_data(self):
-        nut = self.nutrient.currentText()
-        nutq = self.nut_converter[nut]
-        selected = self.run_list.selectedItems()
-        selected_runs = [item.text() for item in selected]
-
-        mdl = self.params['nutrientprocessing']['qcsamplenames']['mdl']
-
-        queryq = '?'
-        queryplaceruns = ', '.join(queryq for unused in selected_runs)
-        conn = sqlite3.connect(self.database)
-        c = conn.cursor()
-        c.execute(
-            'SELECT peakNumber, runNumber, sampleID, concentration, flag FROM %sData WHERE runNumber IN (%s)' % (
-                nutq, queryplaceruns), (selected_runs))
-        data = list(c.fetchall())
-        c.close()
-
-        self.runs = []
-        self.conctoplot = []
-        self.peaknums = []
-        sampleid = []
-        self.flagtoplot = []
-        for x in data:
-            if mdl in x[2]:
-                self.peaknums.append(x[0])
-                self.runs.append(x[1])
-                sampleid.append(x[2])
-                self.conctoplot.append(x[3])
-                self.flagtoplot.append(x[4])
-
-        runpeaknumhold = []
-        self.runpeaknumtoplot = []
-        runs = sorted(set(self.runs))
-
-        stdevs = []
-        for x in runs:
-            conchold = []
-            for i, y in enumerate(self.runs):
-                if x == y:
-                    conchold.append(self.conctoplot[i])
-            stdevs.append(statistics.stdev(conchold))
-
-            runpeaknumhold.append(self.runs.count(x))
-
-        for i, x in enumerate(runpeaknumhold):
-            for y in range(x):
-                if y > 0:
-                    self.runpeaknumtoplot.append(runs[i] + (y / ((x - 1) * 1.6)))
-                else:
-                    self.runpeaknumtoplot.append(runs[i])
-        mdl_plot(self.figure, self.main_plot, self.runpeaknumtoplot, self.conctoplot, self.flagtoplot, stdevs=stdevs, run_nums=runs)
-        self.canvas.draw()
-
-        #self.figure.axes[1].cla()
-
+    axes.plot(basl_peak_st, basl_medians, linewidth=1, color="#d69f20", label='baseline')
+    axes.plot(drift_peak_st, drift_medians, linewidth=1, color="#c6c600", label='drift')
 
 
 def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
@@ -439,7 +116,7 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
 
     fit = np.poly1d(cal_coefficients)
 
-    axes.plot(cal_medians, [fit(x) for x in cal_medians], lw=1, marker='.', ms=4)
+    axes.plot(cal_medians, [fit(x) for x in cal_medians], lw=1, marker='.', ms=4, color='C1')
 
     for i, flag in enumerate(flags):
         if flag == 1:
@@ -561,7 +238,7 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
     axes2.plot(indexes, correction, lw=1.25, marker='s', ms=8, mfc='none', color='#6986e5')
     fig.set_tight_layout(tight=True)
 
-def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
+def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_flags=None, show_bad=None):
     nut_column = {'phosphate': 1, 'silicate': 3, 'nitrate': 5, 'nitrite': 7, 'ammonia': 9}
 
     del axes.lines[:]
@@ -591,7 +268,11 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
     axes.set_ylabel('Concentration (uM)')
     axes.grid(alpha=0.2, zorder=1)
 
-    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o')
+    for i, ind in enumerate(indexes):
+        axes.plot(ind, concentrations[i], lw=0, marker='o', ms=5, color=FLAG_COLORS[flags[i]])
+
+    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o', picker=5, mfc='None')
+
     axes.set_ylim(min(concentrations) * 0.975, max(concentrations) * 1.025)
     axes.set_xlim(min(indexes)-1, max(indexes)+1)
 
@@ -599,7 +280,7 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient):
     by_label = dict(zip(labels, handles))
     axes.legend(by_label.values(), by_label.keys())
 
-def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=False, run_nums=False):
+def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=None, show_flags=None, show_bad=None):
 
     if len(axes.lines) > 0:
         del axes.lines[:]
@@ -609,7 +290,8 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=False, run_nums=F
         axes.set_ylabel('Concentration (uM)')
         axes.grid(alpha=0.2, zorder=2)
 
-    if stdevs: # Used when the across run plot is required - to plot standard deviation per run
+    # Used when the across voyage plot is required - plots standard deviation per run
+    if stdevs:
         if len(fig.axes) > 1:
             fig.axes[1].remove()
 
@@ -625,13 +307,22 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=False, run_nums=F
         stdev_runs_plot = stdev_plot.plot(run_nums, stdevs, linewidth=0, marker='s', markersize=5, mec='#949fb2', mfc='#949fb2', alpha=0.8, label='MDL SD per run')
         stdev_plot.set_ylabel('Standard Deviation per Run (µM)', fontsize=12)
 
-        axes.plot(indexes, concentrations, linestyle=':', lw=0.25, marker='o', mfc='None', mec='#12BA66', ms=12, label='Measured MDL')
+        for i, ind in enumerate(indexes):
+            axes.plot(ind, concentrations[i], lw=0, marker='o', ms=5, color=FLAG_COLORS[flags[i]])
+
+        axes.plot(indexes, concentrations, linestyle=':', lw=0.25, marker='o', mfc='None', mec='#12BA66', ms=12,
+                  label='Measured MDL', picker=5)
+
+        # These two lines required to make sure main axes is in front of the secondary axis, for the pick event to work
+        axes.set_zorder(stdev_plot.get_zorder() + 1)
+        axes.patch.set_visible(False)
 
         axes.set_xlim(min(indexes)-1, max(indexes)+1)
         all_lines = mean_mdl_plot + upper_mdl_plot + stdev_runs_plot
         labs = [l.get_label() for l in all_lines]
         axes.legend(all_lines, labs)
-    else: # Normal in processing plot
+    # Normal in processing plot
+    else:
         mdl = 3 * statistics.stdev(concentrations)
         axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl,3)), ms=12, mfc='none', mec='#12BA66')
         axes.set_ylim(min(concentrations)*0.95, max(concentrations)*1.05)
@@ -660,7 +351,8 @@ def bqc_plot(fig, axes, indexes, concentrations, flags):
     fig.set_tight_layout(tight=True)
 
 
-def sensor_difference_plot(fig, axes, x_data, difference, max_rp, sensor='Primary', clear_plot=True):
+def sensor_difference_plot(fig, axes, x_data, difference, max_rp, flags=None, show_flags=None, flag_ref_inds=None,
+                           show_bad=None, sensor='Primary', clear_plot=True):
 
     if (len(axes.lines) > 0) & clear_plot:
         del axes.lines[:]
@@ -670,8 +362,16 @@ def sensor_difference_plot(fig, axes, x_data, difference, max_rp, sensor='Primar
     else:
         col = '#71ce40'
 
+    if show_flags:
+        if flag_ref_inds:
+            for i, x_dat in enumerate(x_data):
+                axes.plot(x_dat, difference[i], lw=0, ms=5, marker='o', color=FLAG_COLORS[flags[i]])
+        else:
+            for i, ind in enumerate(flag_ref_inds):
+                axes.plot(x_data[i], difference[i], lw=0, ms=5, marker='o', color=FLAG_COLORS[flags[ind]])
+
     axes.plot(x_data, difference, linewidth=0.75, linestyle=':', marker='o', markersize=13, mfc='none',
-              color=col, picker=7)
+              color=col, picker=7, gid='picking_line')
 
     labels = axes.get_xticks().tolist()
     new_labels = []
@@ -687,7 +387,7 @@ def sensor_difference_plot(fig, axes, x_data, difference, max_rp, sensor='Primar
     fig.set_tight_layout(tight=True)
 
 
-def sensor_difference_pressure_plot(fig, axes, difference, pressures, deployments=None):
+def sensor_difference_pressure_plot(fig, axes, difference, pressures, flags=None, deployments=None):
     if len(axes.lines) > 0:
         del axes.lines[:]
 
@@ -702,11 +402,13 @@ def sensor_difference_pressure_plot(fig, axes, difference, pressures, deployment
             axes.plot(difference_dep_subset, pressure_dep_subset, marker='o', lw=0.3, mfc='None', markersize=5,
                       linestyle=':', label=f'Deployment {dep}')
         axes.legend()
+
+        axes.plot(difference, pressures, linewidth=0, marker='o', markersize=0, picker=5, gid='picking_line')
     else:
-        axes.plot(difference, pressures, marker='o', lw=0, mfc='None', markersize=5, alpha=0.8)
+        axes.plot(difference, pressures, marker='o', lw=0, mfc='None', markersize=5, alpha=0.8, gid='picking_line')
 
 
-def sensor_profile_plot(fig, axes, pressure, bottle, flags, flag_indexes, primary=None, secondary=None, deployments=None):
+def sensor_profile_plot(fig, axes, pressure, bottle, flags, flag_ref_inds=None, primary=None, secondary=None, deployments=None):
     if deployments:
         for dep in sorted(list(set(deployments))):
             plotting_indexes = []
@@ -732,163 +434,17 @@ def sensor_profile_plot(fig, axes, pressure, bottle, flags, flag_indexes, primar
     else:
         axes.plot(bottle, pressure, marker='o', lw=1, mfc='None', markersize=0)
 
-    for i, ind in enumerate(flag_indexes):
-        axes.scatter(bottle[i], pressure[i], alpha=0.8, s=18, color=FLAG_COLORS[flags[ind]], zorder=10)
+    if flag_ref_inds:
+        for i, ind in enumerate(flag_ref_inds):
+            axes.scatter(bottle[i], pressure[i], alpha=0.8, s=18, color=FLAG_COLORS[flags[ind]], zorder=10)
 
-    axes.plot(bottle, pressure, linewidth=0, linestyle=':', marker='o', markersize=0, mfc='none', picker=5)
+    else:
+        for i, bot in enumerate(bottle):
+            axes.scatter(bot, pressure[i], alpha=0.8, s=18, color=FLAG_COLORS[flags[i]], zorder=10)
+
+    axes.plot(bottle, pressure, linewidth=0, marker='o', markersize=0, picker=5, gid='picking_line')
+
     axes.set_ylabel('Pressure (dbar)')
     axes.legend()
 
 
-class salinityDifferencesPlot(hyproProcPlotWindow):
-    def __init__(self, deployment, x_data, bottle, primary, secondary, depths, max_rp, ref_ind, full_data):
-        super().__init__(600, 870, 'HyPro - CTD/Bottle Salinity Error', 'Salinity', ref_ind, full_data)
-
-        self.deployment = deployment
-        self.x_data = x_data
-        self.bottle = bottle
-        self.primary = primary
-        self.secondary = secondary
-        self.depths = depths
-        self.max_rp = max_rp
-        self.ref_ind = ref_ind
-        self.full_data = full_data
-
-        self.plot()
-
-    def plot(self):
-
-        """
-        ** Primary sensor comparison plot **
-        """
-        plottable_flags = []
-
-        primary_difference = [(self.primary[i] - bottle) for i, bottle in enumerate(self.bottle)]
-
-        sensor_difference_plot(self.sensor_one_figure, self.sensor_one_plot, self.x_data, primary_difference,
-                               self.max_rp, sensor='Primary')
-        sensor_difference_pressure_plot(self.sensor_one_figure, self.sensor_one_depth_plot, primary_difference,
-                                        self.depths, deployments=self.deployment)
-
-
-        """
-        ** Secondary sensor comparison plot **
-        """
-        secondary_difference = [(self.secondary[i] - bottle) for i, bottle in enumerate(self.bottle)]
-
-        sensor_difference_plot(self.sensor_two_figure, self.sensor_two_plot, self.x_data, secondary_difference,
-                               self.max_rp, sensor='Secondary')
-        sensor_difference_pressure_plot(self.sensor_two_figure, self.sensor_two_depth_plot, secondary_difference,
-                                        self.depths, deployments=self.deployment)
-
-        """
-        ** Both sensors comparison plot **
-        """
-
-        sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, primary_difference,
-                               self.max_rp, sensor='Primary')
-        sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, secondary_difference,
-                               self.max_rp, sensor='Secondary', clear_plot=False)
-        #self.both_sensor_plot.legend()
-
-        """
-        ** Profile plot **
-        """
-
-        sensor_profile_plot(self.profile_figure, self.profile_plot, self.depths, self.bottle,
-                            self.full_data.quality_flag, self.ref_ind, primary=self.primary,
-                            secondary=self.secondary, deployments=self.deployment)
-        self.profile_plot.set_xlabel('Salinity (PSU)')
-
-        self.redraw.connect(self.redraw_on_update)
-
-    def redraw_on_update(self):
-        del self.sensor_one_plot.lines[:]
-        del self.sensor_two_plot.lines[:]
-        del self.both_sensor_plot.lines[:]
-        del self.profile_plot.lines[:]
-
-        self.full_data.quality_flag = self.working_quality_flags
-
-        self.plot()
-        self.sensor_one_canvas.draw()
-        self.sensor_two_canvas.draw()
-        self.both_sensor_canvas.draw()
-        self.profile_canvas.draw()
-
-
-class oxygenDifferencesPlot(hyproProcPlotWindow):
-    def __init__(self, deployment, x_data, bottle, primary, secondary, depths, max_rp, ref_ind, full_data):
-        super().__init__(600, 870, 'HyPro - CTD/Bottle Oxygen Error', 'Oxygen', ref_ind, full_data)
-
-        self.deployment = deployment
-        self.x_data = x_data
-        self.bottle = bottle
-        self.primary = primary
-        self.secondary = secondary
-        self.depths = depths
-        self.max_rp = max_rp
-        self.ref_ind = ref_ind
-        self.full_data = full_data
-
-        self.plot()
-
-    def plot(self):
-
-        """
-        ** Primary sensor comparison plot **
-        """
-        plottable_flags = []
-
-        primary_difference = [(self.primary[i] - bottle) for i, bottle in enumerate(self.bottle)]
-
-        sensor_difference_plot(self.sensor_one_figure, self.sensor_one_plot, self.x_data, primary_difference,
-                               self.max_rp, sensor='Primary')
-        sensor_difference_pressure_plot(self.sensor_one_figure, self.sensor_one_depth_plot, primary_difference,
-                                        self.depths, deployments=self.deployment)
-
-
-        """
-        ** Secondary sensor comparison plot **
-        """
-        secondary_difference = [(self.secondary[i] - bottle) for i, bottle in enumerate(self.bottle)]
-
-        sensor_difference_plot(self.sensor_two_figure, self.sensor_two_plot, self.x_data, secondary_difference,
-                               self.max_rp, sensor='Secondary')
-        sensor_difference_pressure_plot(self.sensor_two_figure, self.sensor_two_depth_plot, secondary_difference,
-                                        self.depths, deployments=self.deployment)
-
-        """
-        ** Both sensors comparison plot **
-        """
-
-        sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, primary_difference,
-                               self.max_rp, sensor='Primary')
-        sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, secondary_difference,
-                               self.max_rp, sensor='Secondary', clear_plot=False)
-        self.both_sensor_plot.legend()
-
-        """
-        ** Profile plot **
-        """
-
-        sensor_profile_plot(self.profile_figure, self.profile_plot, self.depths, self.bottle,
-                            self.full_data.quality_flag, self.ref_ind, primary=self.primary,
-                            secondary=self.secondary, deployments=self.deployment)
-        self.profile_plot.set_xlabel('Oxygen Concentration (uM)')
-
-        self.redraw.connect(self.redraw_on_update)
-
-    def redraw_on_update(self):
-        del self.sensor_one_plot.lines[:]
-        del self.sensor_two_plot.lines[:]
-        del self.both_sensor_plot.lines[:]
-        del self.profile_plot.lines[:]
-
-        self.full_data.quality_flag = self.working_quality_flags
-
-        self.plot()
-        self.sensor_one_canvas.draw()
-        self.sensor_two_canvas.draw()
-        self.both_sensor_canvas.draw()
-        self.profile_canvas.draw()

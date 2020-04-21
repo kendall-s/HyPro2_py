@@ -122,6 +122,7 @@ class traceSelection(hyproDialogTemplate):
         else:
 
             self.peakcupline.setReadOnly(True)
+            self.dilutionline.setReadOnly(True)
 
             self.shiftpeakleft.hide()
             self.shiftpeakright.hide()
