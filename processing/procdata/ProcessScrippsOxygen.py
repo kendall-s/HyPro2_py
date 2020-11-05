@@ -6,7 +6,6 @@ import time
 
 
 def store_data(database, oxygen_data, file, last_modified_time):
-
     conn = sqlite3.connect(database)
     c = conn.cursor()
     run_list = [oxygen_data.run for x in oxygen_data.station]
@@ -40,6 +39,7 @@ def store_data(database, oxygen_data, file, last_modified_time):
 
     conn.commit()
     conn.close()
+
 
 def populate_oxygen_survey(station, cast, rosp, bottle_id, database_path, processing_parameters):
     deployments = []

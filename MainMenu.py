@@ -842,7 +842,6 @@ class Mainmenu(QMainWindow):
         os.system('start ' + file)
         print('showmanul')
 
-
     # Not working currently
     def mapplot(self):
         # self.mapplot = mapPlotting(self.currproject)

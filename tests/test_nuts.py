@@ -1,6 +1,4 @@
-import pytest
 import processing.procdata.ProcessSealNutrients as psn
-
 
 def test_drift_correction():
     drift_indexes = [0, 4, 6, 9, 11, 13]
@@ -94,12 +92,14 @@ def test_determine_duplicate_error():
     flags = psn.determine_duplicate_error(duplicate_samples, calculated_concentrations, quality_flags, analyte_tolerance)
     assert flags == [8, 1, 1, 1, 1, 1, 8, 8, 1, 8, 1, 1, 8]
 
+
 def test_reset_calibrant_flags():
     quality_flags = [1, 1, 1, 1, 2, 3, 5, 1, 6, 91, 3, 4, 92, 92, 92, 91, 1, 2, 1, 1, 1]
 
     new_flags = psn.reset_calibrant_flags(quality_flags)
 
     assert new_flags == [1, 1, 1, 1, 2, 3, 5, 1, 6, 1, 3, 4, 1, 1, 1, 1, 1, 2, 1, 1, 1]
+
 
 def test_get_calibrant_medians():
     calibrant_indexes = [0, 1, 4, 5, 6]
@@ -109,6 +109,7 @@ def test_get_calibrant_medians():
 
     assert calibrant_medians == [4000, 5000, 5000, 3000, 7000]
 
+
 def test_get_calibrant_concs():
     calibrant_indexes = [1, 3, 4, 6]
     nominal_concs = [0, 0, 1, 2, 3, 4, 5]
@@ -116,6 +117,7 @@ def test_get_calibrant_concs():
     calibrant_concs = psn.get_calibrant_concentrations(calibrant_indexes, nominal_concs)
 
     assert calibrant_concs == [0, 2, 3, 5]
+
 
 def test_get_calibrant_flags():
     calibrant_indexes = [0, 2, 3, 4, 6]
@@ -125,6 +127,7 @@ def test_get_calibrant_flags():
 
     assert calibrant_flags == [1, 2, 3, 1, 1]
 
+
 def test_calibrant_zero_mean():
     window_medians = [4000, 5000, 4500, 3000, 1500]
     sample_ids = ['Cal 0', 'Cal 1', 'Cal 0', 'Cal0', 'Cal 2']
@@ -132,6 +135,7 @@ def test_calibrant_zero_mean():
     cal_zero_mean = psn.get_calibrant_zero_mean(window_medians, sample_ids, cal_zero_label)
 
     assert cal_zero_mean == 4250
+
 
 def test_remove_cal_zero():
     calibrant_medians = [3300, 3500, 5250, 5500, 7400, 7600]
@@ -147,6 +151,7 @@ def test_calibration_weightings():
     calibrant_weightings = psn.get_calibrant_weightings(calibrant_concentrations)
 
     assert calibrant_weightings == [2, 1, 1, 1, 2, 1, 1]
+
 
 def test_flag_hashed_sample():
     peak_starts = ['255', '350', '1000', '#455', '900']

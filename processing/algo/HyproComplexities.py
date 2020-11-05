@@ -141,13 +141,15 @@ def determineSurvey(database, params, analyte, sampleid, bottleid = None):
     except Exception:
         print(traceback.print_exc())
 
-def get_max_rp(rosette_positions):
+
+def get_max_rp(rosette_positions: list):
     if max(rosette_positions) > 24:
         max_rp = 36
     else:
         max_rp = 24
 
     return max_rp
+
 
 def check_hover(event, axes):
     for line in axes.get_lines():
@@ -160,10 +162,12 @@ def check_hover(event, axes):
                 return x_point, y_point, xy_points
     return None
 
+
 def find_closest(picked_xy, plot_xy):
     nodes = asarray(plot_xy)
     dist_sq = sum((nodes - picked_xy) ** 2, axis=1)
     return argmin(dist_sq)
+
 
 def update_annotation(anno, new_x, new_y, new_text, axes, canvas):
     xlim = axes.get_xlim()
@@ -175,6 +179,44 @@ def update_annotation(anno, new_x, new_y, new_text, axes, canvas):
     anno.set_visible(True)
 
     canvas.draw()
+
+
+def zoom(axes, ad_max=None, ad_min=None, out=None):
+    y_min, y_max = axes.get_ybound()
+    x_min, x_max = axes.get_xbound()
+    y_ten_percent = y_max * 0.1
+    x_ten_percent = (x_max - x_min) * 0.15
+
+    if out:
+        new_x_min = x_min - x_ten_percent
+        new_x_max = x_max + x_ten_percent
+        new_y_max = y_max + y_ten_percent
+        if y_max < ad_max + 500:
+            return new_x_min, new_x_max, y_min, new_y_max
+        else:
+            if x_min > 0 and x_max < ad_max:
+                return new_x_min, new_x_max, y_min, y_max
+    else:
+        new_x_min = x_min + x_ten_percent
+        new_x_max = x_max - x_ten_percent
+        new_y_max = y_max - y_ten_percent
+        if y_max > ad_min * 2 and x_ten_percent < (x_max - x_min) / 2:
+            return new_x_min, new_x_max, y_min, new_y_max
+
+
+def move_camera_calc(axes, right=None, ad_max=None):
+    x_min, x_max = axes.get_xbound()
+    movement_amount = (x_max - x_min) * 0.065
+    if right:
+        if x_max < ad_max + 100:
+            new_x_min = x_min + movement_amount
+            new_x_max = x_max + movement_amount
+            return new_x_min, new_x_max
+    if x_min > 0 - 100:
+        new_x_min = x_min - movement_amount
+        new_x_max = x_max - movement_amount
+        return new_x_min, new_x_max
+
 
 def match_click_to_peak(x_time, slk_data, current_nutrient):
     '''

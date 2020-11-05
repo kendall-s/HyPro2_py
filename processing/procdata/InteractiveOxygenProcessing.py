@@ -27,23 +27,27 @@ class processingOxygenWindow():
             self.file_path = self.current_path + '/' + 'Oxygen' + '/' + self.file
 
             with open(self.current_path + '/' + self.current_project + 'Params.json', 'r') as file:
-                params = json.loads(file.read())
+                self.params = json.loads(file.read())
 
-            self.oxygen_data = rso.parse_lst(self.file_path, self.current_path, self.current_project, self.file)
-
-            if self.oxygen_data:
-
-                self.oxygen_data.deployment, self.oxygen_data.rosette_position, self.oxygen_data.survey = \
-                pso.populate_oxygen_survey(self.oxygen_data.station, self.oxygen_data.cast,
-                                           self.oxygen_data.niskin, self.oxygen_data.bottle_id,
-                                           self.database, params)
-                if interactive:
-                    self.call_plot(self.oxygen_data)
-                else:
-                    self.proceed_processing()
+            self.process_routine()
 
         except Exception:
             traceback.print_exc()
+
+    def process_routine(self):
+
+        # Parse in the oxygen LST file
+        self.oxygen_data = rso.parse_lst(self.file_path, self.current_path, self.current_project, self.file)
+
+        if self.oxygen_data:
+            self.oxygen_data.deployment, self.oxygen_data.rosette_position, self.oxygen_data.survey = \
+                pso.populate_oxygen_survey(self.oxygen_data.station, self.oxygen_data.cast,
+                                           self.oxygen_data.niskin, self.oxygen_data.bottle_id,
+                                           self.database, self.params)
+            if self.interactive:
+                self.call_plot(self.oxygen_data)
+            else:
+                self.proceed_processing()
 
     def call_plot(self, oxygen_data):
 

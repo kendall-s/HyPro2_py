@@ -11,10 +11,12 @@ import processing.readdata.ReadGuildlineSalinity as rgs
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 from processing.plotting.SalinityProcessingWindow import salinityDifferencesPlot
 
+'''
 
-# Loads in the salinity data from the Salinometer software, this is an excel file
-# No processing needs to be done just read in and pack into the project database file
+Loads in the salinity data from the Salinometer software, this is an excel file
+No processing needs to be done just parse, read in and pack into the project database file
 
+'''
 
 class processingSalinityWindow():
     def __init__(self, file, database, path, project, interactive, rereading):
@@ -28,24 +30,29 @@ class processingSalinityWindow():
             self.filepath = self.currpath + '/' + 'Salinity' + '/' + self.file
 
             with open(self.currpath + '/' + self.currproject + 'Params.json', 'r') as file:
-                params = json.loads(file.read())
+                self.params = json.loads(file.read())
 
-            self.salinity_data = rgs.parse_guildline_excel(self.filepath)
-            print(self.salinity_data)
-
-            if self.salinity_data:
-                self.salinity_data.run = pgs.determine_run(self.file, params)
-                self.salinity_data.file = self.file
-
-                self.salinity_data.deployment, self.salinity_data.rosette_position, self.salinity_data.survey = \
-                    pgs.populate_salinity_survey(self.salinity_data.sample_id, self.salinity_data.bottle_id,
-                                                 self.database, params)
-
-                self.call_plot(self.salinity_data.sample_id, self.salinity_data.deployment,
-                               self.salinity_data.rosette_position, self.salinity_data.salinity)
+            self.process_routine()
 
         except Exception:
             logging.error(traceback.print_exc())
+
+    def process_routine(self):
+        # Parse the excel file
+        self.salinity_data = rgs.parse_guildline_excel(self.filepath)
+
+        # If the correct data is found, proceed and pull out the relevant data
+        if self.salinity_data:
+            self.salinity_data.run = pgs.determine_run(self.file, self.params)
+            self.salinity_data.file = self.file
+
+            self.salinity_data.deployment, self.salinity_data.rosette_position, self.salinity_data.survey = \
+                pgs.populate_salinity_survey(self.salinity_data.sample_id, self.salinity_data.bottle_id,
+                                             self.database, self.params)
+
+            # Plot the data for the user to see
+            self.call_plot(self.salinity_data.sample_id, self.salinity_data.deployment,
+                           self.salinity_data.rosette_position, self.salinity_data.salinity)
 
     def call_plot(self, sample_ids, deployments, rosette_positions, salinity):
 

@@ -96,7 +96,7 @@ To counter this the half height of a drift sample can be measured and see if hal
 
 
 #### 2. View trace and determine if peak shapes are acceptable
-This is both an automatic and use involved process. When first loading up the dataset the user will want to inspect the analysis trace to ensure peak shapes are in specification and the peak window is fitting correctly. 
+This is both an automatic and user involved process. When first loading up the dataset the user will want to inspect the analysis trace to ensure peak shapes are in specification and the peak window is fitting correctly. Here an interactive chart will be required so the user can pan around, zoom in and assess the shape or window fit.
 
 
 #### 3. Take medians of each peak plateau window
@@ -104,7 +104,7 @@ After checking that the peak windows are in the correct spot, the median peak he
 
 
 #### 4. Apply baseline corrections
-The first step in altering the data to determine concentrations is performing a baseline sample correction across all samples in an analytical run. The baseline correction that is preferred to be used is a <b>piecewise</b> correction, meaning between each baseline sample a linear interpolation is calculated between the two points. 
+The first step in altering the data to determine concentrations is performing a baseline sample correction across all samples in an analytical run. The baseline correction that is preferred to be used is a <b>piece-wise</b> correction, meaning between each baseline sample a linear interpolation is calculated between the two points. 
 
 #### 5. Apply carryover correction
 Carryover correction is used to account for the small amount of sample that may potentially pass between each sample. This can be most noticeable if for example an extremely high concentration sample was measured and then a near detection limit sample was then measured. To account for this a series of samples are used to quantify the carryover, referred to as high and lows. These are analysed in the following order to determine a carryover correction factor applied to all the peaks.
@@ -130,7 +130,7 @@ Consider an array of drifts [drift1, drift2, drift3, drift4], first the mean pea
 $$
 \bar{x} = \dfrac{\sum{x_{1}, x_{2}, {x_3}, {x_4}}}{n-1} 
 $$
-Using this calcualted mean drift height, each drift throughout the run is compared and a simple ratio of the n^th^ drift to the mean drift. 
+Using this calculated mean drift height, each drift throughout the run is compared and a simple ratio of the n^th^ drift to the mean drift. 
 
 A drift to drift linear interpolation is then calculated using the ratio of change values and the time through the analysis, in seconds. The interpolation would then look like something below.
 
@@ -143,6 +143,8 @@ A drift to drift linear interpolation is then calculated using the ratio of chan
 
 #### 7. Iteratively apply regression
 To minimise the error in fitting a calibration curve, an iterative approach is taken to ensure the calibrants incorporated are the concentration they're expected to be. 
+If the calibrant error to the fit is greater than the first cutoff, it is marked as suspect and the weighting is cut in half. If the error is greater than the second cutoff, it is marked as bad and removed entirely from the fit. 
+The cutoff limits are defined as the method detection limit or 0.5% of full scale (derived from WOCE), whichever is greater.
 
 
 #### 8. Calculate concentrations
@@ -163,6 +165,7 @@ To assess a run, a number of quality control charts are inspected to ensure the 
 - Drift consistency
 - Method detection limit precision
 - RMNS accuracy and precision
+
 
 
 ### Dissolved Oxygen

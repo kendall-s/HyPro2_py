@@ -20,6 +20,10 @@ class CalibratedData:
         self.deployment = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
 
 
+"""
+Working Data is a data structure to house nutrient data during processing. It holds all of the relevant information 
+required to calculate each part of the data
+"""
 class WorkingData:
     def __init__(self, run):
         self.run = run
@@ -70,6 +74,10 @@ class WorkingData:
 
         self.qc_present = []
 
+"""
+The SLK data structure holds all of the information parsed from the SLK file for nutrients, which includes information
+relevant to the tray protocol as well as sample names
+"""
 class SLKData:
     def __init__(self, run):
         self.run = run
@@ -94,22 +102,28 @@ class SLKData:
         self.calibrants = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
         self.peak_starts = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
         self.channel = {'silicate': 0, 'phosphate': 0, 'nitrate': 0, 'nitrite': 0, 'ammonia': 0}
+        self.chd_channel = {'silicate': 0, 'phosphate': 0, 'nitrate': 0, 'nitrite': 0, 'ammonia': 0}
 
-
+"""
+The A/D data is in the CHD file, this file is parsed and each channel's detector values are stored in a dict 
+"""
 class CHDData:
     def __init__(self, run):
         self.run = run
 
         self.ad_data = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
 
-
+"""
+To house the oxygen data during processing the oxygen data structure is implemented, this holds all the variables
+relevant to the oxygen data
+"""
 class OxygenData:
     def __init__(self):
 
-        self.file = ''
-        self.run = ''
-        self.iodate_normality = ''
-        self.iodate_temperature = ''
+        self.file: str = ''
+        self.run: str = ''
+        self.iodate_normality: str = ''
+        self.iodate_temperature: str = ''
         self.iodate_volume = ''
         self.thio_normality = ''
         self.thio_temperature = ''

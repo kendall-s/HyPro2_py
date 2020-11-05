@@ -103,14 +103,14 @@ def extract_chd_data(chd_path, slk_data):
         readrlist = list(readr)
     try:
         for x in slk_data.active_nutrients:
-            chd_data.ad_data[x] = [int(row[int(slk_data.channel[x])]) for row in readrlist]
+            chd_data.ad_data[x] = [int(row[int(slk_data.chd_channel[x])]) for row in readrlist]
 
     except IndexError:
         with open(chd_path) as file:
             readr = csv.reader(file, delimiter=',')
             readrlist = list(readr)
         for x in slk_data.active_nutrients:
-            chd_data.ad_data[x] = [int(row[int(slk_data.channel[x])]) for row in readrlist]
+            chd_data.ad_data[x] = [int(row[int(slk_data.chd_channel[x])]) for row in readrlist]
 
 
     return chd_data
@@ -130,9 +130,26 @@ def extract_slk_data(slk_path, processing_parameters):
     findx, findy = getIndex(data_hold, '"OPER"')
     slk_data.operator = data_hold[findx][findy + 1][1:-1]
 
+    findx, findy = getIndex(data_hold, '"METH"')
+    # This was added a little later on, aftr realising that channel number in SLK does not
+    # correspond with the A/D data in the CHD, if say only channel 2 is missing, leaving channels 1,3,4,5
+    channel_orders = data_hold[findx][:]
+    channel_temp = 1
+    for x in channel_orders:
+        # Check that the method name matches an expected channel
+        cleaned_x = x.replace('"', '')
+        if cleaned_x in processing_parameters['nutrientprocessing']['elementNames'].values():
+            for name, channel_name in processing_parameters['nutrientprocessing']['elementNames'].items():
+                if cleaned_x == channel_name:
+                    name_cleaned = name.replace('Name', '')
+
+                    slk_data.chd_channel[name_cleaned] = channel_temp
+                    channel_temp += 1
+                    # Break because there is only going to be ONE match
+                    break
+
     for x in NUTRIENTS:
-        findx, findy = getIndex(data_hold, '"' + processing_parameters['nutrientprocessing']['elementNames']
-        ['%sName' % x] + '"')
+        findx, findy = getIndex(data_hold, '"' + processing_parameters['nutrientprocessing']['elementNames']['%sName' % x] + '"')
         if findx != 'no':
             slk_data.active_nutrients.append(x)
             slk_data.channel[x] = data_hold[findx - 1][findy]

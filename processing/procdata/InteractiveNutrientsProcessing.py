@@ -15,6 +15,7 @@ import style
 import processing.procdata.ProcessSealNutrients as psn
 import processing.readdata.ReadSealNutrients as rsn
 from processing.algo.HyproComplexities import load_proc_settings, match_click_to_peak
+from processing.algo import HyproComplexities
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.algo.Structures import WorkingData
 from threading import Thread
@@ -396,20 +397,23 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         win_start = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'])
         win_length = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'])
 
+        # If picked point is less than the end of the peak window i.e. valid
         if x_axis_time < (picked_peak_start + win_start + win_length):
 
+            # If picked point is further along than the current peak window
             if x_axis_time > (picked_peak_start + win_start):
                 window_start_time = x_axis_time - picked_peak_start
                 new_window_length = win_length - (x_axis_time - (picked_peak_start+win_start))
                 self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = window_start_time
                 self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'] = new_window_length
-
+            # If picked point is less than the start of the peak window
             if x_axis_time < (picked_peak_start + win_start):
                 window_start_time = x_axis_time - picked_peak_start
                 new_window_length = win_length + ((picked_peak_start+win_start) - x_axis_time)
                 self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = window_start_time
                 self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'] = new_window_length
 
+            # If point is actually less than the value given of the peak starts...
             if x_axis_time < picked_peak_start:
                 time_offset = picked_peak_start - x_axis_time
                 adjusted_peak_starts = [p_s - time_offset for p_s in self.slk_data.peak_starts]
@@ -430,16 +434,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         win_start = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'])
         win_length = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowSize'])
 
-        print(x_axis_time)
         peak_window_start = picked_peak_start + win_start
-        print(peak_window_start)
 
         if x_axis_time > (picked_peak_start + win_start):
 
             window_end = picked_peak_start + win_start + win_length
-
-            print(x_axis_time)
-            print(window_end)
 
             if x_axis_time > window_end:
                 window_end_increase = x_axis_time - window_end
@@ -455,6 +454,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.interactive_routine(trace_redraw=True)
 
     def shift_trace(self, x_axis_time, direction):
+        """
+        Function for physically shifting the whole trace by 3 time points. Used to realign the trace if necessary
+        :param x_axis_time:
+        :param direction:
+        :return:
+        """
+
         if direction == 'right':
             for i in range(3):
                 self.chd_data.ad_data[self.current_nutrient].insert(x_axis_time, 100)
@@ -476,33 +482,33 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         print(event.key())
         if event.key() == 65: # Assign A to move left
             self.move_camera_left()
-        if event.key() == 68: # Assign D to move right
+        elif event.key() == 68: # Assign D to move right
             self.move_camera_right()
-        if event.key() == 87: # Assign W to zoom in
+        elif event.key() == 87: # Assign W to zoom in
             self.zoom_in()
-        if event.key() == 88: # Assign X to zoom out
+        elif event.key() == 88: # Assign X to zoom out
             self.zoom_out()
-        if event.key() == 83: # Assign S to zoom fit
+        elif event.key() == 83: # Assign S to zoom fit
             self.zoom_fit()
-        if event.key() == 81: # Assign Q to auto zoom toggle
+        elif event.key() == 81: # Assign Q to auto zoom toggle
             if self.auto_size.isChecked():
                 self.auto_size.setChecked(False)
             else:
                 self.auto_size.setChecked(True)
-        if event.key() == 78: # Assign N to iterate through tabs
+        elif event.key() == 78: # Assign N to iterate through tabs
             curr_tab = self.qctabs.currentIndex()
             if curr_tab == (len(self.qctabs)-1):
                 self.qctabs.setCurrentIndex(0)
             else:
                 self.qctabs.setCurrentIndex(curr_tab+1)
-        if event.key() == 90: # Assign Z to shift peak window left
+        elif event.key() == 90: # Assign Z to shift peak window left
             ws = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'])
             ws = ws - 2
             self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = ws
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
             self.interactive_routine()
-        if event.key() == 67: # Assign C to shift peak window right
+        elif event.key() == 67: # Assign C to shift peak window right
             ws = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][
                 'windowStart'])
             ws = ws + 2
@@ -515,7 +521,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         # Below is only meant to be used for DEVELOPMENT PURPOSES, used to inject random values into peak picking
         # to check how the software responds, used to check speed of processing and robustness
-        if event.key() == 82: # R Imitates changing peak windows etc, for testing optimisation of processing and draw
+        elif event.key() == 82: # R Imitates changing peak windows etc, for testing optimisation of processing and draw
 
             random_modifier = np.random.randint(low=15, high=45)
             random_modifier2 = np.random.randint(low=2, high=30)
@@ -536,25 +542,30 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         X axis range. Also will dynamically zoom to the tallest peak if the Auto Zoom checkbox is ticked
         :return:
         """
+        res = HyproComplexities.move_camera_calc(self.main_trace)
+        if res:
+            new_x_min, new_x_max = res
 
-        xmin, xmax = self.main_trace.get_xbound()
-        movement_amount = (xmax-xmin) * 0.065
-        if xmin > 0 - 100:
-            self.main_trace.set_xlim(xmin - movement_amount, xmax - movement_amount)
+            self.main_trace.set_xlim(new_x_min, new_x_max)
+
             self.tracecanvas.draw()
-        if self.auto_size.isChecked():
-            self.zoom_fit()
+
+            if self.auto_size.isChecked():
+                self.zoom_fit()
 
     def move_camera_right(self):
         """
         Shifts the camera to the right on a button press. See shift camera left for more detail
         :return:
         """
-        xmin, xmax = self.main_trace.get_xbound()
-        movement_amount = (xmax - xmin) * 0.065
-        if xmax < len(self.chd_data.ad_data[self.current_nutrient]) + 100:
-            self.main_trace.set_xlim(xmin + movement_amount, xmax + movement_amount)
+        ad_max = len(self.chd_data.ad_data[self.current_nutrient])
+        res = HyproComplexities.move_camera_calc(self.main_trace, right=True, ad_max=ad_max)
+        if res:
+            new_x_min, new_x_max = res
+            self.main_trace.set_xlim(new_x_min, new_x_max)
+
             self.tracecanvas.draw()
+
         if self.auto_size.isChecked():
             self.zoom_fit()
 
@@ -563,31 +574,30 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         Zooms in on the plot, zooms on both the X and Y
         :return:
         """
-        ymin, ymax = self.main_trace.get_ybound()
-        xmin, xmax = self.main_trace.get_xbound()
-        ytenpercent = ymax * 0.1
-        xtenpercent = (xmax - xmin) * 0.15
-        if ymax > min(self.chd_data.ad_data[self.current_nutrient]) * 2 and xtenpercent < (xmax - xmin) / 2:
-            self.main_trace.set_ylim(ymin, ymax - ytenpercent)
-            self.main_trace.set_xlim(xmin + xtenpercent, xmax - xtenpercent)
-        self.tracecanvas.draw()
+
+        ad_min = min(self.chd_data.ad_data[self.current_nutrient])
+        res = HyproComplexities.zoom(self.main_trace, ad_min=ad_min)
+        if res:
+            new_x_min, new_x_max, new_y_min, new_y_max = res
+            self.main_trace.set_xlim(new_x_min, new_x_max)
+            self.main_trace.set_ylim(new_y_min, new_y_max)
+
+            self.tracecanvas.draw()
 
     def zoom_out(self):
         """
         Zooms out on the plot, zooms out on both the X and Y
         :return:
         """
-        ymin, ymax = self.main_trace.get_ybound()
-        xmin, xmax = self.main_trace.get_xbound()
-        ytenpercent = ymax * 0.1
-        xtenpercent = (xmax - xmin) * 0.15
-        if ymax < max(self.chd_data.ad_data[self.current_nutrient]) + 500:
-            self.main_trace.set_ylim(ymin, ymax + ytenpercent)
-            self.main_trace.set_xlim(xmin - xtenpercent, xmax + xtenpercent)
-        else:
-            if xmin > 0 and xmax < len(self.chd_data.ad_data[self.current_nutrient]):
-                self.main_trace.set_xlim(xmin - xtenpercent, xmax + xtenpercent)
-        self.tracecanvas.draw()
+        ad_max = max(self.chd_data.ad_data[self.current_nutrient])
+
+        res = HyproComplexities.zoom(self.main_trace, ad_max=ad_max, out=True)
+        if res:
+            new_x_min, new_x_max, new_y_min, new_y_max = res
+            self.main_trace.set_xlim(new_x_min, new_x_max)
+            self.main_trace.set_ylim(new_y_min, new_y_max)
+
+            self.tracecanvas.draw()
 
     def zoom_fit(self):
         """
@@ -607,7 +617,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     def update_from_dialog(self, index):
         self.slk_data.cup_types[index] = self.peak_display.peakcupline.text()
         self.w_d.dilution_factor[index] = int(self.peak_display.dilutionline.text())
-        #TODO: Add validation check to these user editable fields
+        # TODO: Add validation check to these user editable fields
         rev_flag_convert = {x : y for y, x in self.FLAG_CONVERTER.items()}
         self.w_d.quality_flag[index] = rev_flag_convert[self.peak_display.flagbox.currentText()]
 

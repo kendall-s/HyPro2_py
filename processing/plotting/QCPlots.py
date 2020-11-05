@@ -18,12 +18,16 @@ from processing.plotting.InteractiveProcPlottingWindow import hyproProcPlotWindo
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.plotting.PlottingWindow import QMainPlotterTemplate
 
-mpl.rc('font', family = 'Segoe UI Symbol') # Cast Segoe UI font onto all plot text
+mpl.rc('font', family='Segoe UI Symbol') # Cast Segoe UI font onto all plot text
 FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4: '#3CB6C9', 5: '#C92724', 6: '#DC9530',
                     91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
+'''
 
-# File contains methods to produce various specific plots with the very specific nature of it
-#
+File contains methods to produce various specific plots with the very specific nature of it
+These are just all functions that will apply to data and changes to an axes or figure
+
+'''
+
 # TODO: Fix RMNS plot so it still works even if nominal RMNS values are not in the database
 
 def draw_trace(fig, axes, ad_data, trace_redraw=None):
@@ -116,7 +120,7 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
 
     fit = np.poly1d(cal_coefficients)
 
-    axes.plot(cal_medians, [fit(x) for x in cal_medians], lw=1, marker='.', ms=4, color='C1')
+    axes.plot(cal_medians, [fit(x) for x in cal_medians], lw=1, marker='.', ms=4, color='C0')
 
     for i, flag in enumerate(flags):
         if flag == 1:
@@ -242,6 +246,7 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
     nut_column = {'phosphate': 1, 'silicate': 3, 'nitrate': 5, 'nitrite': 7, 'ammonia': 9}
 
     del axes.lines[:]
+    del axes.texts[:]
 
     conn = sqlite3.connect('C:/HyPro/Settings/hypro.db')
     c = conn.cursor()
@@ -271,14 +276,15 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
     for i, ind in enumerate(indexes):
         axes.plot(ind, concentrations[i], lw=0, marker='o', ms=5, color=FLAG_COLORS[flags[i]])
 
-    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o', picker=5, mfc='None')
+    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o', picker=5, mfc='None',  color='C0')
 
     axes.set_ylim(min(concentrations) * 0.975, max(concentrations) * 1.025)
     axes.set_xlim(min(indexes)-1, max(indexes)+1)
 
-    handles, labels = axes.get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    axes.legend(by_label.values(), by_label.keys())
+    if current_rmns:
+        handles, labels = axes.get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        axes.legend(by_label.values(), by_label.keys())
 
 def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=None, show_flags=None, show_bad=None):
 
@@ -311,7 +317,7 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=No
             axes.plot(ind, concentrations[i], lw=0, marker='o', ms=5, color=FLAG_COLORS[flags[i]])
 
         axes.plot(indexes, concentrations, linestyle=':', lw=0.25, marker='o', mfc='None', mec='#12BA66', ms=12,
-                  label='Measured MDL', picker=5)
+                  label='Measured MDL', picker=5, color='C0')
 
         # These two lines required to make sure main axes is in front of the secondary axis, for the pick event to work
         axes.set_zorder(stdev_plot.get_zorder() + 1)
@@ -324,7 +330,8 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=No
     # Normal in processing plot
     else:
         mdl = 3 * statistics.stdev(concentrations)
-        axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl,3)), ms=12, mfc='none', mec='#12BA66')
+        axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl, 3)),
+                  ms=12, mfc='none', mec='#12BA66', color='C0')
         axes.set_ylim(min(concentrations)*0.95, max(concentrations)*1.05)
         axes.legend(fontsize=12)
 

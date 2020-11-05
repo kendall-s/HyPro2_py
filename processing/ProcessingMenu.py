@@ -342,8 +342,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             os.startfile(self.currpath)
 
     def backtomenufunction(self):
-        logging.getLogger().removeHandler(self.output_box)
-        self.backToMain.emit()
+        #logging.getLogger().removeHandler(self.output_box)
+        #self.backToMain.emit()
+        pass
 
     def rmnsplots(self):
         self.rmns_window = RMNSWindow.rmnsPlotWindowTemplate(self.db, self.params_path)
@@ -583,8 +584,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.stats.show()
 
     def closeEvent(self, event):
-        #Closes everything if main processing window is closed
+        # Closes everything if main processing window is closed
         app = QApplication.instance()
         app.closeAllWindows()
-        #self.backToMain.emit()
+        # self.backToMain.emit()
 
