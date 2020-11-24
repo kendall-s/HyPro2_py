@@ -30,5 +30,5 @@ exe = EXE(pyz,
           strip=False,
           upx=False,
           runtime_tmpdir=None,
-          console=False, icon='assets/2dropsshadow.ico',
+          console=True, icon='assets/2dropsshadow.ico',
 		  version = 'C:\\Users\\she384\\Documents\\HyPro2\\hypro_version.rc')
