@@ -70,8 +70,8 @@ def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
 
     if indexes:
         # Get the subset indexes as lists, could be case where an analysis has multiple column checks
-        nitrite_stds_sub_index = [i for i, x in enumerate(ids) if '2' in x]
-        nitrate_stds_sub_index = [i for i, x in enumerate(ids) if '3' in x]
+        nitrite_stds_sub_index = [i for i, x in enumerate(ids) if 'NO2' in x]
+        nitrate_stds_sub_index = [i for i, x in enumerate(ids) if 'NO3' in x]
 
         conversion_efficiency = []
         plottable_index = []

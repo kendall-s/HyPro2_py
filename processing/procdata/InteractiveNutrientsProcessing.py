@@ -336,9 +336,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         # find the latitude and longitudes that correspond
         if self.find_lat_lons.isChecked():
             print('Checked')
-            complete = psn.match_lat_lons_routine(self.path, self.project, self.database, self.current_nutrient,
-                                                  self.processing_parameters, self.w_d, self.slk_data)
-
+            try:
+                complete = psn.match_lat_lons_routine(self.path, self.project, self.database, self.current_nutrient,
+                                                      self.processing_parameters, self.w_d, self.slk_data)
+            except Exception:
+                print(traceback.print_exc())
         index = self.slk_data.active_nutrients.index(self.current_nutrient)
         try:
             self.current_nutrient = self.slk_data.active_nutrients[index+1]

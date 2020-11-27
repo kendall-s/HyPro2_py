@@ -37,7 +37,7 @@ def get_data_routine(file_path, w_d, processing_parameters, database):
 def parse_slk(slk_path):
 
     """
-    function for completing the SLK file parsing and returning a 2D array representing the data
+    completes the SLK file parsing and returning a 2D array representing the data
     :param slk_path:
     :return:
     """
@@ -109,6 +109,7 @@ def extract_chd_data(chd_path, slk_data):
     with open(chd_path) as file:
         readr = csv.reader(file, delimiter=';')
         readrlist = list(readr)
+    # Try to disect the file, first assuming semi-colon delimiter, otherwise do comma delimiter
     try:
         for x in slk_data.active_nutrients:
             chd_data.ad_data[x] = [int(row[int(slk_data.chd_channel[x])]) for row in readrlist]

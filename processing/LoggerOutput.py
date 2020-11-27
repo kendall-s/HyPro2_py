@@ -7,7 +7,7 @@ import os
 
 # Modified QPlainTextEdit to act as a logger output and catch the logger calls
 
-class QTextEditLogger(logging.Handler):
+class QTextEditLogger(QtWidgets.QWidget, logging.Handler):
 
     def __init__(self, parent, log_path):
         super().__init__()
@@ -34,7 +34,7 @@ class QTextEditLogger(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
-        currenttime = time.strftime('%d/%m %H:%M:%S', time.localtime(time.time()))
+        currenttime = time.strftime('%d/%m %H:%M:%S', time.localtime(time.time()))[:-3]
         self.output = currenttime + ' | ' + self.active_processor + ': ' + msg
         time.sleep(0.1)
         self.widget.appendHtml(self.output)

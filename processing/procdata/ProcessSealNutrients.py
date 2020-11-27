@@ -929,17 +929,26 @@ def match_lat_lons_routine(path, project, database, current_nut, parameters, wor
 
     rvi_uwy = xr.open_dataset(rvi_uwy_path)
     epoch_date = rvi_uwy.Epoch
-
     rvi_lon = rvi_uwy.longitude.values
     rvi_lat = rvi_uwy.latitude.values
 
     rvi_times = generate_rvi_timestamps(epoch_date, len(rvi_lon))
+
+    print(parameters['nutrientprocessing']['qcsamplenames']['underway'])
+    print(parameters['nutrientprocessing']['cupnames']['sample'])
 
     sample_times, sample_concs = extract_underway_samples(slk_data.sample_ids, slk_data.cup_types,
                                                           working_data.quality_flag, slk_data.epoch_timestamps,
                                                           working_data.calculated_concentrations,
                                                           parameters['nutrientprocessing']['qcsamplenames']['underway'],
                                                           parameters['nutrientprocessing']['cupnames']['sample'])
+    print(sample_times)
+
+    if len(sample_times) == 0:
+        logging.error('The checkbox for matching up underway samples to the RVI file was ticked, however '
+                      'in the SLK file, there is not any matching underway samples. Please check the cup type and '
+                      'sample ID match the project parameters.')
+        return False
 
     rvi_start, rvi_end = find_rvi_time_subset(sample_times, rvi_times)
 
@@ -985,6 +994,7 @@ def find_rvi_time_subset(sample_times, rvi_times):
     :param rvi_times:
     :return:
     """
+    print(sample_times)
     sample_start_time = min(sample_times)
     sample_end_time = max(sample_times)
 

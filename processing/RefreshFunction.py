@@ -1,5 +1,6 @@
 import os, sqlite3, logging, json, traceback
 from time import sleep
+from PyQt5.QtCore import QThread
 from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
@@ -44,13 +45,13 @@ class refreshFunction():
 
                 if folder == 'CTD':
                     c.execute('SELECT * from ctdFilesProcessed')
-                if folder == 'Nutrients':
+                elif folder == 'Nutrients':
                     c.execute('SELECT * from nutrientFilesProcessed')
-                if folder == 'Salinity':
+                elif folder == 'Salinity':
                     c.execute('SELECT * from salinityFilesProcessed')
-                if folder == 'Oxygen':
+                elif folder == 'Oxygen':
                     c.execute('SELECT * from oxygenFilesProcessed')
-                if folder == 'Sampling':
+                elif folder == 'Sampling':
                     c.execute('SELECT * from logsheetFilesProcessed')
                 data = list(c.fetchall())
                 c.close()
@@ -83,9 +84,15 @@ class refreshFunction():
                                 neglen = -(len(self.params['analysisparams']['seal']['runFormat']) + 4)
                                 if file[: neglen] == self.params['analysisparams']['seal']['filePrefix']:
                                     logging.info('Nutrient file - ' + file + ' found. Not yet in database.')
-                                    self.initnutrientdata = processingNutrientsWindow(file,self.db,
+
+                                    self.initnutrientdata = processingNutrientsWindow(file, self.db,
                                                                                       self.currpath, self.currproject,
                                                                                       self.interactive, False)
+
+                                    self.thread = QThread()
+                                    self.initnutrientdata.moveToThread(self.thread)
+                                    self.thread.start()
+
                                     procfile = True
                                     break
                                 else:

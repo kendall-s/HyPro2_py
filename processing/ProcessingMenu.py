@@ -24,6 +24,7 @@ import numpy as np
 import traceback
 import time
 import calendar
+import threading
 import hyproicons, style
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
@@ -335,6 +336,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.viewDataDialog.show()
 
     def refresh(self):
+        #self.refresh_thread = threading.Thread(target=refreshFunction, args=(self.currpath,
+        #                                                                     self.currproject,
+        #                                                                     self.interactive_processing.checkState()))
+        #self.refresh_thread.start()
         self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState())
 
     def open_directory(self):
