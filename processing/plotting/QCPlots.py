@@ -18,6 +18,8 @@ from processing.plotting.InteractiveProcPlottingWindow import hyproProcPlotWindo
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.plotting.PlottingWindow import QMainPlotterTemplate
 
+theme_color_converter = {'normal': '#191919', 'dark': '#F5F5F5'}
+
 mpl.rc('font', family='Segoe UI Symbol') # Cast Segoe UI font onto all plot text
 FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4: '#3CB6C9', 5: '#C92724', 6: '#DC9530',
                     91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
@@ -30,13 +32,14 @@ These are just all functions that will apply to data and changes to an axes or f
 
 # TODO: Fix RMNS plot so it still works even if nominal RMNS values are not in the database
 
-def draw_trace(fig, axes, ad_data, trace_redraw=None):
+def draw_trace(fig, axes, ad_data, trace_redraw=None, theme='normal'):
+
     if len(axes.lines) == 0:
         axes.grid(alpha=0.1)
         axes.set_xlabel('Time (s)')
         axes.set_ylabel('A/D Value')
 
-        axes.plot(range(len(ad_data)), ad_data, lw=0.9, label='trace')
+        axes.plot(range(len(ad_data)), ad_data, lw=0.9, label='trace', color=theme_color_converter[theme])
 
         axes.set_xlim(0, len(ad_data))
         axes.set_ylim(0, max(ad_data))
@@ -47,7 +50,7 @@ def draw_trace(fig, axes, ad_data, trace_redraw=None):
 
     if trace_redraw:
         del axes.lines[:]
-        axes.plot(range(len(ad_data)), ad_data, lw=0.9, label='trace')
+        axes.plot(range(len(ad_data)), ad_data, lw=0.9, label='trace', color=theme_color_converter[theme])
 
 def draw_peak_windows(fig, axes, time_values, window_values, flags):
 
@@ -72,7 +75,6 @@ def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
         # Get the subset indexes as lists, could be case where an analysis has multiple column checks
         nitrite_stds_sub_index = [i for i, x in enumerate(ids) if 'NO2' in x]
         nitrate_stds_sub_index = [i for i, x in enumerate(ids) if 'NO3' in x]
-
         conversion_efficiency = []
         plottable_index = []
         flags_to_plot = []
@@ -268,7 +270,11 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
     else:
         axes.annotate('No RMNS values found', [0.05, 0.05], xycoords='axes fraction')
 
-    axes.set_title(str(nutrient).capitalize() + ' RMNS ' + str(rmns), fontsize=12)
+    if current_rmns:
+        axes.set_title(f'{nutrient.capitalize()} RMNS {rmns} (Cert. Val: {conc} )', fontsize=12)
+    else:
+        axes.set_title(str(nutrient).capitalize() + ' RMNS ' + str(rmns), fontsize=12)
+
     axes.set_xlabel('Peak Number')
     axes.set_ylabel('Concentration (uM)')
     axes.grid(alpha=0.2, zorder=1)
@@ -285,6 +291,8 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
         handles, labels = axes.get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         axes.legend(by_label.values(), by_label.keys())
+
+    axes.annotate(f'Average: {round(statistics.mean(concentrations), 3)}', [0.8, 0.05], xycoords='axes fraction')
 
 def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=None, show_flags=None, show_bad=None):
 
@@ -332,7 +340,7 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=No
         mdl = 3 * statistics.stdev(concentrations)
         axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl, 3)),
                   ms=12, mfc='none', mec='#12BA66', color='C0')
-        axes.set_ylim(min(concentrations)*0.95, max(concentrations)*1.05)
+        #axes.set_ylim(min(concentrations)-0.05, max(concentrations)+0.05)
         axes.legend(fontsize=12)
 
     fig.set_tight_layout(tight=True)

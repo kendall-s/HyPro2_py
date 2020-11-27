@@ -64,8 +64,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         # Load up theme for window
         if params['theme'] == 'normal':
             plt.style.use(style.mplstyle['normal'])
+            self.theme = 'normal'
         else:
             plt.style.use(style.mplstyle['dark'])
+            self.theme = 'dark'
 
         # Holds all the calculation data
         self.w_d = WorkingData(file)
@@ -110,7 +112,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         Routine called everytime the data has been reprocessed, this will redraw all as necessary.
         :return:
         """
-        thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient, trace_redraw))
+        thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient, trace_redraw,))
         thread.start()
         thread.join()
 
@@ -309,7 +311,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         st = time.time()
 
         qcp.draw_trace(self.tracefigure, self.main_trace, self.chd_data.ad_data[current_nutrient],
-                       trace_redraw=trace_redraw)
+                       trace_redraw=trace_redraw, theme=self.theme)
 
         qcp.draw_peak_windows(self.tracefigure, self.main_trace, w_d.time_values, w_d.window_values, w_d.quality_flag)
 
