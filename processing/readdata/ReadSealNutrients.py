@@ -112,14 +112,14 @@ def extract_chd_data(chd_path, slk_data):
     # Try to disect the file, first assuming semi-colon delimiter, otherwise do comma delimiter
     try:
         for x in slk_data.active_nutrients:
-            chd_data.ad_data[x] = [int(row[int(slk_data.chd_channel[x])]) for row in readrlist]
+            chd_data.ad_data[x] = [int(float(row[int(slk_data.chd_channel[x])])) for row in readrlist]
 
     except IndexError:
         with open(chd_path) as file:
             readr = csv.reader(file, delimiter=',')
             readrlist = list(readr)
         for x in slk_data.active_nutrients:
-            chd_data.ad_data[x] = [int(row[int(slk_data.chd_channel[x])]) for row in readrlist]
+            chd_data.ad_data[x] = [int(float(row[int(slk_data.chd_channel[x])])) for row in readrlist]
 
 
     return chd_data

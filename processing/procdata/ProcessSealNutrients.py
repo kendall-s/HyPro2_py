@@ -85,8 +85,10 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ----------  Find carryover peaks - apply carryover correction ---------------------------------------------
     w_d.high_index, w_d.low_indexes = find_carryover_indexes(high_cup_type, low_cup_type, slk_data.cup_types)
-    w_d.corr_window_medians, w_d.carryover_coefficient = carryover_correction(w_d.high_index, w_d.low_indexes,
-                                                                              w_d.corr_window_medians)
+    # TODO: implement warning when there is no carryover correction being applied
+    if w_d.high_index:
+        w_d.corr_window_medians, w_d.carryover_coefficient = carryover_correction(w_d.high_index, w_d.low_indexes,
+                                                                                  w_d.corr_window_medians)
 
     # ----------- Find drift peaks - apply drift correction -----------------------------------------------------
     w_d.drift_indexes = find_cup_indexes(drift_cup_type, slk_data.cup_types)
@@ -101,7 +103,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     # ----------- Find calibrant peaks --------------------------------------------------------------------------
     w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type, slk_data.cup_types)
 
-    # ----------- Prepare calibrants and various paramters ------------------------------------------------------
+    # ----------- Prepare calibrants and various parameters ------------------------------------------------------
     w_d.calibrant_medians = get_calibrant_medians(w_d.calibrant_indexes, w_d.corr_window_medians)
     # Side note for baseline plot - get highest cal median and determine a percentage corr from that
     w_d.baseline_corr_percent = get_basedrift_corr_percent(w_d.baseline_medians, max(w_d.calibrant_medians))
@@ -302,6 +304,9 @@ def organise_basedrift_medians(relevant_indexes, window_medians):
     :param window_medians:
     :return: medians, indexes
     """
+    print(window_medians)
+    print(len(window_medians))
+    print(relevant_indexes)
     medians = [window_medians[x] for x in relevant_indexes]
 
     if relevant_indexes[0] != 0:
