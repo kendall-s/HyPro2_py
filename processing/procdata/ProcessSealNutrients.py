@@ -172,7 +172,7 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
     # For now remove any hashes that are in the peak starts, this makes the following list comps cleaner.
     peak_starts = [p_s.replace('#', '') for p_s in peak_starts]
 
-    # This looks ugly, but it is 10x faster than an expanded for if else statement to accomplish the same thing
+    # This looks ugly, but it is 10x faster than an expanded for statement to accomplish the same thing
     # List comprehension to pull out the A/D values from the CHD based on the peak starts and window size
     window_values = [
         [ad_data[ind] for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))]
@@ -188,9 +188,9 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
 def flag_hashed_samples(peak_starts, quality_flags):
     """
     If a peak start value begins with a HASH(#) then it should be flagged as bad
-    :param peak_starts:
-    :param quality_flags:
-    :return: quality_flags
+    :param peak_starts: list
+    :param quality_flags: list
+    :return: quality_flags: list
     """
 
     quality_flags = [quality_flags[i] if x[0] != '#' else 3 for i, x in enumerate(peak_starts)]

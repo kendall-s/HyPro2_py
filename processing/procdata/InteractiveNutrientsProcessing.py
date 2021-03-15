@@ -20,8 +20,12 @@ from dialogs.TraceSelectionDialog import traceSelection
 from processing.algo.Structures import WorkingData
 from threading import Thread
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
+from processing.plotting.TracePlot import TracePlotter
+import pyqtgraph as pg
+
 import cProfile
 #background-color: #ededed;
+
 
 # TODO: Finish new implementation of cleaned up testable Nutrients
 # TODO: Reimplement the QC chart tab system to be more L I G H T W E I G H T
@@ -258,6 +262,18 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.tracetoolbar.locLabel.hide()
             self.main_trace = self.tracefigure.add_subplot(111)
 
+            pg.setConfigOptions(antialias=True)
+            self.graphWidget = pg.PlotWidget()
+            self.graphWidget.setLabel('left', 'Raw Count')
+            self.graphWidget.setLabel('bottom', 'Time')
+            self.graphWidget.showGrid(x=True, y=True)
+            self.graphWidget.setBackground('w')
+
+            graph_pen = pg.mkPen(color=(20, 20, 30), width=1.2)
+
+            self.plotted_data = self.graphWidget.plot(pen=graph_pen)
+            #self.window_data = self.graphWidget.plot()
+
             # Setting everything into the layout
             self.grid_layout.addWidget(tracelabelframe, 0, 0, 1, 11)
             self.grid_layout.addWidget(self.analysistraceLabel, 0, 0, 1, 5, Qt.AlignCenter)
@@ -271,6 +287,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.grid_layout.addWidget(qctabsframe, 1, 11, 19, 5)
             self.grid_layout.addWidget(self.qctabs, 1, 11, 19, 5)
+
+            self.grid_layout.addWidget(self.graphWidget, 1, 32, 10, 5)
 
             self.grid_layout.addWidget(self.auto_size, 20, 0, Qt.AlignCenter)
 
@@ -317,6 +335,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         qcp.draw_drifts_baselines(self.tracefigure, self.main_trace, w_d.baseline_peak_starts,
                                   w_d.baseline_medians[1:-1], w_d.drift_peak_starts, w_d.raw_drift_medians)
+
+        self.plotted_data.setData(range(len(self.chd_data.ad_data[current_nutrient])), self.chd_data.ad_data[current_nutrient])
+
+        window_lines = TracePlotter(w_d.time_values, w_d.window_values, w_d.quality_flag)
+        self.graphWidget.addItem(window_lines)
 
         self.tracecanvas.draw()
 

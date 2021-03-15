@@ -199,6 +199,7 @@ def extract_slk_data(slk_path, processing_parameters):
                             '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['dateTime'] + '"')
     slk_data.epoch_timestamps = [row[findy][1:-1] for row in data_hold[findx + 1:]]
     format = '%d/%m/%Y %I:%M:%S %p'
+    last_hundred = slk_data.epoch_timestamps[-100:]
     structtime = [time.strptime(x, format) for x in slk_data.epoch_timestamps]
     slk_data.epoch_timestamps = [calendar.timegm(x) for x in structtime]
 
