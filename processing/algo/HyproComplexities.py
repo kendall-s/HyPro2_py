@@ -164,6 +164,12 @@ def check_hover(event, axes):
 
 
 def find_closest(picked_xy, plot_xy):
+    """
+    Find closest
+    :param picked_xy:
+    :param plot_xy:
+    :return:
+    """
     nodes = asarray(plot_xy)
     dist_sq = sum((nodes - picked_xy) ** 2, axis=1)
     return argmin(dist_sq)
@@ -182,8 +188,16 @@ def update_annotation(anno, new_x, new_y, new_text, axes, canvas):
 
 
 def zoom(axes, ad_max=None, ad_min=None, out=None):
-    y_min, y_max = axes.get_ybound()
-    x_min, x_max = axes.get_xbound()
+    #y_min, y_max = axes.get_ybound()
+    #x_min, x_max = axes.get_xbound()
+    trace_state = axes.getViewBox().state
+    x_min = trace_state['viewRange'][0][0]
+    x_max = trace_state['viewRange'][0][1]
+    y_min = trace_state['viewRange'][1][0]
+    y_max = trace_state['viewRange'][1][1]
+
+    print(y_min)
+
     y_ten_percent = y_max * 0.1
     x_ten_percent = (x_max - x_min) * 0.15
 
@@ -205,7 +219,12 @@ def zoom(axes, ad_max=None, ad_min=None, out=None):
 
 
 def move_camera_calc(axes, right=None, ad_max=None):
-    x_min, x_max = axes.get_xbound()
+
+    #x_min, x_max = axes.get_xbound()
+    trace_state = axes.getViewBox().state
+    x_min = trace_state['viewRange'][0][0]
+    x_max = trace_state['viewRange'][0][1]
+
     movement_amount = (x_max - x_min) * 0.065
     if right:
         if x_max < ad_max + 100:

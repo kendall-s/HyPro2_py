@@ -253,26 +253,31 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             cancelbut.setFixedHeight(25)
             cancelbut.setFixedWidth(95)
 
-            # Initialise the trace figure for plotting to
-            self.tracefigure = plt.figure(figsize=(6, 4))
-            self.tracefigure.set_tight_layout(tight=True)
-            self.tracecanvas = FigureCanvas(self.tracefigure)
-            self.tracecanvas.setParent(self)
-            self.tracetoolbar = NavigationToolbar(self.tracecanvas, self)
-            self.tracetoolbar.locLabel.hide()
-            self.main_trace = self.tracefigure.add_subplot(111)
-
             pg.setConfigOptions(antialias=True)
-            self.graphWidget = pg.PlotWidget()
-            self.graphWidget.setLabel('left', 'Raw Count')
-            self.graphWidget.setLabel('bottom', 'Time')
-            self.graphWidget.showGrid(x=True, y=True)
-            self.graphWidget.setBackground('w')
+            self.graph_widget = pg.PlotWidget()
+            label_style = {'color': '#C1C1C1', 'font-size': '10pt', 'font-family': 'Segoe UI'}
+            self.graph_widget.setLabel('left', 'A/D Value', **label_style)
+            self.graph_widget.setLabel('bottom', 'Time (s)', **label_style)
+            self.graph_widget.showGrid(x=True, y=True)
 
-            graph_pen = pg.mkPen(color=(20, 20, 30), width=1.2)
+            if self.theme == 'normal':
+                self.graph_widget.setBackground('w')
+                graph_pen = pg.mkPen(color=(25, 25, 30), width=1.2)
+            else:
+                self.graph_widget.setBackground((25, 25, 25))
+                graph_pen = pg.mkPen(color=(211, 211, 211), width=1.2)
 
-            self.plotted_data = self.graphWidget.plot(pen=graph_pen)
-            #self.window_data = self.graphWidget.plot()
+            # This is the plot that holds the signal trace
+            self.plotted_data = self.graph_widget.plot(pen=graph_pen)
+            self.plotted_data.scene().sigMouseClicked.connect(self.on_click)
+
+            # These are for holding the lines representing the drift and baseline across the run
+            baseline_pen = pg.mkPen(color=('#d69f20'), width=2)
+            self.baseline_plotted = self.graph_widget.plot(pen=baseline_pen)
+
+            drift_pen = pg.mkPen(color=('#c6c600'), width=2)
+            self.drift_plotted = self.graph_widget.plot(pen=drift_pen)
+
 
             # Setting everything into the layout
             self.grid_layout.addWidget(tracelabelframe, 0, 0, 1, 11)
@@ -282,13 +287,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.grid_layout.addWidget(self.qctabsLabel, 0, 11, 1, 1, Qt.AlignCenter)
 
             self.grid_layout.addWidget(traceframe, 1, 0, 20, 11)
-            self.grid_layout.addWidget(self.tracecanvas, 1, 0, 17, 11)
-            self.grid_layout.addWidget(self.tracetoolbar, 18, 0, 1, 5)
+            self.grid_layout.addWidget(self.graph_widget, 1, 0, 17, 11)
 
             self.grid_layout.addWidget(qctabsframe, 1, 11, 19, 5)
             self.grid_layout.addWidget(self.qctabs, 1, 11, 19, 5)
-
-            self.grid_layout.addWidget(self.graphWidget, 1, 32, 10, 5)
 
             self.grid_layout.addWidget(self.auto_size, 20, 0, Qt.AlignCenter)
 
@@ -306,9 +308,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.grid_layout.addWidget(okbut, 20, 12, 1, 2, Qt.AlignJustify)
             self.grid_layout.addWidget(cancelbut, 20, 13, 1, 2, Qt.AlignJustify)
-
-            # Connect the mouse interaction to the trace plot so we can click and select peaks on it
-            clicker = self.tracefigure.canvas.mpl_connect("button_press_event", self.on_click)
 
             self.bootup = True
 
@@ -328,25 +327,17 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         """
         st = time.time()
 
-        qcp.draw_trace(self.tracefigure, self.main_trace, self.chd_data.ad_data[current_nutrient],
-                       trace_redraw=trace_redraw, theme=self.theme)
-
-        qcp.draw_peak_windows(self.tracefigure, self.main_trace, w_d.time_values, w_d.window_values, w_d.quality_flag)
-
-        qcp.draw_drifts_baselines(self.tracefigure, self.main_trace, w_d.baseline_peak_starts,
-                                  w_d.baseline_medians[1:-1], w_d.drift_peak_starts, w_d.raw_drift_medians)
-
         self.plotted_data.setData(range(len(self.chd_data.ad_data[current_nutrient])), self.chd_data.ad_data[current_nutrient])
 
         window_lines = TracePlotter(w_d.time_values, w_d.window_values, w_d.quality_flag)
-        self.graphWidget.addItem(window_lines)
+        self.graph_widget.addItem(window_lines)
 
-        self.tracecanvas.draw()
+        self.baseline_plotted.setData(w_d.baseline_peak_starts, w_d.baseline_medians[1:-1])
+        self.drift_plotted.setData(w_d.drift_peak_starts, w_d.raw_drift_medians)
 
         ft = time.time()
 
         print('Draw time: ' + str(ft-st))
-        print(str(len(self.main_trace.lines)) + str(' Lines on Main Trace'))
 
     def store_data(self):
         psn.pack_data(self.slk_data, self.w_d, self.database, self.file_path)
@@ -381,7 +372,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                           self.current_nutrient)
         self.interactive_routine()
-           
 
     def cancel(self):
         plt.close('all')
@@ -393,11 +383,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :param event:
         :return:
         """
-        event2 = event
-        tb_mode = self.tracetoolbar.mode
-        if event.button == 1 and event.inaxes and tb_mode == '':
-            x_axis_time = int(event.xdata)
-            exists, peak_index = match_click_to_peak(x_axis_time, self.slk_data, self.current_nutrient)
+        # Get the clicked coordinates, convert to the plotted data values
+        trace_coordinates = event.scenePos()
+        data_coordinates = self.plotted_data.getViewBox().mapSceneToView(trace_coordinates)
+
+        if event.button() == 1:
+            x_point = data_coordinates.x()
+            exists, peak_index = match_click_to_peak(x_point, self.slk_data, self.current_nutrient)
+
             if exists:
                 self.peak_display = traceSelection(self.slk_data.sample_ids[peak_index],
                                                    self.slk_data.cup_types[peak_index],
@@ -406,12 +399,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                    self.w_d.calculated_concentrations[peak_index],
                                                    self.w_d.quality_flag[peak_index],
                                                    self.w_d.dilution_factor[peak_index], 'Trace')
-
-                self.peak_display.setStart.connect(lambda: self.move_peak_start(x_axis_time, peak_index))
-                self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_axis_time, peak_index))
+                self.peak_display.setStart.connect(lambda: self.move_peak_start(x_point, peak_index))
+                self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_point, peak_index))
                 self.peak_display.saveSig.connect(lambda: self.update_from_dialog(peak_index))
-                self.peak_display.peakShiftLeft.connect(lambda: self.shift_trace(x_axis_time, 'left'))
-                self.peak_display.peakShiftRight.connect(lambda: self.shift_trace(x_axis_time, 'right'))
+                self.peak_display.peakShiftLeft.connect(lambda: self.shift_trace(x_point, 'left'))
+                self.peak_display.peakShiftRight.connect(lambda: self.shift_trace(x_point, 'right'))
 
     def move_peak_start(self, x_axis_time, peak_index):
         """
@@ -569,13 +561,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         X axis range. Also will dynamically zoom to the tallest peak if the Auto Zoom checkbox is ticked
         :return:
         """
-        res = HyproComplexities.move_camera_calc(self.main_trace)
-        if res:
-            new_x_min, new_x_max = res
+        result = HyproComplexities.move_camera_calc(self.graph_widget)
+        if result:
+            new_x_min, new_x_max = result
 
-            self.main_trace.set_xlim(new_x_min, new_x_max)
-
-            self.tracecanvas.draw()
+            self.graph_widget.setXRange(new_x_min, new_x_max)
 
             if self.auto_size.isChecked():
                 self.zoom_fit()
@@ -586,12 +576,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         ad_max = len(self.chd_data.ad_data[self.current_nutrient])
-        res = HyproComplexities.move_camera_calc(self.main_trace, right=True, ad_max=ad_max)
-        if res:
-            new_x_min, new_x_max = res
-            self.main_trace.set_xlim(new_x_min, new_x_max)
-
-            self.tracecanvas.draw()
+        result = HyproComplexities.move_camera_calc(self.graph_widget, right=True, ad_max=ad_max)
+        if result:
+            new_x_min, new_x_max = result
+            self.graph_widget.setXRange(new_x_min, new_x_max)
 
         if self.auto_size.isChecked():
             self.zoom_fit()
@@ -601,15 +589,19 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         Zooms in on the plot, zooms on both the X and Y
         :return:
         """
-
         ad_min = min(self.chd_data.ad_data[self.current_nutrient])
-        res = HyproComplexities.zoom(self.main_trace, ad_min=ad_min)
+        res = HyproComplexities.zoom(self.graph_widget, ad_min=ad_min)
+
         if res:
             new_x_min, new_x_max, new_y_min, new_y_max = res
-            self.main_trace.set_xlim(new_x_min, new_x_max)
-            self.main_trace.set_ylim(new_y_min, new_y_max)
 
-            self.tracecanvas.draw()
+            if new_y_min < 0:
+                new_y_min = 0
+
+            self.graph_widget.setXRange(new_x_min, new_x_max)
+            self.graph_widget.setYRange(new_y_min, new_y_max)
+
+            #self.tracecanvas.draw()
 
     def zoom_out(self):
         """
@@ -618,11 +610,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         """
         ad_max = max(self.chd_data.ad_data[self.current_nutrient])
 
-        res = HyproComplexities.zoom(self.main_trace, ad_max=ad_max, out=True)
+        res = HyproComplexities.zoom(self.graph_widget, ad_max=ad_max, out=True)
         if res:
             new_x_min, new_x_max, new_y_min, new_y_max = res
-            self.main_trace.set_xlim(new_x_min, new_x_max)
-            self.main_trace.set_ylim(new_y_min, new_y_max)
+            if new_y_min < 0:
+                new_y_min = 0
+            self.graph_widget.setXRange(new_x_min, new_x_max)
+            self.graph_widget.setYRange(new_y_min, new_y_max)
 
             self.tracecanvas.draw()
 
@@ -633,13 +627,19 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         # Used to zoom to the tallest peak plus a little extra so it isn't touch the top
-        ymin, ymax = self.main_trace.get_ybound()
-        xmin, xmax = self.main_trace.get_xbound()
-        if xmin < 0:
-            xmin = 0
-        maxheight = max(self.chd_data.ad_data[self.current_nutrient][int(xmin): int(xmax)])
-        self.main_trace.set_ylim(ymin, maxheight * 1.02)
-        self.tracecanvas.draw()
+        trace_state = self.graph_widget.getViewBox().state
+        x_min = trace_state['viewRange'][0][0]
+        x_max = trace_state['viewRange'][0][1]
+        y_min = trace_state['viewRange'][1][0]
+        y_max = trace_state['viewRange'][1][1]
+
+        if x_min < 0:
+            x_min = 0
+        if y_min < 0:
+            y_min = 0
+        max_height = max(self.chd_data.ad_data[self.current_nutrient][int(x_min): int(x_max)])
+
+        self.graph_widget.setYRange(y_min, max_height * 1.02)
 
     def update_from_dialog(self, index):
         self.slk_data.cup_types[index] = self.peak_display.peakcupline.text()
@@ -758,7 +758,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                               self.w_d.recovery_flags)
 
             self.recovery_canvas.draw()
-
 
     def plot_custom_data(self):
         """
