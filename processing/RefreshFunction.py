@@ -1,6 +1,6 @@
 import os, sqlite3, logging, json, traceback
 from time import sleep
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, QObject
 from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
@@ -9,16 +9,18 @@ from processing.procdata.InteractiveNutrientsProcessing import processingNutrien
 # TODO: there is potentially a small bug that occurs when refresh of multiple files and then they dont process
 
 # Provides the functionality for finding new or updated files that need to be processed when hypro is 'refreshed'
-class refreshFunction():
-    def __init__(self, path, project, interactive):
-
+class refreshFunction(QObject):
+    def __init__(self, path, project, interactive, perf_mode, ultra_perf_mode):
+        super().__init__()
         self.currpath = path
         self.currproject = project
         self.interactive = interactive
+        self.perf_mode = perf_mode
+        self.ultra_perf_mode = ultra_perf_mode
 
         self.db = (self.currpath + '/' + self.currproject + 'Data.db')
 
-        self.refresh()
+        #self.refresh()
 
     def refresh(self):
         with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
@@ -87,11 +89,13 @@ class refreshFunction():
 
                                     self.initnutrientdata = processingNutrientsWindow(file, self.db,
                                                                                       self.currpath, self.currproject,
-                                                                                      self.interactive, False)
+                                                                                      self.interactive, False,
+                                                                                      self.perf_mode,
+                                                                                      self.ultra_perf_mode)
 
-                                    self.thread = QThread()
-                                    self.initnutrientdata.moveToThread(self.thread)
-                                    self.thread.start()
+                                    #self.thread = QThread()
+                                    #self.initnutrientdata.moveToThread(self.thread)
+                                    #self.thread.start()
 
                                     procfile = True
                                     break
@@ -167,7 +171,9 @@ class refreshFunction():
                                             self.initnutrientdata = processingNutrientsWindow(file, self.db,
                                                                                               self.currpath,
                                                                                               self.currproject,
-                                                                                              self.interactive, False)
+                                                                                              self.interactive, False,
+                                                                                              self.perf_mode,
+                                                                                              self.ultra_perf_mode)
                                             procfile = True
                                             break
                                         if folder == 'Salinity':

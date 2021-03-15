@@ -17,12 +17,12 @@ VSVersionInfo(
         [StringStruct(u'CompanyName', u'CSIRO'),
 		StringStruct(u'Author', u'Kendall Sherrin'),
         StringStruct(u'FileDescription', u'Hydrology Processor'),
-        StringStruct(u'FileVersion', u'0.0.1.0'),
+        StringStruct(u'FileVersion', u'0.0.1.1'),
         StringStruct(u'InternalName', u'hypro'),
-        StringStruct(u'LegalCopyright', u'\xa9 27 November 2020 CSIRO'),
-        StringStruct(u'OriginalFilename', u'HyPro v0.10.exe'),
+        StringStruct(u'LegalCopyright', u'\xa9 16 March 2021 CSIRO'),
+        StringStruct(u'OriginalFilename', u'HyPro v0.11.exe'),
         StringStruct(u'ProductName', u'Hydrology Processor'),
-        StringStruct(u'ProductVersion', u'0.0.1.0')])
+        StringStruct(u'ProductVersion', u'0.0.1.1')])
       ]), 
     VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
   ]

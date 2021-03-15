@@ -40,7 +40,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 
     """
-    def __init__(self, file, database, path, project, interactive=True, rereading=False):
+    def __init__(self, file, database, path, project, interactive=True, rereading=False, perf_mode=False,
+                 ultra_perf_mode=False):
         screenwidth = QDesktopWidget().availableGeometry().width()
         screenheight = QDesktopWidget().availableGeometry().height()
         super().__init__((screenwidth * 0.85), (screenheight * 0.85), 'HyPro - Process Nutrient Analysis')
@@ -61,6 +62,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.database = database
         self.interactive = interactive
         self.rereading = rereading
+
+        self.perf_mode = perf_mode
+        self.ultra_perf_mode = ultra_perf_mode
 
         # General HyPro settings, use for setting theme of window
         with open('C:/HyPro/hyprosettings.json', 'r') as temp:
@@ -253,8 +257,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             cancelbut.setFixedHeight(25)
             cancelbut.setFixedWidth(95)
 
-            pg.setConfigOptions(antialias=True)
+            if not self.perf_mode:
+                pg.setConfigOptions(antialias=True)
+
             self.graph_widget = pg.PlotWidget()
+
+            if self.ultra_perf_mode:
+                self.graph_widget.useOpenGL(True)
+
             label_style = {'color': '#C1C1C1', 'font-size': '10pt', 'font-family': 'Segoe UI'}
             self.graph_widget.setLabel('left', 'A/D Value', **label_style)
             self.graph_widget.setLabel('bottom', 'Time (s)', **label_style)
@@ -792,6 +802,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def closeEvent(self, event):
         plt.close('all')
+        del self.plotted_data
+        del self.graph_widget
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

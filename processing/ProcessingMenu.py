@@ -50,6 +50,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.currpath = path
         self.db = self.currpath + '/' + self.currproject + 'Data.db'
 
+        # These are used to enable antialiasing and then also OpenGL plotting
+        self.performance_mode = False
+        self.ultra_performance_mode = False
+
         self.params_path = self.currpath + '/' + '%sParams.json' % self.currproject
 
         inittabs.main(self.currproject, self.currpath)
@@ -116,6 +120,16 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         main_menu_action.setStatusTip('Back to the main menu')
         main_menu_action.triggered.connect(self.backtomenufunction)
         file_menu.addAction(main_menu_action)
+
+        file_menu.addSeparator()
+
+        performance_mode_action = QAction('Performance Mode', self, checkable=True)
+        performance_mode_action.triggered.connect(self.toggle_performance_mode)
+        ultra_perf_mode_action = QAction('Ultra Performance Mode', self, checkable=True)
+        ultra_perf_mode_action.triggered.connect(self.toggle_ultra_perf_mode)
+
+        file_menu.addAction(performance_mode_action)
+        file_menu.addAction(ultra_perf_mode_action)
 
         file_menu.addSeparator()
 
@@ -340,7 +354,14 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         #                                                                     self.currproject,
         #                                                                     self.interactive_processing.checkState()))
         #self.refresh_thread.start()
-        self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState())
+        self.thread = QThread()
+
+        self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState(),
+                                          self.performance_mode, self.ultra_performance_mode)
+        #self.refreshing.moveToThread(self.thread)
+        #self.thread.started.connect(self.refreshing.refresh)
+        #self.thread.start()
+        self.refreshing.refresh()
 
     def open_directory(self):
         if os.path.isdir(self.currpath):
@@ -587,6 +608,19 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
     def produce_stats_window(self):
         self.stats = statsDialog(self.currproject, self.db)
         self.stats.show()
+
+
+    def toggle_performance_mode(self):
+        if self.performance_mode:
+            self.performance_mode = False
+        else:
+            self.performance_mode = True
+
+    def toggle_ultra_perf_mode(self):
+        if self.ultra_performance_mode:
+            self.ultra_performance_mode = False
+        else:
+            self.ultra_performance_mode = True
 
     def closeEvent(self, event):
         # Closes everything if main processing window is closed
