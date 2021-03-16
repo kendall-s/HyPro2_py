@@ -19,6 +19,7 @@ def get_data_routine(file_path, w_d, processing_parameters, database):
     # Determine our first active (was present in the file) nutrient and assign
     # Fill out dilutions and flags with 1s as this point
     current_nutrient = slk_data.active_nutrients[0]
+
     w_d.analyte = current_nutrient
     w_d.quality_flag = [1 for x in range(len(slk_data.sample_ids))]
     w_d.dilution_factor = [1 for x in range(len(slk_data.sample_ids))]

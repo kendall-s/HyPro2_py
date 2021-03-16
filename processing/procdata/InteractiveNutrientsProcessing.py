@@ -114,6 +114,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         except FileNotFoundError:
             logging.error('Could not find the nutrient file, is it in the right spot? Does a Nutrient folder exist?')
 
+        except IndexError:
+            logging.error('HyPro could not find any nutrients! Please check the spelling of your analyte names')
+
 
     def interactive_routine(self, trace_redraw=False):
         """
@@ -339,8 +342,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         self.plotted_data.setData(range(len(self.chd_data.ad_data[current_nutrient])), self.chd_data.ad_data[current_nutrient])
 
-        window_lines = TracePlotter(w_d.time_values, w_d.window_values, w_d.quality_flag)
-        self.graph_widget.addItem(window_lines)
+        if trace_redraw:
+            self.graph_widget.removeItem(self.window_lines)
+
+        self.window_lines = TracePlotter(w_d.time_values, w_d.window_values, w_d.quality_flag)
+        self.graph_widget.addItem(self.window_lines)
 
         self.baseline_plotted.setData(w_d.baseline_peak_starts, w_d.baseline_medians[1:-1])
         self.drift_plotted.setData(w_d.drift_peak_starts, w_d.raw_drift_medians)
@@ -492,10 +498,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         if direction == 'right':
             for i in range(3):
-                self.chd_data.ad_data[self.current_nutrient].insert(x_axis_time, 100)
+                self.chd_data.ad_data[self.current_nutrient].insert(int(x_axis_time), 100)
         elif direction == 'left':
             for i in range(3):
-                self.chd_data.ad_data[self.current_nutrient].pop(x_axis_time)
+                self.chd_data.ad_data[self.current_nutrient].pop(int(x_axis_time))
 
         self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                           self.current_nutrient)
@@ -628,7 +634,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.graph_widget.setXRange(new_x_min, new_x_max)
             self.graph_widget.setYRange(new_y_min, new_y_max)
 
-            self.tracecanvas.draw()
+            #self.tracecanvas.draw()
 
     def zoom_fit(self):
         """
