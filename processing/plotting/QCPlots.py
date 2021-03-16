@@ -114,6 +114,7 @@ def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
 def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients, r_score=1):
     if len(axes.lines) > 0:
         del axes.lines[:]
+        del axes.texts[:]
     else:
         axes.set_title('Calibration Curve')
         axes.set_xlabel('A/D Medians')

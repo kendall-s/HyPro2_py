@@ -120,12 +120,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def interactive_routine(self, trace_redraw=False):
         """
-        Routine called everytime the data has been reprocessed, this will redraw all as necessary.
+        Routine called every time the data has been reprocessed, this will redraw all as necessary.
         :return:
         """
-        thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient, trace_redraw,))
-        thread.start()
-        thread.join()
+        # thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient, trace_redraw,))
+        # thread.start()
+        # thread.join()
+        self.draw_data(self.chd_data, self.w_d, self.current_nutrient, trace_redraw)
 
         st = time.time()
 
@@ -344,6 +345,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         if trace_redraw:
             self.graph_widget.removeItem(self.window_lines)
+            del self.window_lines
 
         self.window_lines = TracePlotter(w_d.time_values, w_d.window_values, w_d.quality_flag)
         self.graph_widget.addItem(self.window_lines)
@@ -495,7 +497,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :param direction:
         :return:
         """
-
         if direction == 'right':
             for i in range(3):
                 self.chd_data.ad_data[self.current_nutrient].insert(int(x_axis_time), 100)
@@ -542,7 +543,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = ws
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
-            self.interactive_routine()
+            self.interactive_routine(trace_redraw=True)
         elif event.key() == 67: # Assign C to shift peak window right
             ws = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][
                 'windowStart'])
@@ -551,8 +552,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 'windowStart'] = ws
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
-            self.draw_data(self.chd_data, self.w_d, self.current_nutrient, False)
-            self.interactive_routine()
+            self.interactive_routine(trace_redraw=True)
 
         # Below is only meant to be used for DEVELOPMENT PURPOSES, used to inject random values into peak picking
         # to check how the software responds, used to check speed of processing and robustness
@@ -569,7 +569,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
             self.draw_data(self.chd_data, self.w_d, self.current_nutrient, False)
-            self.interactive_routine()
+            self.interactive_routine(trace_redraw=True)
 
     def move_camera_left(self):
         """
@@ -666,7 +666,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                           self.current_nutrient)
-        self.interactive_routine()
+        self.interactive_routine(trace_redraw=True)
 
     def create_standard_qc_tabs(self):
         """
