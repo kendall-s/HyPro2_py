@@ -65,6 +65,7 @@ class WorkingData:
         self.calibrant_zero_mean = 0
         self.calibrant_flags = []
         self.calibration_coefficients = []
+        self.calibration_r_score = 0
 
         self.recovery_ids = []
         self.recovery_indexes = []

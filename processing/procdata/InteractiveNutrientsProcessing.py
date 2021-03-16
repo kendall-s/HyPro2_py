@@ -109,7 +109,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         except TypeError:
             logging.error(f'Formatting error in .SLK file. Processing aborted.')
-            #traceback.print_exc()
+            traceback.print_exc()
 
         except FileNotFoundError:
             logging.error('Could not find the nutrient file, is it in the right spot? Does a Nutrient folder exist?')
@@ -748,7 +748,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         """
         qcp.calibration_curve_plot(self.cal_curve_fig, self.cal_curve_plot,
                                    self.w_d.calibrant_medians, self.w_d.calibrant_concs,
-                                   self.w_d.calibrant_flags, self.w_d.calibration_coefficients)
+                                   self.w_d.calibrant_flags, self.w_d.calibration_coefficients,
+                                   self.w_d.calibration_r_score)
         self.cal_curve_canvas.draw()
 
         analyte_error = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['calerror']

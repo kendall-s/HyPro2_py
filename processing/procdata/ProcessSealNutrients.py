@@ -14,6 +14,7 @@ from numpy import poly1d as nppoly1d
 from numpy import argmax as npargmax
 from numpy import abs as npabs
 from numpy import mean as npmean
+from numpy import asarray
 
 import xarray as xr
 from pylab import polyfit
@@ -115,8 +116,9 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ------------ Create calibration ---------------------------------------------------------------------------
     w_d.calibration_coefficients, w_d.calibrant_flags, w_d.calibrants_weightings, \
-    w_d.calibrant_residuals = create_calibration(cal_type, w_d.calibrant_medians_minuszero, w_d.calibrant_concs,
-                                                 w_d.calibrant_weightings, cal_error_limit, w_d.calibrant_flags)
+    w_d.calibrant_residuals, w_d.calibration_r_score = create_calibration(cal_type, w_d.calibrant_medians_minuszero,
+                                                                          w_d.calibrant_concs, w_d.calibrant_weightings,
+                                                                          cal_error_limit, w_d.calibrant_flags)
 
     # ------------ Apply calibration ----------------------------------------------------------------------------
     w_d.calculated_concentrations = apply_calibration(cal_type, w_d.corr_window_medians, w_d.calibration_coefficients)
@@ -574,8 +576,9 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
             pass
 
     final_residuals = [(x - fp(calibrant_medians[i])) for i, x in enumerate(calibrant_concentrations)]
+    r_squared_score = r_squared(calibrant_concentrations, y_fitted)
 
-    return cal_coefficients, calibrant_flags, calibrant_weightings, final_residuals
+    return cal_coefficients, calibrant_flags, calibrant_weightings, final_residuals, r_squared_score
 
 
 def apply_calibration(cal_type, window_medians, calibration_coefficients):
@@ -1090,3 +1093,19 @@ def store_underway_data(packaged_data, database, current_nutrient):
     conn.close()        
     
     logging.info('Underway data successfully matched with Investigator data. Correctly packaged and stored in database.')
+
+
+def r_squared(y, y_hat):
+    """
+    Used to determine the R squared score of a linear fit
+    :param y:
+    :param y_hat:
+    :return:
+    """
+    y = asarray(y)
+    y_hat = asarray(y_hat)
+
+    y_bar = y.mean()
+    ss_tot = ((y-y_bar)**2).sum()
+    ss_res = ((y-y_hat)**2).sum()
+    return 1 - (ss_res/ss_tot)

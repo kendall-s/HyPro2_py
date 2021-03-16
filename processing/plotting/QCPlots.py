@@ -111,7 +111,7 @@ def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
         axes.set_axis_off()
     fig.set_tight_layout(tight=True)
 
-def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients):
+def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients, r_score=1):
     if len(axes.lines) > 0:
         del axes.lines[:]
     else:
@@ -152,6 +152,8 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
     axes.legend(by_label.values(), by_label.keys())
     axes.set_ylim((0-(max(cal_concs)*0.05)), max(cal_concs)*1.05)
     axes.set_xlim((0-(max(cal_medians)*0.05)), max(cal_medians)*1.05)
+
+    axes.annotate(f'R Squared: {round(r_score,4)}', xy=(0.8, 0.05), xycoords="axes fraction")
 
     #axes.plot(cal_medians, cal_concs, marker='o', mfc='none', lw=0, ms=11)
     fig.set_tight_layout(tight=True)
