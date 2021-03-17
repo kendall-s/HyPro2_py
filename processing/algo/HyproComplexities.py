@@ -1,6 +1,5 @@
-import sqlite3, logging, traceback, json, time
-from numpy import asarray, sum, argmin
-
+import sqlite3, logging, traceback, json, bisect
+from numpy import asarray, sum, argmin, where
 # This file contains some more of the complicated functions that are required for hypro, namely determining a survey..
 
 # TODO: delete determineSurvey, split this into the processing scripts of each analyte
@@ -246,22 +245,8 @@ def match_click_to_peak(x_time, slk_data, current_nutrient):
     :param current_nutrient:
     :return:
     '''
-    for i, x in enumerate(slk_data.peak_starts[current_nutrient]):
-        if i < len(slk_data.peak_starts[current_nutrient]):
-            if x[0] == '#':
-                peak_start = x[2:-1]
-            else:
-                peak_start = x
-
-            if slk_data.peak_starts[current_nutrient][i+1][0] == '#':
-                next_peak_start = slk_data.peak_starts[current_nutrient][i+1][2:-1]
-            else:
-                next_peak_start = slk_data.peak_starts[current_nutrient][i+1]
-
-            if x_time > int(peak_start) and x_time < int(next_peak_start):
-                clicked_peak_index = i
-
-                return True, clicked_peak_index
+    clicked_peak_index = bisect.bisect_left(slk_data.clean_peak_starts[current_nutrient], x_time) - 1
+    return True, clicked_peak_index
 
 
 def load_proc_settings(path, project):

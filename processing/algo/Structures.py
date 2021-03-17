@@ -102,6 +102,7 @@ class SLKData:
         self.bases = {'silicate': 0, 'phosphate': 0, 'nitrate': 0, 'nitrite': 0, 'ammonia': 0}
         self.calibrants = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
         self.peak_starts = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
+        self.clean_peak_starts = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
         self.channel = {'silicate': 0, 'phosphate': 0, 'nitrate': 0, 'nitrite': 0, 'ammonia': 0}
         self.chd_channel = {'silicate': 0, 'phosphate': 0, 'nitrate': 0, 'nitrite': 0, 'ammonia': 0}
 

@@ -159,26 +159,28 @@ def extract_slk_data(slk_path, processing_parameters):
                     break
 
     # Iterate through the potential nutrients
-    for x in NUTRIENTS:
+    for nut in NUTRIENTS:
         # Try to locate the heading in the SLK file for each nutrient
-        findx, findy = getIndex(data_hold, '"' + processing_parameters['nutrientprocessing']['elementNames']['%sName' % x] + '"')
+        findnut, findy = getIndex(data_hold, '"' + processing_parameters['nutrientprocessing']['elementNames']['%sName' % nut] + '"')
         # If we've located a match, collect the relevant data
-        if findx != 'no':
+        if findnut != 'no':
 
-            slk_data.active_nutrients.append(x)
-            slk_data.channel[x] = data_hold[findx - 1][findy]
-            slk_data.gains[x] = data_hold[findx + 3][findy]
-            slk_data.bases[x] = data_hold[findx + 2][findy]
-            slk_data.calibrants[x] = [row[findy - 1] for row in data_hold[findx + 6:]]
-            slk_data.peak_starts[x] = [row[findy + 2].replace('"', '') for row in data_hold[findx + 6:]]
-            print(slk_data.peak_starts[x])
+            slk_data.active_nutrients.append(nut)
+            slk_data.channel[nut] = data_hold[findnut - 1][findy]
+            slk_data.gains[nut] = data_hold[findnut + 3][findy]
+            slk_data.bases[nut] = data_hold[findnut + 2][findy]
+            slk_data.calibrants[nut] = [row[findy - 1] for row in data_hold[findnut + 6:]]
+            slk_data.peak_starts[nut] = [row[findy + 2].replace('"', '') for row in data_hold[findnut + 6:]]
+            # Clean peak starts will just make some operations much quicker
+            slk_data.clean_peak_starts[nut] = [int(str(nut).replace("#", "")) for nut in slk_data.peak_starts[nut]]
+            print(slk_data.peak_starts[nut])
 
-            if 'peak' in str(slk_data.peak_starts[x][0]).lower():
+            if 'peak' in str(slk_data.peak_starts[nut][0]).lower():
                 logging.error('Too many rows between analyte header and start of tray protocol.')
                 raise TypeError
-            if '' in slk_data.peak_starts[x]:
-                rows_empty = [i+1 for i, y in enumerate(slk_data.peak_starts[x]) if y == '']
-                logging.error(f'There is a blank peak start value in the SLK file for nutrient {x}')
+            if '' in slk_data.peak_starts[nut]:
+                rows_empty = [i+1 for i, y in enumerate(slk_data.peak_starts[nut]) if y == '']
+                logging.error(f'There is a blank peak start value in the SLK file for nutrient {nut}')
                 logging.error(f'For your information these are the tray protocol rows which have an '
                               f'empty peak start: {rows_empty}')
                 raise TypeError

@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QCheckBox, QFrame, QVBoxLayout, QTabWidget,
-                             QDesktopWidget, QApplication)
+                             QDesktopWidget, QApplication, QLineEdit)
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt, QSize
@@ -274,6 +274,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.graph_widget.setLabel('bottom', 'Time (s)', **label_style)
             self.graph_widget.showGrid(x=True, y=True)
 
+            self.vertical_line = pg.InfiniteLine(angle=90, movable=False)
+            self.vertical_line.setZValue(10)
+
+            self.graph_widget.addItem(self.vertical_line, ignoreBounds=False)
+
             if self.theme == 'normal':
                 self.graph_widget.setBackground('w')
                 graph_pen = pg.mkPen(color=(25, 25, 30), width=1.2)
@@ -284,7 +289,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             # This is the plot that holds the signal trace
             self.plotted_data = self.graph_widget.plot(pen=graph_pen)
             self.plotted_data.scene().sigMouseClicked.connect(self.on_click)
-
+            self.plotted_data.scene().sigMouseMoved.connect(self.move_crosshair)
             # These are for holding the lines representing the drift and baseline across the run
             baseline_pen = pg.mkPen(color=('#d69f20'), width=2)
             self.baseline_plotted = self.graph_widget.plot(pen=baseline_pen)
@@ -292,6 +297,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             drift_pen = pg.mkPen(color=('#c6c600'), width=2)
             self.drift_plotted = self.graph_widget.plot(pen=drift_pen)
 
+            self.hovered_peak_lineedit = QLineEdit()
+            self.hovered_peak_lineedit.setFont(QFont('Segoe UI'))
 
             # Setting everything into the layout
             self.grid_layout.addWidget(tracelabelframe, 0, 0, 1, 11)
@@ -302,6 +309,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.grid_layout.addWidget(traceframe, 1, 0, 20, 11)
             self.grid_layout.addWidget(self.graph_widget, 1, 0, 17, 11)
+
+            self.grid_layout.addWidget(self.hovered_peak_lineedit, 18, 0, 1, 11)
 
             self.grid_layout.addWidget(qctabsframe, 1, 11, 19, 5)
             self.grid_layout.addWidget(self.qctabs, 1, 11, 19, 5)
@@ -394,6 +403,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     def cancel(self):
         plt.close('all')
         self.close()
+
+    def move_crosshair(self, event):
+        data_coordinates = self.plotted_data.getViewBox().mapSceneToView(event)
+        self.vertical_line.setPos(data_coordinates.x())
+        x_point = data_coordinates.x()
+        exists, peak_index = match_click_to_peak(x_point, self.slk_data, self.current_nutrient)
+        if exists:
+            self.hovered_peak_lineedit.setText(f'Peak #{peak_index+1} | Sample ID: {self.slk_data.sample_ids[peak_index]} | Cup Type: {self.slk_data.cup_types[peak_index]} | Conc: {round(self.w_d.calculated_concentrations[peak_index], 3)}')
 
     def on_click(self, event):
         """
