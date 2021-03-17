@@ -1,5 +1,6 @@
 import sqlite3, logging, traceback, json, bisect
 from numpy import asarray, sum, argmin, where
+import time
 # This file contains some more of the complicated functions that are required for hypro, namely determining a survey..
 
 # TODO: delete determineSurvey, split this into the processing scripts of each analyte
@@ -235,8 +236,15 @@ def move_camera_calc(axes, right=None, ad_max=None):
         new_x_max = x_max - movement_amount
         return new_x_min, new_x_max
 
+def match_hover_to_peak(x_time, slk_data, current_nutrient, peak_windows):
 
-def match_click_to_peak(x_time, slk_data, current_nutrient):
+    st = time.time()
+    hovered_peak_index = [i for i, x in enumerate(peak_windows) if int(x_time) in x]
+    print(f'match hover to peak time taken: {time.time() - st}')
+    return True, hovered_peak_index
+
+
+def match_click_to_peak(x_time, slk_data, current_nutrient, adj_p_s):
     '''
 
     Finds the closest peak to where was clicked on the trace, returns the index of this peak
@@ -245,7 +253,12 @@ def match_click_to_peak(x_time, slk_data, current_nutrient):
     :param current_nutrient:
     :return:
     '''
-    clicked_peak_index = bisect.bisect_left(slk_data.clean_peak_starts[current_nutrient], x_time) - 1
+    st = time.time()
+    clicked_peak_index = bisect.bisect_left(adj_p_s[current_nutrient], x_time) - 1
+    #clicked_peak_index = bisect.bisect_left(slk_data.clean_peak_starts[current_nutrient], x_time) - 1
+    if clicked_peak_index == -1:
+        clicked_peak_index = 0
+    print(f'match click to peak time taken: {time.time() - st}')
     return True, clicked_peak_index
 
 

@@ -14,7 +14,7 @@ import hyproicons
 import style
 import processing.procdata.ProcessSealNutrients as psn
 import processing.readdata.ReadSealNutrients as rsn
-from processing.algo.HyproComplexities import load_proc_settings, match_click_to_peak
+from processing.algo.HyproComplexities import load_proc_settings, match_click_to_peak, match_hover_to_peak
 from processing.algo import HyproComplexities
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.algo.Structures import WorkingData
@@ -408,9 +408,15 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         data_coordinates = self.plotted_data.getViewBox().mapSceneToView(event)
         self.vertical_line.setPos(data_coordinates.x())
         x_point = data_coordinates.x()
-        exists, peak_index = match_click_to_peak(x_point, self.slk_data, self.current_nutrient)
-        if exists:
-            self.hovered_peak_lineedit.setText(f'Peak #{peak_index+1} | Sample ID: {self.slk_data.sample_ids[peak_index]} | Cup Type: {self.slk_data.cup_types[peak_index]} | Conc: {round(self.w_d.calculated_concentrations[peak_index], 3)}')
+        #exists, peak_index = match_click_to_peak(x_point, self.slk_data, self.current_nutrient, self.w_d.adjusted_peak_starts)
+        exists, peak_index = match_hover_to_peak(x_point, self.slk_data, self.current_nutrient, self.w_d.time_values)
+
+        print(peak_index)
+        if len(peak_index) > 0:
+            peak_index = peak_index[0]
+            self.hovered_peak_lineedit.setText(f'Peak #{peak_index+1} | Sample ID: {self.slk_data.sample_ids[peak_index]} | Cup Type: {self.slk_data.cup_types[peak_index]} | Conc: {round(self.w_d.calculated_concentrations[peak_index], 3)} | Corr A/D: {round(self.w_d.corr_window_medians[peak_index], 1)} | Raw A/D: {self.w_d.raw_window_medians[peak_index]}')
+        else:
+            self.hovered_peak_lineedit.setText('No peak')
 
     def on_click(self, event):
         """
@@ -424,7 +430,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         if event.button() == 1:
             x_point = data_coordinates.x()
-            exists, peak_index = match_click_to_peak(x_point, self.slk_data, self.current_nutrient)
+            exists, peak_index = match_click_to_peak(x_point, self.slk_data, self.current_nutrient, self.w_d.adjusted_peak_starts)
 
             if exists:
                 self.peak_display = traceSelection(self.slk_data.sample_ids[peak_index],
@@ -558,8 +564,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             ws = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'])
             ws = ws - 2
             self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] = ws
+
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
+
             self.interactive_routine(trace_redraw=True)
         elif event.key() == 67: # Assign C to shift peak window right
             ws = int(self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient][

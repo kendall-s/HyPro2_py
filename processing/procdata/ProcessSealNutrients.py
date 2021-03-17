@@ -60,9 +60,9 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ----------- Match peaks to CHD data ---------------------------------------------------------------------
     # Match the SLK peak start data to the CHD A/D data
-    w_d.window_values, w_d.time_values = get_peak_values(slk_data.peak_starts[current_nutrient],
-                                                         chd_data.ad_data[current_nutrient],
-                                                         window_size, window_start)
+    w_d.window_values, w_d.time_values, w_d.adjusted_peak_starts[current_nutrient] = get_peak_values(slk_data.peak_starts[current_nutrient],
+                                                                                    chd_data.ad_data[current_nutrient],
+                                                                                    window_size, window_start)
 
     w_d.quality_flag = flag_null_samples(slk_data.cup_types, null_cup_type, w_d.quality_flag)
     w_d.quality_flag = flag_hashed_samples(slk_data.peak_starts[current_nutrient], w_d.quality_flag)
@@ -174,6 +174,8 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
     # For now remove any hashes that are in the peak starts, this makes the following list comps cleaner.
     peak_starts = [p_s.replace('#', '') for p_s in peak_starts]
 
+    adjusted_peak_starts = [int(p_s) + int(window_start) for p_s in peak_starts]
+
     # This looks ugly, but it is 10x faster than an expanded for statement to accomplish the same thing
     # List comprehension to pull out the A/D values from the CHD based on the peak starts and window size
     window_values = [
@@ -184,7 +186,7 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
         [ind for ind in list(range((int(p_s) + int(window_start)), (int(p_s) + window_end)))]
         for p_s in peak_starts[:-1]]
 
-    return window_values, time_values
+    return window_values, time_values, adjusted_peak_starts
 
 
 def flag_hashed_samples(peak_starts, quality_flags):
