@@ -200,11 +200,10 @@ def extract_slk_data(slk_path, processing_parameters):
 
     findx, findy = getIndex(data_hold,
                             '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['dateTime'] + '"')
-    slk_data.epoch_timestamps = [row[findy][1:-1] for row in data_hold[findx + 1:]]
+    slk_data.raw_timestamps = [row[findy][1:-1] for row in data_hold[findx + 1:]]
     format = '%d/%m/%Y %I:%M:%S %p'
-    last_hundred = slk_data.epoch_timestamps[-100:]
-    structtime = [time.strptime(x, format) for x in slk_data.epoch_timestamps]
-    slk_data.epoch_timestamps = [calendar.timegm(x) for x in structtime]
+    struct_time = [time.strptime(x, format) for x in slk_data.raw_timestamps]
+    slk_data.epoch_timestamps = [calendar.timegm(x) for x in struct_time]
 
     return slk_data
 

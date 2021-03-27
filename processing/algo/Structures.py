@@ -94,6 +94,7 @@ class SLKData:
         self.sample_ids = []
         self.cup_numbers = []
         self.cup_types = []
+        self.raw_timestamps = []
         self.epoch_timestamps = []
 
         self.survey = []

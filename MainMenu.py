@@ -30,6 +30,7 @@ class Mainmenu(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QtGui.QIcon(':/assets/icon.svg'))
+        
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
@@ -286,15 +287,15 @@ class Mainmenu(QMainWindow):
         helpMenu = mainMenu.addMenu('Help')
 
         createNewProjectMenu = QAction(QIcon(':/assets/newfile.svg'), 'New Project', self)
-        createNewProjectMenu.triggered.connect(self.createnewproject)
+        createNewProjectMenu.triggered.connect(self.create_new_project)
         fileMenu.addAction(createNewProjectMenu)
 
         openProjectMenu = QAction(QIcon(':/assets/open.svg'), 'Open Project', self)
-        openProjectMenu.triggered.connect(self.loadproject)
+        openProjectMenu.triggered.connect(self.load_project)
         fileMenu.addAction(openProjectMenu)
 
         importProjectMenu = QAction(QIcon(':/assets/import.svg'), 'Import Project', self)
-        importProjectMenu.triggered.connect(self.importproject)
+        importProjectMenu.triggered.connect(self.import_project)
         fileMenu.addAction(importProjectMenu)
 
         fileMenu.addSeparator()
@@ -304,11 +305,11 @@ class Mainmenu(QMainWindow):
         fileMenu.addAction(exitMenu)
 
         editRMNSMenu = QAction(QIcon(':/assets/food.svg'), 'Edit RMNS', self)
-        editRMNSMenu.triggered.connect(self.rmnsstandards)
+        editRMNSMenu.triggered.connect(self.rmns_standards)
         editMenu.addAction(editRMNSMenu)
 
         editOSILMenu = QAction(QIcon(':/assets/saltshaker.svg'), 'Edit OSIL', self)
-        editOSILMenu.triggered.connect(self.osilstandards)
+        editOSILMenu.triggered.connect(self.osil_standards)
         editMenu.addAction(editOSILMenu)
 
         enableDarkMode = QAction('Dark Mode', self, checkable = True)
@@ -318,7 +319,7 @@ class Mainmenu(QMainWindow):
         editMenu.addAction(enableDarkMode)
 
         viewDataMenu = QAction(QIcon(':/assets/search.svg'), 'View Data', self)
-        viewDataMenu.triggered.connect(self.viewdata)
+        viewDataMenu.triggered.connect(self.view_data)
         viewMenu.addAction(viewDataMenu)
 
         mapPlotMenu = QAction(QIcon(':/assets/mapmarker.svg'), 'Map Plotting', self)
@@ -330,11 +331,11 @@ class Mainmenu(QMainWindow):
         viewMenu.addAction(triaxusPlotMenu)
 
         aboutMenu = QAction(QIcon(':/assets/roundquestionmark.svg'), 'About', self)
-        aboutMenu.triggered.connect(self.aboutinformation)
+        aboutMenu.triggered.connect(self.about_information)
         helpMenu.addAction(aboutMenu)
 
         manualMenu = QAction(QIcon(':/assets/roundinfo.svg'), 'Manual', self)
-        manualMenu.triggered.connect(self.showmanual)
+        manualMenu.triggered.connect(self.show_manual)
         helpMenu.addAction(manualMenu)
 
         headerlogo = QLabel(self)
@@ -390,7 +391,7 @@ class Mainmenu(QMainWindow):
             self.processor.addItem(x)
 
         self.processor.setProperty('sidebarbox', True)
-        self.processor.activated.connect(self.activeprocessorfunction)
+        self.processor.activated.connect(self.active_processor_function)
 
         self.processor.setCurrentText(hyprosettings['activeprocessor'])
 
@@ -398,19 +399,19 @@ class Mainmenu(QMainWindow):
         button1 = QPushButton('Create New Project')
         button1.setProperty('sidebar', True)
         button1.setObjectName('StyledButton')
-        button1.clicked.connect(self.createnewproject)
+        button1.clicked.connect(self.create_new_project)
 
         button2 = QPushButton('Load Existing Project')
         button2.setProperty('sidebar', True)
-        button2.clicked.connect(self.loadproject)
+        button2.clicked.connect(self.load_project)
 
         button3 = QPushButton('Import Project')
         button3.setProperty('sidebar', True)
-        button3.clicked.connect(self.importproject)
+        button3.clicked.connect(self.import_project)
 
         button4 = QPushButton('Edit RMNS Standards')
         button4.setProperty('sidebar', True)
-        button4.clicked.connect(self.rmnsstandards)
+        button4.clicked.connect(self.rmns_standards)
 
         button5 = QPushButton('Add Processor')
         button5.setProperty('sidebar', True)
@@ -418,11 +419,11 @@ class Mainmenu(QMainWindow):
 
         button6 = QPushButton('View Data')
         button6.setProperty('sidebar', True)
-        button6.clicked.connect(self.viewdata)
+        button6.clicked.connect(self.view_data)
 
         button7 = QPushButton('Open Processing')
         button7.setProperty('procbutton', True)
-        button7.clicked.connect(self.openprocessing)
+        button7.clicked.connect(self.open_processing)
 
         # Set up grid layout
         gridlayout.addWidget(headerframe, 0, 0, 3, 1)
@@ -600,7 +601,7 @@ class Mainmenu(QMainWindow):
         self.centralWidget().setLayout(gridlayout)
 
         if project:
-            self.populatedashboards()
+            self.populate_dashboards()
 
         self.show()
 
@@ -631,7 +632,7 @@ class Mainmenu(QMainWindow):
         # End of initialising Main Menu.
 
     # Populates the various text for the 'dashboard' layout thingo
-    def populatedashboards(self):
+    def populate_dashboards(self):
         with open('C:/HyPro/hyprosettings.json', 'r') as f:
             hyprosettings = json.load(f)
         try:
@@ -702,18 +703,18 @@ class Mainmenu(QMainWindow):
             print('No data for this project just yet...')
 
     # Opens the create a new project dialog
-    def createnewproject(self):
+    def create_new_project(self):
         self.create_new_project_window = createNewProject()
-        self.create_new_project_window.new_project_created.connect(lambda: self.setprojectnamefromopen('new'))
+        self.create_new_project_window.new_project_created.connect(lambda: self.set_project_name_from_open('new'))
 
     # Opens the load a project dialog
-    def loadproject(self):
+    def load_project(self):
         self.open_existing_project = openProject()
-        self.open_existing_project.selectbutton.clicked.connect(lambda: self.setprojectnamefromopen('load'))
-        self.open_existing_project.selectprojbox.doubleClicked.connect(lambda: self.setprojectnamefromopen('load'))
+        self.open_existing_project.selectbutton.clicked.connect(lambda: self.set_project_name_from_open('load'))
+        self.open_existing_project.selectprojbox.doubleClicked.connect(lambda: self.set_project_name_from_open('load'))
 
     # Once a project is selected this updates the main menu
-    def setprojectnamefromopen(self, method):
+    def set_project_name_from_open(self, method):
         if method == 'new':
             self.currprojectdisp.setText(self.create_new_project_window.project_prefix_str)
             self.currproject = self.create_new_project_window.project_prefix_str
@@ -721,22 +722,22 @@ class Mainmenu(QMainWindow):
         elif method == 'load':
             self.currprojectdisp.setText(self.open_existing_project.selectedproject)
         try:
-            self.populatedashboards()
+            self.populate_dashboards()
         except Exception:
             print('No data for the project just yet...')
 
     # Opens the import a project dialog
-    def importproject(self):
+    def import_project(self):
         self.importProj = importProject()
         self.importProj.show()
 
     # Opens the RMNS standard dialog
-    def rmnsstandards(self):
+    def rmns_standards(self):
         self.rmns = rmnsDialog()
         self.rmns.show()
 
     # Opens the osil standard dialog TODO: finish this feature
-    def osilstandards(self):
+    def osil_standards(self):
         print('osils')
 
     def enable_dark_mode(self):
@@ -778,11 +779,11 @@ class Mainmenu(QMainWindow):
             print(e)
 
     # Nothing yet need to link up TODO: add view data feature
-    def viewdata(self):
+    def view_data(self):
         print('i am nothing')
 
     # Opens the processing menu
-    def openprocessing(self):
+    def open_processing(self):
         try:
             if self.currproject == 'No active project':
                 message_box = hyproMessageBoxTemplate('Error',
@@ -809,7 +810,7 @@ class Mainmenu(QMainWindow):
             print(e)
 
     # Assigns the current active processor upon opening main menu
-    def activeprocessorfunction(self):
+    def active_processor_function(self):
 
         try:
             with open('C:/HyPro/hyprosettings.json', 'r') as file:
@@ -830,14 +831,14 @@ class Mainmenu(QMainWindow):
             os.startfile(path)
 
     # Message box including about info
-    def aboutinformation(self):
+    def about_information(self):
         message_box = hyproMessageBoxTemplate('About Hypro',
                                               'This is an experimental version of HyPro built using Python',
                                               'about')
 
     # Show the manual TODO: add a standalone directory for packaged versions
     # TODO: write manual lol
-    def showmanual(self):
+    def show_manual(self):
         file = 'C:/Users/she384/Documents/Tests/Manual.pdf'
         os.system('start ' + file)
         print('showmanul')

@@ -277,7 +277,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.vertical_line = pg.InfiniteLine(angle=90, movable=False)
             self.vertical_line.setZValue(10)
 
-            self.graph_widget.addItem(self.vertical_line, ignoreBounds=False)
+            self.graph_widget.addItem(self.vertical_line, ignoreBounds=True)
 
             if self.theme == 'normal':
                 self.graph_widget.setBackground('w')
@@ -370,8 +370,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         psn.pack_data(self.slk_data, self.w_d, self.database, self.file_path)
 
     def proceed(self):
-        self.main_trace.cla()
-        self.tracecanvas.draw()
+        #self.main_trace.cla()
+        #self.tracecanvas.draw()
 
         self.store_data()
 
@@ -414,7 +414,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         print(peak_index)
         if len(peak_index) > 0:
             peak_index = peak_index[0]
-            self.hovered_peak_lineedit.setText(f'Peak #{peak_index+1} | Sample ID: {self.slk_data.sample_ids[peak_index]} | Cup Type: {self.slk_data.cup_types[peak_index]} | Conc: {round(self.w_d.calculated_concentrations[peak_index], 3)} | Corr A/D: {round(self.w_d.corr_window_medians[peak_index], 1)} | Raw A/D: {self.w_d.raw_window_medians[peak_index]}')
+            self.hovered_peak_lineedit.setText(f'Peak #{peak_index+1} | Sample ID: {self.slk_data.sample_ids[peak_index]} | Cup Type: {self.slk_data.cup_types[peak_index]} | Conc: {round(self.w_d.calculated_concentrations[peak_index], 3)} | Corr A/D: {round(self.w_d.corr_window_medians[peak_index], 1)} | Raw A/D: {self.w_d.raw_window_medians[peak_index]} | Time: {self.slk_data.raw_timestamps[peak_index]}')
         else:
             self.hovered_peak_lineedit.setText('No peak')
 
