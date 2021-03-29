@@ -14,6 +14,7 @@ from dialogs.OpenProject import openProject
 from dialogs.ImportProject import importProject
 from processing.ProcessingMenu import Processingmenu
 from dialogs.RMNSDialog import rmnsDialog
+from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 # from MapPlotting import mapPlotting these are currently disabled ..
 # from TriaxusPlotting import triaxusPlotting
 import hyproicons
@@ -24,266 +25,37 @@ import hyproicons
 # TODO: re-write of QMainWindow to template for Main and processing menu. Total lines in half that way.
 # TODO: clean up Tools menu - revmoved ununsed. Change to Utility menu, include DO calc, QC stats
 
-# The class that starts it all, is the main menu for HyPro, main event loop runs from this
-class Mainmenu(QMainWindow):
+# The class that starts it all, the main menu for HyPro, main event loop runs from this
+class Mainmenu(hyproMainWindowTemplate):
 
     def __init__(self):
-        super().__init__()
-        self.setWindowIcon(QtGui.QIcon(':/assets/icon.svg'))
-        
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
+        super().__init__(900, 430, 'HyPro - Main Menu')
 
+        self.grid_layout.setContentsMargins(0, 0, 5, 0)
+
+        self.hypro_settings = self.start_up()
         self.init_ui()
 
-        self.setStyleSheet("""
-        
-            QMainWindow {
-                background-color: #ebeff2;
-                border: 0px solid #bababa;
-                font-family: Segoe UI;   
-            }
-            QMenuBar {
-                background-color: #ffffff;
-                color: #000000;
-                font: 13px Segoe UI;  
-            }
-            QMenuBar:hover {
-                color: #000000;
-            }
-            QMenu {
-                font: 13px Segoe UI;
-            }
-            QMdiArea{
-                background-color: #ebeff2;
-            }
-            QMdiSubWindow {
-                background-color: #000000;
-            }
-            
-            QLabel[headertext=true] {   
-                min-width: 60px;
-                min-height:20px;
-                font: 24px;
-                color: #ffffff; 
-                font-weight: bold;
-            }
-            QFrame[headerframe=true]{
-                background-color: #555c78;
-                border-radius: 1px;
-            }
-            QLabel[headerlogo=true] {
-                padding-left: 33px
-            }
-            QLabel[sidebartext=true] {           
-                font: 14px;
-                color: #ffffff;
-                font-weight: bold;
-            }
-            QFrame[sidebarframe=true]{
-                background-color: #4e546c;
-                border-radius: 1px;
-            }
-            QLabel[projecttext=true]{
-                color: #222222;
-                font: 15px;
-                font-weight: bold;  
-            }
-            QFrame[projectframe=true]{
-                background-color: #ddeaff;
-            }
-            QLabel[activeprojtext=true] {        
-                font: 15px;
-                font-weight: bold;
-                padding: 20px;
-                color: #222222;
-            }   
-            QFrame[dashboardframe=true] {
-                background-color: #f7faff;
-            }
-            QLabel[dashboardtext=true] {
-                font: 15px;
-                font-family: Segoe UI;
-                color: #222222;
-                padding: 10px;
-            }
-            QPushButton[stealth=true] {
-                text-align: left;
-                font: 15px;
-                color: #222222;
-                padding: 10px;
-                background-color: #f4f8ff;
-                border: 0px;   
-            }
-            QPushButton[stealth=true]:hover {
-                font: 15px;
-                color: #6bb7ff;
-                padding: 10px;
-                background-color: #f4f8ff;
-                border: 0px;
-            }
-            QPushButton[stealth=true]:pressed {
-                font: 15px;
-                color: #086ece;
-                padding: 10px;
-                background-color: #f4f8ff;
-                border: 0px;
-            }
-            QComboBox[sidebarbox=true]{
-                font: 13px;
-                color: #222222;
-                padding: 1px;
-                background-color: #ffffff;
-                border: 1px solid #e8e8e8;
-                border-radius: 5px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: #fefefe;
-                selection-background-color: #cbe8f6;
-                border: 0px;
-                font: 13px;
-                selection-color: #222222;
-                padding: 2px;
-                border: 1px solid #bababa;
-            }
-            QComboBox[sidebarbox=true]:down-arrow {
-                border-image: url(':/assets/downarrowicon.svg');
-            }
-            
-            QComboBox[sidebarbox=true]:drop-down {
-                border: 0px;
-            }
-            QPushButton[procbutton=true] {
-                color: #222222;
-                border: 1px solid #ededed;
-                border-radius: 5px;
-                background: #ededed;
-                font: 14px;
-                padding-left: 30px;
-                padding-right: 30px;
-                padding-top: 5px;
-                padding-bottom: 5px;
-            }
-            QPushButton[procbutton=true]:hover {
-                color: #222222;
-                border: 1px solid #f7f7f7;
-                background: #f7f7f7;
-                font: 14px;
-            }
-            QPushButton[procbutton=true]:pressed{
-                border: 1px solid #8f98a8;
-                color: #222222;
-                background-color: #f7f7f7;
-                font: 14px;
-                border-style: inset;
-            }
-            QPushButton[sidebar=true] {
-                border: 1px solid #4e546c;
-                color: #ffffff;
-                font: 14px;
-                height: 25px;
-            }
-            QPushButton[sidebar=true]:hover {
-                border: 1px solid #4e546c;
-                color: #ccd5e0;
-            }
-            QPushButton[sidebar=true]:pressed {
-                border: 1px solid #4e546c;
-                color: #6bb7ff;
-                border-radius: 1px;
-            }
-            QInputDialog {
-                background: #ebeff2;
-            }
-            QInputDialog QLabel {
-                font: 14px;
-            }
-            QInputDialog QLineEdit {
-                height: 20px;
-                font: 16px;
-                background: #fefefe
-            }
-            QInputDialog QPushButton {
-                border: 2px solid #e8e8e8;
-                background-color: #e8e8e8;
-                border-radius: 5px;
-                color: #222222;
-                font: 14px;
-                min-width: 80px;
-                height: 20px;                
-            }
-            QInputDialog QPushButton:hover {
-                border: 2px solid #f7f7f7;
-                color: #222222;
-                background-color: #f7f7f7;
-                min-width: 80px;
-            }
-            QInputDialog QPushButton:pressed {
-                border: 2px solid #e8e8e8;
-                color: #222222;
-                background-color: #f7f7f7;
-                min-width: 80px;
-                border-radius: 5px;
-                border-style: inset;
-            }
-                           """)
+        self.create_base_dbs()
 
     def init_ui(self):
 
-        # TODO: make first time start up own function
-        # Complete setup if this is the first time running on the system
-        newpath = 'C:/HyPro'
-        if not os.path.exists(newpath):
-            os.makedirs(newpath)
-
-        # Make settings json file
-        paramfile = 'C:/HyPro/hyprosettings.json'
-        if not os.path.isfile(paramfile):
-            params = {
-                'processors': [],
-                'projects': {},
-                'activeprocessor': '',
-                'activeproject': '',
-                'theme': 'normal'
-            }
-            with open('C:/HyPro/hyprosettings.json', 'w+') as file:
-                json.dump(params, file)
-
-        with open('C:/HyPro/hyprosettings.json', 'r') as f:
-            hyprosettings = json.load(f)
-
         # Set the current project, if there is already one set of course, if not = no active project
-        if hyprosettings['activeproject'] != "":
-            self.currproject = hyprosettings['activeproject']
+        if self.hypro_settings['activeproject'] != "":
+            self.currproject = self.hypro_settings['activeproject']
             project = True
         else:
             self.currproject = 'No active project'
             project = False
 
-        deffont = QFont('Segoe UI')
-        self.setFont(deffont)
-
-        gridlayout = QGridLayout()
-        gridlayout.setSpacing(6)
-        gridlayout.setContentsMargins(0, 0, 5, 0)
-
-        self.setGeometry(400, 400, 900, 440)
-        qtRectangle = self.frameGeometry()
-        screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
-        centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
-        qtRectangle.moveCenter(centerPoint)
-        self.move(qtRectangle.topLeft())
-        self.setWindowFlags(QtCore.Qt.WindowMinimizeButtonHint | QtCore.Qt.WindowCloseButtonHint)
-        # self.setFixedSize(self.size())
-        self.setWindowTitle('HyPro - Main Menu')
-        # self.statusBar().showMessage('Load a project')
+        self.setFont(QFont('Segoe UI'))
 
         # Initialise menu buttons and options
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('File')
         editMenu = mainMenu.addMenu('Edit')
         viewMenu = mainMenu.addMenu('View')
-        toolMenu = mainMenu.addMenu('Tools')
+        toolMenu = mainMenu.addMenu('Utilities')
         helpMenu = mainMenu.addMenu('Help')
 
         createNewProjectMenu = QAction(QIcon(':/assets/newfile.svg'), 'New Project', self)
@@ -312,8 +84,8 @@ class Mainmenu(QMainWindow):
         editOSILMenu.triggered.connect(self.osil_standards)
         editMenu.addAction(editOSILMenu)
 
-        enableDarkMode = QAction('Dark Mode', self, checkable = True)
-        if hyprosettings['theme'] == 'dark':
+        enableDarkMode = QAction('Dark Mode', self, checkable=True)
+        if self.hypro_settings['theme'] == 'dark':
             enableDarkMode.setChecked(True)
         enableDarkMode.triggered.connect(self.enable_dark_mode)
         editMenu.addAction(enableDarkMode)
@@ -338,43 +110,40 @@ class Mainmenu(QMainWindow):
         manualMenu.triggered.connect(self.show_manual)
         helpMenu.addAction(manualMenu)
 
-        headerlogo = QLabel(self)
-        headerlogo.setPixmap(QPixmap(':/assets/2dropsshadow.ico').scaled(32, 32, Qt.KeepAspectRatio))
-        headerlogo.setProperty('headerlogo', True)
+        header_logo = QLabel(self)
+        header_logo.setPixmap(QPixmap(':/assets/2dropsshadow.ico').scaled(32, 32, Qt.KeepAspectRatio))
+        header_logo.setProperty('headerLogo', True)
 
         # Labels
-        headerframe = QFrame()
-        headerframe.setProperty('headerframe', True)
-        headerlabel = QLabel('    HyPro②')
-        headerlabel.setProperty('headertext', True)
+        header_frame = QFrame(self)
+        header_frame.setProperty('sideHeaderFrame', True)
+        header_label = QLabel('<b>       HyPro②</b>')
+        header_label.setProperty('headerText', True)
 
-        currprojectframe = QFrame(self)
-        currprojectframe.setProperty('projectframe', True)
-        currprojectframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-        currprojectframeshadow.setBlurRadius(6)
-        currprojectframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-        currprojectframeshadow.setYOffset(2)
-        currprojectframeshadow.setXOffset(3)
-        currprojectframe.setGraphicsEffect(currprojectframeshadow)
+        curr_project_frame = QFrame(self)
+        curr_project_frame.setProperty('topBarFrame', True)
 
-        sidebarframe = QFrame(self)
-        sidebarframe.setProperty('sidebarframe', True)
+        sidebar_frame = QFrame(self)
+        sidebar_frame.setProperty('sideBarFrame', True)
 
-        self.currprojectlabel = QLabel('Active Project: ')
-        self.currprojectlabel.setProperty('projecttext', True)
+        self.curr_project_label = QLabel('Active Project: ', self)
+        self.curr_project_label.setProperty('dashboardText', True)
+        self.curr_project_label.setStyleSheet('font: 15px; padding: 20px; font-weight: bold;')
 
-        self.currprojectdisp = QLabel(str(self.currproject))
-        self.currprojectdisp.setProperty('activeprojtext', True)
+        self.curr_project_disp = QLabel(str(self.currproject))
+        self.curr_project_disp.setProperty('dashboardText', True)
+        self.curr_project_disp.setStyleSheet('font: 15px; font-weight: bold;')
 
-        selprojectlabel = QLabel('Select Active Project')
-        selprojectlabel.setAlignment(Qt.AlignCenter)
-        selprojectlabel.setProperty('sidebartext', True)
 
-        processorlabel = QLabel('Processor')
-        processorlabel.setProperty('sidebartext', True)
+        sel_project_label = QLabel('<b>Select Active Project</b>')
+        sel_project_label.setAlignment(Qt.AlignCenter)
+        sel_project_label.setProperty('sideBarText', True)
 
-        optionlabel = QLabel('Options')
-        optionlabel.setProperty('sidebartext', True)
+        processor_label = QLabel('<b>Processor</b>')
+        processor_label.setProperty('sideBarText', True)
+
+        option_label = QLabel('<b>Options</b>')
+        option_label.setProperty('sideBarText', True)
 
         # Dropdowns
         self.processor = QComboBox()
@@ -384,196 +153,174 @@ class Mainmenu(QMainWindow):
         self.processor.lineEdit().setAlignment(QtCore.Qt.AlignHCenter)
         self.processor.lineEdit().setReadOnly(True)
 
-        with open('C:/HyPro/hyprosettings.json', 'r') as f:
-            hyprosettings = json.load(f)
-
-        for x in hyprosettings['processors']:
-            self.processor.addItem(x)
+        for procr in self.hypro_settings['processors']:
+            self.processor.addItem(procr)
 
         self.processor.setProperty('sidebarbox', True)
         self.processor.activated.connect(self.active_processor_function)
 
-        self.processor.setCurrentText(hyprosettings['activeprocessor'])
+        self.processor.setCurrentText(self.hypro_settings['activeprocessor'])
 
-        # Buttons
-        button1 = QPushButton('Create New Project')
-        button1.setProperty('sidebar', True)
-        button1.setObjectName('StyledButton')
-        button1.clicked.connect(self.create_new_project)
+        # ------------------------- Sidebar Buttons -------------------------------------------------------------------
+        create_new_proj = QPushButton('Create New Project')
+        create_new_proj.setProperty('sideBarButton', True)
+        create_new_proj.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        create_new_proj.clicked.connect(self.create_new_project)
 
-        button2 = QPushButton('Load Existing Project')
-        button2.setProperty('sidebar', True)
-        button2.clicked.connect(self.load_project)
+        load_proj = QPushButton('Load Existing Project')
+        load_proj.setProperty('sideBarButton', True)
+        load_proj.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        load_proj.clicked.connect(self.load_project)
 
-        button3 = QPushButton('Import Project')
-        button3.setProperty('sidebar', True)
-        button3.clicked.connect(self.import_project)
+        import_proj = QPushButton('Import Project')
+        import_proj.setProperty('sideBarButton', True)
+        import_proj.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        import_proj.clicked.connect(self.import_project)
 
-        button4 = QPushButton('Edit RMNS Standards')
-        button4.setProperty('sidebar', True)
-        button4.clicked.connect(self.rmns_standards)
+        edit_rmns_stds = QPushButton('Edit RMNS Standards')
+        edit_rmns_stds.setProperty('sideBarButton', True)
+        edit_rmns_stds.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        edit_rmns_stds.clicked.connect(self.rmns_standards)
 
-        button5 = QPushButton('Add Processor')
-        button5.setProperty('sidebar', True)
-        button5.clicked.connect(self.add_processor)
+        add_proc = QPushButton('Add Processor')
+        add_proc.setProperty('sideBarButton', True)
+        add_proc.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        add_proc.clicked.connect(self.add_processor)
 
-        button6 = QPushButton('View Data')
-        button6.setProperty('sidebar', True)
-        button6.clicked.connect(self.view_data)
+        view_data = QPushButton('View Data')
+        view_data.setProperty('sideBarButton', True)
+        view_data.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        view_data.clicked.connect(self.view_data)
 
-        button7 = QPushButton('Open Processing')
-        button7.setProperty('procbutton', True)
-        button7.clicked.connect(self.open_processing)
+        open_processing = QPushButton('Open Processing')
+        open_processing.setProperty('procButton', True)
+        open_processing.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        open_processing.clicked.connect(self.open_processing)
 
         # Set up grid layout
-        gridlayout.addWidget(headerframe, 0, 0, 3, 1)
-        gridlayout.addWidget(headerlogo, 0, 0, 2, 1, QtCore.Qt.AlignLeft)
-        gridlayout.addWidget(headerlabel, 0, 0, 2, 1, QtCore.Qt.AlignCenter)
+        self.grid_layout.addWidget(header_frame, 0, 0, 3, 1)
+        self.grid_layout.addWidget(header_logo, 0, 0, 2, 1, QtCore.Qt.AlignLeft)
+        self.grid_layout.addWidget(header_label, 0, 0, 2, 1, QtCore.Qt.AlignCenter)
 
-        gridlayout.addWidget(currprojectframe, 0, 1, 2, 3)
-        gridlayout.addWidget(self.currprojectlabel, 0, 1, 2, 1, QtCore.Qt.AlignRight)
-        gridlayout.addWidget(self.currprojectdisp, 0, 2, 2, 1, QtCore.Qt.AlignLeft)
+        self.grid_layout.addWidget(curr_project_frame, 0, 1, 2, 3)
+        self.grid_layout.addWidget(self.curr_project_label, 0, 1, 2, 1, QtCore.Qt.AlignRight)
+        self.grid_layout.addWidget(self.curr_project_disp, 0, 2, 2, 1, QtCore.Qt.AlignLeft)
 
-        gridlayout.addWidget(button7, 0, 3, 2, 1, QtCore.Qt.AlignLeft)
+        self.grid_layout.addWidget(open_processing, 0, 3, 2, 1, QtCore.Qt.AlignLeft)
 
-        gridlayout.addWidget(sidebarframe, 2, 0, 16, 1)
-        gridlayout.addWidget(selprojectlabel, 3, 0)
-        gridlayout.addWidget(button1, 4, 0)
-        gridlayout.addWidget(button2, 5, 0)
-        gridlayout.addWidget(button3, 6, 0)
+        self.grid_layout.addWidget(sidebar_frame, 2, 0, 16, 1)
+        self.grid_layout.addWidget(sel_project_label, 3, 0)
+        self.grid_layout.addWidget(create_new_proj, 4, 0)
+        self.grid_layout.addWidget(load_proj, 5, 0)
+        self.grid_layout.addWidget(import_proj, 6, 0)
 
-        gridlayout.addWidget(optionlabel, 8, 0, QtCore.Qt.AlignCenter)
-        gridlayout.addWidget(button4, 9, 0)
-        gridlayout.addWidget(button6, 10, 0)
+        self.grid_layout.addWidget(option_label, 8, 0, QtCore.Qt.AlignCenter)
+        self.grid_layout.addWidget(edit_rmns_stds, 9, 0)
+        self.grid_layout.addWidget(view_data, 10, 0)
 
-        gridlayout.addWidget(processorlabel, 12, 0, 1, 1, QtCore.Qt.AlignCenter)
-        gridlayout.addWidget(self.processor, 13, 0, QtCore.Qt.AlignCenter)
-        gridlayout.addWidget(button5, 14, 0)
+        self.grid_layout.addWidget(processor_label, 12, 0, 1, 1, QtCore.Qt.AlignCenter)
+        self.grid_layout.addWidget(self.processor, 13, 0, QtCore.Qt.AlignCenter)
+        self.grid_layout.addWidget(add_proc, 14, 0)
 
-        # Dashboard elements
-
+        # ------------------------- Dashboard elements ---------------------------------------------------------------
         # Project information
+        path_frame = QFrame(self)
+        path_frame.setProperty('dashboardFrame', True)
 
-        pathframe = QFrame(self)
-        pathframe.setProperty('dashboardframe', True)
-        pathframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-        pathframeshadow.setBlurRadius(6)
-        pathframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-        pathframeshadow.setYOffset(2)
-        pathframeshadow.setXOffset(3)
-        pathframe.setGraphicsEffect(pathframeshadow)
+        project_info = QLabel('<b>Project Information</b>')
+        project_info.setProperty('dashboardText', True)
 
-        projectinfo = QLabel('<b>Project Information</b>')
-        projectinfo.setFont(deffont)
-        projectinfo.setProperty('dashboardtext', True)
+        path_label = QLabel('<b>Path:</b>', self)
+        path_label.setProperty('dashboardText', True)
 
-        pathlabel = QLabel('<b>Path:</b>', self)
-        pathlabel.setFont(deffont)
-        pathlabel.setProperty('dashboardtext', True)
+        # self.project_path = QPushButton(str(self.hypro_settings['projects'][self.hypro_settings['activeproject']]['path']), self)
+        self.project_path = QPushButton('Project path', self)
+        self.project_path.setFont(QFont('Segoe UI'))
+        self.project_path.setProperty('stealth', True)
+        self.project_path.setMaximumWidth(400)
+        self.project_path.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
+        self.project_path.clicked.connect(self.open_explorer)
 
-        # self.projectpath = QPushButton(str(hyprosettings['projects'][hyprosettings['activeproject']]['path']), self)
-        self.projectpath = QPushButton('Project path', self)
-        self.projectpath.setFont(deffont)
-        self.projectpath.setProperty('stealth', True)
-        self.projectpath.setMaximumWidth(400)
-        self.projectpath.clicked.connect(self.open_explorer)
+        # self.project_type = QLabel(
+        #    '<b>Project Type:</b> ' + self.hypro_settings['projects'][self.hypro_settings['activeproject']]['type'], self)
+        self.project_type = QLabel('Project Type', self)
+        self.project_type.setFont(QFont('Segoe UI'))
+        self.project_type.setProperty('dashboardText', True)
 
-        # self.projecttype = QLabel(
-        #    '<b>Project Type:</b> ' + hyprosettings['projects'][hyprosettings['activeproject']]['type'], self)
-        self.projecttype = QLabel('Project Type', self)
-        self.projecttype.setFont(deffont)
-        self.projecttype.setProperty('dashboardtext', True)
-
-        gridlayout.addWidget(pathframe, 2, 1, 5, 2)
-        gridlayout.addWidget(projectinfo, 2, 1, 2, 2, QtCore.Qt.AlignCenter)
-        gridlayout.addWidget(pathlabel, 3, 1, 2, 2)
-        gridlayout.addWidget(self.projectpath, 4, 1, 2, 2)
-        gridlayout.addWidget(self.projecttype, 5, 1, 2, 2)
+        self.grid_layout.addWidget(path_frame, 2, 1, 5, 2)
+        self.grid_layout.addWidget(project_info, 2, 1, 2, 2, QtCore.Qt.AlignCenter)
+        self.grid_layout.addWidget(path_label, 3, 1, 2, 1)
+        self.grid_layout.addWidget(self.project_path, 4, 1, 2, 1)
+        self.grid_layout.addWidget(self.project_type, 5, 1, 2, 2)
 
         # Date created and last accessed
-        dateframe = QFrame(self)
-        dateframe.setProperty('dashboardframe', True)
-        dateframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-        dateframeshadow.setBlurRadius(6)
-        dateframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-        dateframeshadow.setYOffset(2)
-        dateframeshadow.setXOffset(3)
-        dateframe.setGraphicsEffect(dateframeshadow)
+        date_frame = QFrame(self)
+        date_frame.setProperty('dashboardFrame', True)
 
-        projectcreatedlabel = QLabel('<b>Date Created:</b>', self)
-        projectcreatedlabel.setFont(deffont)
-        projectcreatedlabel.setProperty('dashboardtext', True)
+        project_created_label = QLabel('<b>Date Created:</b>', self)
+        project_created_label.setProperty('dashboardText', True)
 
-        self.projectcreated = QLabel('Project created', self)
-        self.projectcreated.setFont(deffont)
-        self.projectcreated.setProperty('dashboardtext', True)
+        self.project_created = QLabel('Project created', self)
+        self.project_created.setProperty('dashboardText', True)
 
-        projectmodifedlabel = QLabel('<b>Date Last Accessed:</b>', self)
-        projectmodifedlabel.setFont(deffont)
-        projectmodifedlabel.setProperty('dashboardtext', True)
+        project_modified_label = QLabel('<b>Date Last Accessed:</b>', self)
+        project_modified_label.setProperty('dashboardText', True)
 
-        self.projectmodified = QLabel('Project modified', self)
-        self.projectmodified.setFont(deffont)
-        self.projectmodified.setProperty('dashboardtext', True)
+        self.project_modified = QLabel('Project modified', self)
+        self.project_modified.setProperty('dashboardText', True)
 
-        gridlayout.addWidget(dateframe, 2, 3, 5, 1)
-        gridlayout.addWidget(projectcreatedlabel, 2, 3, 2, 1)
-        gridlayout.addWidget(self.projectcreated, 3, 3, 2, 1)
-        gridlayout.addWidget(projectmodifedlabel, 4, 3, 2, 1)
-        gridlayout.addWidget(self.projectmodified, 5, 3, 2, 1)
+        self.grid_layout.addWidget(date_frame, 2, 3, 5, 1)
+        self.grid_layout.addWidget(project_created_label, 2, 3, 2, 1)
+        self.grid_layout.addWidget(self.project_created, 3, 3, 2, 1)
+        self.grid_layout.addWidget(project_modified_label, 4, 3, 2, 1)
+        self.grid_layout.addWidget(self.project_modified, 5, 3, 2, 1)
 
         # analysis display
-        analysisframe = QFrame(self)
-        analysisframe.setProperty('dashboardframe', True)
-        analysisframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-        analysisframeshadow.setBlurRadius(6)
-        analysisframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-        analysisframeshadow.setYOffset(2)
-        analysisframeshadow.setXOffset(3)
-        analysisframe.setGraphicsEffect(analysisframeshadow)
+        analysis_frame = QFrame(self)
+        analysis_frame.setProperty('dashboardFrame', True)
 
         analyses_activated_label = QLabel('<b>Analysis</b>')
-        analyses_activated_label.setProperty('dashboardtext', True)
+        analyses_activated_label.setProperty('dashboardText', True)
 
         activated_label = QLabel('<b>Active</b>')
-        activated_label.setProperty('dashboardtext', True)
+        activated_label.setProperty('dashboardText', True)
 
         number_files_processed_label = QLabel('<b>Files processed:</b>')
-        number_files_processed_label.setProperty('dashboardtext', True)
+        number_files_processed_label.setProperty('dashboardText', True)
 
         number_samples_processed_label = QLabel('<b>Samples processed:</b>')
-        number_samples_processed_label.setProperty('dashboardtext', True)
+        number_samples_processed_label.setProperty('dashboardText', True)
 
         nutrients_activated_label = QLabel('Seal Nutrients')
-        nutrients_activated_label.setProperty('dashboardtext', True)
+        nutrients_activated_label.setProperty('dashboardText', True)
         self.nutrients_activated_state = QLabel('No')
-        self.nutrients_activated_state.setProperty('dashboardtext', True)
+        self.nutrients_activated_state.setProperty('dashboardText', True)
         self.nutrients_files_processed = QLabel('0')
-        self.nutrients_files_processed.setProperty('dashboardtext', True)
+        self.nutrients_files_processed.setProperty('dashboardText', True)
         self.nutrients_samples_processed = QLabel('0')
-        self.nutrients_samples_processed.setProperty('dashboardtext', True)
+        self.nutrients_samples_processed.setProperty('dashboardText', True)
 
         salinity_activated_label = QLabel('Guildline Salinity')
-        salinity_activated_label.setProperty('dashboardtext', True)
+        salinity_activated_label.setProperty('dashboardText', True)
         self.salinity_activated_state = QLabel('No')
-        self.salinity_activated_state.setProperty('dashboardtext', True)
+        self.salinity_activated_state.setProperty('dashboardText', True)
         self.salinity_files_processed = QLabel('0')
-        self.salinity_files_processed.setProperty('dashboardtext', True)
+        self.salinity_files_processed.setProperty('dashboardText', True)
         self.salinity_samples_processed = QLabel('0')
-        self.salinity_samples_processed.setProperty('dashboardtext', True)
+        self.salinity_samples_processed.setProperty('dashboardText', True)
 
         oxygen_activated_label = QLabel('Scripps Oxygen')
-        oxygen_activated_label.setProperty('dashboardtext', True)
+        oxygen_activated_label.setProperty('dashboardText', True)
         self.oxygen_activated_state = QLabel('No')
-        self.oxygen_activated_state.setProperty('dashboardtext', True)
+        self.oxygen_activated_state.setProperty('dashboardText', True)
         self.oxygen_files_processed = QLabel('0')
-        self.oxygen_files_processed.setProperty('dashboardtext', True)
+        self.oxygen_files_processed.setProperty('dashboardText', True)
         self.oxygen_samples_processed = QLabel('0')
-        self.oxygen_samples_processed.setProperty('dashboardtext', True)
+        self.oxygen_samples_processed.setProperty('dashboardText', True)
 
         sub_grid_layout = QGridLayout()
         
-        gridlayout.addWidget(analysisframe, 7, 1, 10, 3)
+        self.grid_layout.addWidget(analysis_frame, 7, 1, 10, 3)
 
         sub_grid_layout.addWidget(analyses_activated_label, 0, 1)
         sub_grid_layout.addWidget(activated_label, 0, 2)
@@ -595,16 +342,45 @@ class Mainmenu(QMainWindow):
         sub_grid_layout.addWidget(self.oxygen_files_processed, 3, 3)
         sub_grid_layout.addWidget(self.oxygen_samples_processed, 3, 4)
         
-        gridlayout.addLayout(sub_grid_layout, 7, 1, 10, 3)
+        self.grid_layout.addLayout(sub_grid_layout, 7, 1, 10, 3)
 
         # Set grid layout to overarching main window central layout
-        self.centralWidget().setLayout(gridlayout)
 
         if project:
             self.populate_dashboards()
 
         self.show()
 
+
+        # End of initialising Main Menu.
+
+    def start_up(self):
+        # Check if the base directory for settings exists
+        base_path = 'C:/HyPro'
+        if not os.path.exists(base_path):
+            os.mkdir(base_path)
+
+        # Check if the parameters file exists
+        parameters_file = 'C:/HyPro/hyprosettings.json'
+        if not os.path.isfile(parameters_file):
+            params = {
+                'processors': [],
+                'projects': {},
+                'activeprocessor': '',
+                'activeproject': '',
+                'theme': 'normal'
+            }
+            with open(parameters_file, 'w+') as writing_file:
+                json.dump(params, writing_file)
+            hypro_settings = params
+
+        else:
+            with open('C:/HyPro/hyprosettings.json', 'r') as f:
+                hypro_settings = json.load(f)
+
+        return hypro_settings
+
+    def create_base_dbs(self):
         # Make Hypro settings database file
         if not os.path.isdir('C:/HyPro/Settings'):
             os.makedirs('C:/HyPro/Settings')
@@ -613,49 +389,46 @@ class Mainmenu(QMainWindow):
         c = conn.cursor()
 
         c.execute('''CREATE TABLE IF NOT EXISTS rmnsData
-                            (lot TEXT,
-                            phosphate FLOAT,
-                            phosphateU FLOAT,
-                            silicate FLOAT,
-                            silicateU FLOAT,
-                            nitrate FLOAT,
-                            nitrateU FLOAT,
-                            nitrite FLOAT,
-                            nitriteU FLOAT,
-                            ammonia FLOAT,
-                            ammoniaU FLOAT, UNIQUE(lot))''')
+                                    (lot TEXT,
+                                    phosphate FLOAT,
+                                    phosphateU FLOAT,
+                                    silicate FLOAT,
+                                    silicateU FLOAT,
+                                    nitrate FLOAT,
+                                    nitrateU FLOAT,
+                                    nitrite FLOAT,
+                                    nitriteU FLOAT,
+                                    ammonia FLOAT,
+                                    ammoniaU FLOAT, UNIQUE(lot))''')
         c.execute('''CREATE TABLE IF NOT EXISTS osilData
-                            (lot TEXT,
-                            salinity FLOAT, UNIQUE(lot))''')
+                                    (lot TEXT,
+                                    salinity FLOAT, UNIQUE(lot))''')
         c.close()
-
-        # End of initialising Main Menu.
 
     # Populates the various text for the 'dashboard' layout thingo
     def populate_dashboards(self):
-        with open('C:/HyPro/hyprosettings.json', 'r') as f:
-            hyprosettings = json.load(f)
         try:
-            self.projectpath.setText(str(hyprosettings['projects'][hyprosettings['activeproject']]['path']))
+            print(self.hypro_settings['activeproject'])
+            self.project_path.setText(str(self.hypro_settings['projects'][self.hypro_settings['activeproject']]['path']))
 
-            self.projecttype.setText(
-                '<b>Project Type:</b> ' + hyprosettings['projects'][hyprosettings['activeproject']]['type'])
+            self.project_type.setText(
+                '<b>Project Type:</b> ' + self.hypro_settings['projects'][self.hypro_settings['activeproject']]['type'])
 
-            self.projectcreated.setText(
+            self.project_created.setText(
                 str(time.strftime("%d/%m/%y %I:%M:%S %p",
                                   (time.localtime((os.path.getctime
-                                                   (hyprosettings['projects'][hyprosettings['activeproject']][
+                                                   (self.hypro_settings['projects'][self.hypro_settings['activeproject']][
                                                         'path'] + '/' +
-                                                   hyprosettings['activeproject'] + '.hypro')))))))
+                                                   self.hypro_settings['activeproject'] + '.hypro')))))))
             try:
-                self.projectmodified.setText(
+                self.project_modified.setText(
                     str(time.strftime("%d/%m/%y %I:%M:%S %p",
                                       (time.localtime((os.path.getmtime
-                                                       (hyprosettings['projects'][hyprosettings['activeproject']][
+                                                       (self.hypro_settings['projects'][self.hypro_settings['activeproject']][
                                                             'path'] + '/' +
-                                                        hyprosettings['activeproject'] + 'Data.db')))))))
+                                                        self.hypro_settings['activeproject'] + 'Data.db')))))))
 
-                with open(hyprosettings['projects'][hyprosettings['activeproject']]['path'] + '/' + hyprosettings['activeproject'] + 'Params.json', 'r') as file:
+                with open(self.hypro_settings['projects'][self.hypro_settings['activeproject']]['path'] + '/' + self.hypro_settings['activeproject'] + 'Params.json', 'r') as file:
                     params = json.loads(file.read())
 
                 if params['analysisparams']['seal']['activated']:
@@ -665,7 +438,7 @@ class Mainmenu(QMainWindow):
                 if params['analysisparams']['scripps']['activated']:
                     self.oxygen_activated_state.setText('Yes')
 
-                db_path = hyprosettings['projects'][hyprosettings['activeproject']]['path'] + '/' + hyprosettings['activeproject'] + 'Data.db'
+                db_path = self.hypro_settings['projects'][self.hypro_settings['activeproject']]['path'] + '/' + self.hypro_settings['activeproject'] + 'Data.db'
                 conn = sqlite3.connect(db_path)
                 c = conn.cursor()
 
@@ -698,8 +471,9 @@ class Mainmenu(QMainWindow):
                 c.close()
 
             except Exception:
-                self.projectmodified.setText('Not yet accessed...')
+                self.project_modified.setText('Not yet accessed...')
         except Exception:
+            print(traceback.print_exc())
             print('No data for this project just yet...')
 
     # Opens the create a new project dialog
@@ -716,14 +490,16 @@ class Mainmenu(QMainWindow):
     # Once a project is selected this updates the main menu
     def set_project_name_from_open(self, method):
         if method == 'new':
-            self.currprojectdisp.setText(self.create_new_project_window.project_prefix_str)
+            self.curr_project_disp.setText(self.create_new_project_window.project_prefix_str)
             self.currproject = self.create_new_project_window.project_prefix_str
 
-        elif method == 'load':
-            self.currprojectdisp.setText(self.open_existing_project.selectedproject)
+        if method == 'load':
+            self.curr_project_disp.setText(self.open_existing_project.selectedproject)
+
         try:
             self.populate_dashboards()
         except Exception:
+            print(Exception)
             print('No data for the project just yet...')
 
     # Opens the import a project dialog
@@ -736,9 +512,11 @@ class Mainmenu(QMainWindow):
         self.rmns = rmnsDialog()
         self.rmns.show()
 
-    # Opens the osil standard dialog TODO: finish this feature
+    # Opens the osil standard dialog
+    # TODO: finish this feature
     def osil_standards(self):
         print('osils')
+
 
     def enable_dark_mode(self):
         with open('C:/HyPro/hyprosettings.json', 'r') as file:
@@ -750,6 +528,7 @@ class Mainmenu(QMainWindow):
         with open('C:/HyPro/hyprosettings.json', 'w') as file:
             json.dump(params, file)
 
+        self.hypro_settings = params
         self.update()
 
     # Opens a dialog to add a new processor
@@ -773,6 +552,7 @@ class Mainmenu(QMainWindow):
                     with open('C:/HyPro/hyprosettings.json', 'w') as file:
                         json.dump(params, file)
 
+                    self.hypro_settings = params
                     self.processor.setCurrentText(text)
 
         except Exception as e:
@@ -790,7 +570,7 @@ class Mainmenu(QMainWindow):
                                                       'There is no active project currently selected, please create or import one.',
                                                       'information')
             else:
-                self.project = self.currprojectdisp.text()
+                self.project = self.curr_project_disp.text()
                 with open('C:/HyPro/hyprosettings.json', 'r') as file:
                     params = json.loads(file.read())
 
@@ -811,7 +591,6 @@ class Mainmenu(QMainWindow):
 
     # Assigns the current active processor upon opening main menu
     def active_processor_function(self):
-
         try:
             with open('C:/HyPro/hyprosettings.json', 'r') as file:
                 params = json.loads(file.read())
@@ -825,7 +604,7 @@ class Mainmenu(QMainWindow):
 
     # Opens windows explorer to look a the project path
     def open_explorer(self):
-        path = self.projectpath.text()
+        path = self.project_path.text()
         if os.path.isdir(path):
             time.sleep(0.2)
             os.startfile(path)

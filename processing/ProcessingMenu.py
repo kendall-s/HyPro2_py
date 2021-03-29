@@ -217,13 +217,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         manual_menu.triggered.connect(self.show_manual)
         help_menu.addAction(manual_menu)
 
+
         current_project_frame = QFrame(self)
         current_project_frame.setProperty('sideHeaderFrame', True)
-        # Shadow graphics parameters
-        current_project_frame_shadow = QGraphicsDropShadowEffect()
-        current_project_frame_shadow.setBlurRadius(5)
-        current_project_frame_shadow.setYOffset(1)
-        current_project_frame_shadow.setXOffset(2)
 
         current_project_label = QLabel('Current Project:')
         current_project_label.setProperty('sideBarText', True)
@@ -234,22 +230,13 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         top_h_frame = QFrame(self)
         top_h_frame.setProperty('topBarFrame', True)
-        top_h_frame_shadow = QGraphicsDropShadowEffect()
-        top_h_frame_shadow.setBlurRadius(5)
-        top_h_frame_shadow.setYOffset(2)
-        top_h_frame_shadow.setXOffset(3)
-        #topperframe.setGraphicsEffect(topperframeshadow)
 
         output_frame = QFrame(self)
         output_frame.setProperty('dashboardFrame', True)
-        output_frame_shadow = QGraphicsDropShadowEffect()
-        output_frame_shadow.setBlurRadius(5)
-        output_frame_shadow.setYOffset(2)
-        output_frame_shadow.setXOffset(3)
-        #outputboxframe.setGraphicsEffect(outputboxframeshadow)
 
-        output_label = QLabel('  Processing Output: ')
+        output_label = QLabel('Processing Output: ', self)
         output_label.setProperty('dashboardText', True)
+        output_label.setStyleSheet('font: 14px; padding: 5px; font-weight: bold;')
 
         logged_path = self.currpath + '/' +self.currproject + '.txt'
         self.output_box = QTextEditLogger(self, logged_path)
@@ -258,12 +245,6 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         side_bar_frame = QFrame(self)
         side_bar_frame.setProperty('sideBarFrame', True)
-        side_bar_frame_shadow = QGraphicsDropShadowEffect()
-        side_bar_frame_shadow.setBlurRadius(5)
-        #side_bar_frame_shadow.setColor(QtGui.QColor('#183666'))
-        side_bar_frame_shadow.setYOffset(1)
-        side_bar_frame_shadow.setXOffset(2)
-        # side_bar_frame.setGraphicsEffect(side_bar_frame_shadow)
 
         self.interactive_processing = QCheckBox('Interactive Processing')
         self.interactive_processing.setChecked(True)
@@ -274,22 +255,26 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         reread_button = QPushButton('Reread File')
         reread_button.setProperty('sideBarButton', True)
+        reread_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         refresh_button = QPushButton('Refresh Files')
         refresh_button.setProperty('sideBarButton', True)
-        # refresh_button.setIcon(QIcon('roundrefresh'))
+        refresh_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         open_directory_button = QPushButton('Open Directory')
         open_directory_button.setProperty('sideBarButton', True)
+        open_directory_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         options_label = QLabel('<b>Options</b>')
         options_label.setProperty('sideBarText', True)
 
         view_data_button = QPushButton('View Data')
         view_data_button.setProperty('sideBarButton', True)
+        view_data_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         delete_data_button = QPushButton('Delete Data')
         delete_data_button.setProperty('sideBarButton', True)
+        delete_data_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         self.grid_layout.addWidget(current_project_frame, 0, 0, 5, 1)
         self.grid_layout.addWidget(side_bar_frame, 4, 0, 15, 1)
@@ -358,6 +343,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState(),
                                           self.performance_mode, self.ultra_performance_mode)
+
         #self.refreshing.moveToThread(self.thread)
         #self.thread.started.connect(self.refreshing.refresh)
         #self.thread.start()

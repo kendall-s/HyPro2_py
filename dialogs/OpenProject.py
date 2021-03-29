@@ -7,7 +7,7 @@ from dialogs.templates.DialogTemplate import hyproDialogTemplate
 # Small GUI functionality for opening a project and loading it in as the active project
 class openProject(hyproDialogTemplate):
     def __init__(self):
-        super().__init__(200, 350, 'HyPro - Open Proect')
+        super().__init__(200, 350, 'HyPro - Open Project')
         
         self.selectedproject = ''
 

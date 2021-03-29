@@ -28,6 +28,11 @@ QMainWindow[NutrientProcessing=true] {
     
 }
 
+QMainWindow {
+    font-family: Segoe UI;
+    background-color: #EBEFF2;
+}
+
 
 
 /* ---------------------------- QGraphicsDropShadow ------
@@ -60,8 +65,8 @@ QLabel {
 }
 QLabel[dashboardText=true] {
     color: #222222;
-    font: 14px;
-    font-weight: bold;  
+    font: 15px;
+    padding: 10px; 
 }
 QLabel[sideHeaderHeading=true] {   
     font: 22px;
@@ -74,7 +79,17 @@ QLabel[sideBarText=true] {
 QLabel[nutrientHeader=true] {
     font: 22px;
     color: #FFFFFF;
+}
 
+QLabel[headerText=true] {
+    min-width: 60px;
+    min-height:20px;
+    font: 24px;
+    color: #ffffff;
+    font-weight: bold;
+}
+QLabel[headerLogo=true] {
+    padding-left: 33px
 }
 
 
@@ -125,6 +140,54 @@ QPushButton[nutrientControls=true]:pressed {
 QPushButton[msgBox=true] {
     width: 85px;
 }
+
+QPushButton[procButton=true] {
+    color: #222222;
+    border: 1px solid #ededed;
+    border-radius: 5px;
+    background: #ededed;
+    font: 14px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+QPushButton[procButton=true]:hover {
+    color: #222222;
+    border: 1px solid #f7f7f7;
+    background: #f7f7f7;
+    font: 14px;
+}
+QPushButton[procButton=true]:pressed{
+    border: 1px solid #8f98a8;
+    color: #222222;
+    background-color: #f7f7f7;
+    font: 14px;
+    border-style: inset;
+}
+QPushButton[stealth=true] {
+    text-align: left;
+    font: 15px;
+    color: #222222;
+    padding: 10px;
+    background-color: #f4f8ff;
+    border: 0px;   
+}
+QPushButton[stealth=true]:hover {
+    font: 15px;
+    color: #6bb7ff;
+    padding: 10px;
+    background-color: #f4f8ff;
+    border: 0px;
+}
+QPushButton[stealth=true]:pressed {
+    font: 15px;
+    color: #086ece;
+    padding: 10px;
+    background-color: #f4f8ff;
+    border: 0px;
+}
+
 
 /* ---------------------------------- QComboBox ---------
 
@@ -301,7 +364,7 @@ QTitleBar {
 
 ---------------------------------------------------------- */
 QMainWindow {
-    background-color: #202020;
+    background-color: #0F0F0F;
 }
 
 
@@ -342,6 +405,11 @@ QLabel {
     font: 14px Segoe UI;
     color: #F5F5F5;
 }
+QLabel[dashboardText=true] {
+    color: #F5F5F5;
+    font: 15px;
+    padding: 10px; 
+}
 QLabel[sideHeaderHeading=true] {   
     font: 22px;
     color: #F5F5F5;
@@ -351,6 +419,16 @@ QLabel[sideBarText=true] {
     color: #F5F5F5;
 }
 
+QLabel[headerText=true] {
+    min-width: 60px;
+    min-height:20px;
+    font: 24px;
+    color: #ffffff;
+    font-weight: bold;
+}
+QLabel[headerLogo=true] {
+    padding-left: 33px
+}
 
 
 /* --------------------------------- QPushButton ---------
@@ -397,6 +475,52 @@ QPushButton[nutrientControls=true]:hover {
 QPushButton[nutrientControls=true]:pressed {
     color: #6bb7ff;
     background-color: #3A3A3A;
+}
+
+QPushButton[procButton=true] {
+    color: #FAFAFA;
+    border: 1px solid #272822;
+    border-radius: 5px;
+    background: #3C3F41;
+    font: 14px;
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+QPushButton[procButton=true]:hover {
+    color: #FAFAFA;
+    border: 1px solid #82898D;
+    background: #5F6467;
+}
+QPushButton[procButton=true]:pressed{
+    border: 1px solid #82898D;
+    color: #FAFAFA;
+    background-color: #5F6467;
+    border-style: inset;
+}
+
+QPushButton[stealth=true] {
+    text-align: left;
+    font: 15px;
+    color: #FAFAFA;
+    padding: 10px;
+    background-color: #202020;
+    border: 0px;   
+}
+QPushButton[stealth=true]:hover {
+    font: 15px;
+    color: #6bb7ff;
+    padding: 10px;
+    background-color: #202020;
+    border: 0px;
+}
+QPushButton[stealth=true]:pressed {
+    font: 15px;
+    color: #086ece;
+    padding: 10px;
+    background-color: #202020;
+    border: 0px;
 }
 
 /* ---------------------------------- QComboBox ----------
