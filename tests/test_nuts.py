@@ -171,3 +171,10 @@ def test_flag_null_sample():
 
     assert flags == [1, 1, 3, 1, 3, 1]
 
+def test_sample_id_dilution():
+    sample_ids = ['Test 1902', '1903', '1904', '1905 dil 5x']
+    dilution_factors = [1, 1, 1, 1]
+
+    dilution_factors = psn.get_dilution_factor(sample_ids, dilution_factors)
+
+    assert dilution_factors == [1, 1, 1, 5]

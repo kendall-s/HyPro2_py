@@ -214,6 +214,31 @@ def flag_null_samples(analysis_cups, null_cup, quality_flags):
 
     return quality_flags
 
+def get_dilution_factor(sample_ids, dilution_factors):
+
+    """
+    This is a quality of life addition, allowing chemists to specify the dilution factor in the sample id
+    label, the nomenclature dil nx is required for this to take place. 5x indicates a 1in5 dilution
+    :param sample_ids: list
+    :param dilution_factors: list
+    :return: dilution_factors: list
+    """
+    for i, sample_id in enumerate(sample_ids):
+        sample_id = sample_id.lower()
+        if ('dil') in sample_id:
+            # Extract the dilution coefficient
+            dil_index = sample_id.find('dil')
+            dilution_value = sample_id[dil_index+3:]
+            # Remove the X from the number
+            dilution_value_clean = dilution_value.replace("x", "")
+
+            try:
+                dilution_value_float = float(dilution_value_clean)
+                dilution_factors[i] = dilution_value_float
+            except ValueError:
+                print('Dilution factor reading error')
+
+    return dilution_factors
 
 def peak_shape_qc(window_values, quality_flags):
     """

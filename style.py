@@ -48,7 +48,7 @@ QGraphicsDropShadow {
 ---------------------------------------------------------- */
 
 QLineEdit {
-    font: 14px;
+    font: 14px Segoe UI;
 }
 QLineEdit:hover {
     font: 14px;
@@ -97,7 +97,7 @@ QLabel[headerLogo=true] {
 
 ---------------------------------------------------------- */
 QListWidget {
-    font: 14px;
+    font: 14px Segoe UI;
 }
 
 
@@ -105,7 +105,7 @@ QListWidget {
 
 ---------------------------------------------------------- */
 QPushButton {
-    font: 14px;
+    font: 14px Segoe UI;
 }
 QPushButton[sideBarButton=true] {
     border: 1px solid #4e546c;
@@ -356,6 +356,7 @@ QToolTip {
 
 ---------------------------------------------------------- */
 QTitleBar {
+    font-family: Segoe UI;
     background-color: #000000;
 }
 
@@ -381,6 +382,7 @@ QGraphicsDropShadow {
 ---------------------------------------------------------- */
 QDialog {
     background-color: #202020;
+    font: 14px Segoe UI;
 }
 
 
@@ -590,7 +592,7 @@ QTabBar:tab:hover {
 ---------------------------------------------------------- */
 QLineEdit {
     border: 1px solid #666666;
-    font: 14px;
+    font: 14px Segoe UI;
     color: white;
     background-color: #191919;
 }

@@ -17,7 +17,7 @@ from dialogs.RMNSDialog import rmnsDialog
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 # from MapPlotting import mapPlotting these are currently disabled ..
 # from TriaxusPlotting import triaxusPlotting
-import hyproicons
+import hyproicons, style
 
 
 # TODO: please clean me up - style sheet needs transfer to style file
@@ -250,7 +250,7 @@ class Mainmenu(hyproMainWindowTemplate):
         self.grid_layout.addWidget(path_frame, 2, 1, 5, 2)
         self.grid_layout.addWidget(project_info, 2, 1, 2, 2, QtCore.Qt.AlignCenter)
         self.grid_layout.addWidget(path_label, 3, 1, 2, 1)
-        self.grid_layout.addWidget(self.project_path, 4, 1, 2, 1)
+        self.grid_layout.addWidget(self.project_path, 4, 1, 2, 2)
         self.grid_layout.addWidget(self.project_type, 5, 1, 2, 2)
 
         # Date created and last accessed
@@ -414,21 +414,20 @@ class Mainmenu(hyproMainWindowTemplate):
             self.project_type.setText(
                 '<b>Project Type:</b> ' + self.hypro_settings['projects'][self.hypro_settings['activeproject']]['type'])
 
-            self.project_created.setText(
-                str(time.strftime("%d/%m/%y %I:%M:%S %p",
-                                  (time.localtime((os.path.getctime
-                                                   (self.hypro_settings['projects'][self.hypro_settings['activeproject']][
-                                                        'path'] + '/' +
-                                                   self.hypro_settings['activeproject'] + '.hypro')))))))
-            try:
-                self.project_modified.setText(
-                    str(time.strftime("%d/%m/%y %I:%M:%S %p",
-                                      (time.localtime((os.path.getmtime
-                                                       (self.hypro_settings['projects'][self.hypro_settings['activeproject']][
-                                                            'path'] + '/' +
-                                                        self.hypro_settings['activeproject'] + 'Data.db')))))))
+            # Setting the creation time and modified times - a little bit unwieldly trying to format the times
+            active_project = self.hypro_settings['activeproject']
+            project_path = self.hypro_settings['projects'][active_project]['path']
+            hypro_file = project_path + '/' + active_project + '.hypro'
+            proj_db_file = project_path + '/' + active_project + 'Data.db'
 
-                with open(self.hypro_settings['projects'][self.hypro_settings['activeproject']]['path'] + '/' + self.hypro_settings['activeproject'] + 'Params.json', 'r') as file:
+            self.project_created.setText(str(time.strftime("%d/%m/%y %I:%M:%S %p", (time.localtime((os.path.getctime(hypro_file)))))))
+
+            try:
+                self.project_modified.setText(str(time.strftime("%d/%m/%y %I:%M:%S %p", (time.localtime((os.path.getmtime(proj_db_file)))))))
+
+                params_file = project_path + '/' + active_project + 'Params.json'
+
+                with open(params_file, 'r') as file:
                     params = json.loads(file.read())
 
                 if params['analysisparams']['seal']['activated']:
@@ -438,8 +437,7 @@ class Mainmenu(hyproMainWindowTemplate):
                 if params['analysisparams']['scripps']['activated']:
                     self.oxygen_activated_state.setText('Yes')
 
-                db_path = self.hypro_settings['projects'][self.hypro_settings['activeproject']]['path'] + '/' + self.hypro_settings['activeproject'] + 'Data.db'
-                conn = sqlite3.connect(db_path)
+                conn = sqlite3.connect(proj_db_file)
                 c = conn.cursor()
 
                 c.execute('''SELECT COUNT(*) FROM oxygenData''')
@@ -463,7 +461,7 @@ class Mainmenu(hyproMainWindowTemplate):
                 nuts = ['nitrate', 'phosphate', 'silicate', 'nitrite', 'ammonia']
                 counts = []
                 for nut in nuts:
-                    c.execute(f'''SELECT COUNT(*) from {nut}Data''')
+                    c.execute(f'''SELECT COUNT(*) from {nut}Data WHERE survey NOT IN ('StandardQC', 'Null', 'RMNS', 'BQC', 'MDL', 'Test', 'Unknown')  ''')
                     nut_count = c.fetchone()
                     counts.append(nut_count[0])
                 self.nutrients_samples_processed.setText(str(max(counts)))
@@ -472,8 +470,10 @@ class Mainmenu(hyproMainWindowTemplate):
 
             except Exception:
                 self.project_modified.setText('Not yet accessed...')
+
         except Exception:
             print(traceback.print_exc())
+            self.project_modified.setText('Not yet accessed...')
             print('No data for this project just yet...')
 
     # Opens the create a new project dialog
@@ -489,6 +489,8 @@ class Mainmenu(hyproMainWindowTemplate):
 
     # Once a project is selected this updates the main menu
     def set_project_name_from_open(self, method):
+        self.hypro_settings = self.start_up()
+
         if method == 'new':
             self.curr_project_disp.setText(self.create_new_project_window.project_prefix_str)
             self.currproject = self.create_new_project_window.project_prefix_str
@@ -529,7 +531,7 @@ class Mainmenu(hyproMainWindowTemplate):
             json.dump(params, file)
 
         self.hypro_settings = params
-        self.update()
+        self.setStyleSheet(style.stylesheet[params['theme']])
 
     # Opens a dialog to add a new processor
     def add_processor(self):
