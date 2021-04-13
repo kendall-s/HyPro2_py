@@ -66,7 +66,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     w_d.quality_flag = flag_null_samples(slk_data.cup_types, null_cup_type, w_d.quality_flag)
     w_d.quality_flag = flag_hashed_samples(slk_data.peak_starts[current_nutrient], w_d.quality_flag)
-
+    w_d.dilution_factor = get_dilution_factor(slk_data.sample_ids, w_d.dilution_factor)
     # w_d = matchup_peaks(slk_data, chd_data, processing_parameters, current_nutrient, w_d)
 
     # ----------- Check peaks for peak shape - apply quality control -------------------------------------------

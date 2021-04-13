@@ -344,10 +344,14 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState(),
                                           self.performance_mode, self.ultra_performance_mode)
 
+        self.refreshing.files_found.connect(self.print_files_found)
         #self.refreshing.moveToThread(self.thread)
         #self.thread.started.connect(self.refreshing.refresh)
         #self.thread.start()
         self.refreshing.refresh()
+
+    def print_files_found(self, files):
+        logging.info(files)
 
     def open_directory(self):
         if os.path.isdir(self.currpath):
@@ -416,6 +420,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.exporter.show()
 
     def exportuwynuts(self):
+        """
+        Please ignore - this works but needs to be pulled out into its own thing
+        It is still here because it works and just gets the job done for now
+        """
         try:
             conn = sqlite3.connect(self.db)
             c = conn.cursor()
