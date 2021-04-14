@@ -1,11 +1,12 @@
 import sys, os, pprint, statistics, json, xlrd, sqlite3, traceback, logging
-import processing.RefreshFunction
-
+from PyQt5.QtCore import pyqtSignal
 
 # Reads in the sample log sheet for the bottle numbers, currently using a prototype excel sheet, was meant to be easy
 # to edit and modify as needed for hydrochem members
 
 class initSampleSheet():
+
+    processing_completed = pyqtSignal()
 
     def __init__(self, file, project, database, path, interactive, rereading):
 
@@ -77,7 +78,7 @@ class initSampleSheet():
 
             logging.info('Sample sheet ' + str(self.file) + ' successfully processed')
             if not self.rereading:
-                self.refreshing = processing.RefreshFunction.refreshFunction(self.currpath, self.currproject, self.interactive)
+                self.processing_completed.emit()
 
         except Exception:
             logging.error(traceback.print_exc())

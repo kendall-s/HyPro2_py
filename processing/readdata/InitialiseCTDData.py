@@ -1,12 +1,15 @@
 import os, statistics, time, logging, traceback
 import sqlite3
-import processing.RefreshFunction
+from PyQt5.QtCore import pyqtSignal
 
 # Reads in the .ros file from Seasave for getting bottle data...
 # Not very complicated, no GUI, just pure function to take the .ros and parse it to the database file
 
 
 class initCTDdata():
+
+    processing_completed = pyqtSignal()
+
     def __init__(self, file, database, path, project, interactive, rereading):
 
         self.file = file
@@ -224,7 +227,7 @@ class initCTDdata():
             logging.info('CTD file ' + str(self.file) + ' processed')
 
             if not self.rereading:
-                self.refreshing = processing.RefreshFunction.refreshFunction(self.currpath, self.currproject, self.interactive)
+                self.processing_completed.emit()
 
         except Exception:
             logging.error(traceback.print_exc())

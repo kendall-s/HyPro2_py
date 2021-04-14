@@ -4,6 +4,7 @@ import os
 import sqlite3
 import time
 import traceback
+from PyQt5.QtCore import pyqtSignal
 
 import processing.RefreshFunction
 import processing.procdata.ProcessGuildlineSalinity as pgs
@@ -19,6 +20,9 @@ No processing needs to be done just parse, read in and pack into the project dat
 '''
 
 class processingSalinityWindow():
+
+    processing_completed = pyqtSignal()
+
     def __init__(self, file, database, path, project, interactive, rereading):
         try:
             self.file = file
@@ -144,4 +148,4 @@ class processingSalinityWindow():
         logging.info('Salinity file - ' + self.file + ' successfully processed')
 
         if not self.rereading:
-            refreshing = processing.RefreshFunction.refreshFunction(self.currpath, self.currproject, self.interactive)
+            self.processing_completed.emit()

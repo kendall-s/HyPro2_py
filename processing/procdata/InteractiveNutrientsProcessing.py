@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QCheckBox, QFrame, QV
                              QDesktopWidget, QApplication, QLineEdit)
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, pyqtSignal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from pylab import *
@@ -40,6 +40,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 
     """
+
+    processing_completed = pyqtSignal()
+
     def __init__(self, file, database, path, project, interactive=True, rereading=False, perf_mode=False,
                  ultra_perf_mode=False):
         screenwidth = QDesktopWidget().availableGeometry().width()
@@ -49,6 +52,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         # Set flagging colours
         self.FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#DC9530',
                             91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
+
         self.FLAG_CONVERTER = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad',
                                91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
 
@@ -370,8 +374,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         psn.pack_data(self.slk_data, self.w_d, self.database, self.file_path)
 
     def proceed(self):
-        #self.main_trace.cla()
-        #self.tracecanvas.draw()
+
 
         self.store_data()
 
@@ -384,21 +387,27 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                       self.processing_parameters, self.w_d, self.slk_data)
             except Exception:
                 print(traceback.print_exc())
+
         index = self.slk_data.active_nutrients.index(self.current_nutrient)
+
         try:
             self.current_nutrient = self.slk_data.active_nutrients[index+1]
+
+            self.analysistraceLabel.setText('<b>Processing file: </b>' + str(self.file) +
+                                            '   |   <b>Analysis Trace: </b>' + str(self.current_nutrient).capitalize())
+
+            self.w_d.analyte = self.current_nutrient
+
+            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                              self.current_nutrient)
+            self.interactive_routine()
+
         except IndexError:
             print('Processing completed')
             logging.info(f'Processing successfully completed for nutrient file - {self.file}')
-            #plt.close('all')
-            self.close()
 
-        self.analysistraceLabel.setText('<b>Processing file: </b>' + str(self.file) +
-                                        '   |   <b>Analysis Trace: </b>' + str(self.current_nutrient).capitalize())
-        self.w_d.analyte = self.current_nutrient
-        self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
-                                          self.current_nutrient)
-        self.interactive_routine()
+            self.processing_completed.emit()
+            self.close()
 
     def cancel(self):
         plt.close('all')

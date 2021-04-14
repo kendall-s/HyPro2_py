@@ -13,13 +13,11 @@ class refreshFunction(QObject):
 
     files_found_signal = pyqtSignal(dict)
 
-    def __init__(self, path, project, interactive, perf_mode, ultra_perf_mode):
+    def __init__(self, path, project):
         super().__init__()
         self.currpath = path
         self.currproject = project
-        self.interactive = interactive
-        self.perf_mode = perf_mode
-        self.ultra_perf_mode = ultra_perf_mode
+
 
         self.db = (self.currpath + '/' + self.currproject + 'Data.db')
 
@@ -49,6 +47,7 @@ class refreshFunction(QObject):
                 # Load up database where files already processed are stored
                 conn = sqlite3.connect(self.db)
                 c = conn.cursor()
+                # Pull the processed files from each table
                 c.execute(f'SELECT * from {db_name_folder_converter[folder]}FilesProcessed')
 
                 data = list(c.fetchall())
@@ -57,6 +56,7 @@ class refreshFunction(QObject):
                 # Get the processed_file_names and modified times that were stored in the database
                 processed_file_names = [x[0] for x in data]
                 time_modified = [x[1] for x in data]
+
                 # Go through each file and determine if it is in the database and if it has changed
                 for file in files_in_directory:
                     if (file != 'Hidden' or file != 'hidden') & (not procfile):

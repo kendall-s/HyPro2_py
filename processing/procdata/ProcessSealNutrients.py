@@ -40,6 +40,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     # ----------- Read in latest configurable processing parameters (in order of use) ------------------------
     window_size = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['windowSize']
     window_start = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['windowStart']
+
     null_cup_type = processing_parameters['nutrientprocessing']['cupnames']['null']
     baseline_cup_type = processing_parameters['nutrientprocessing']['cupnames']['baseline']
     baseline_corr_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['baseCorrType']
@@ -49,9 +50,11 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     recovery_cup_type = processing_parameters['nutrientprocessing']['cupnames']['recovery']
     drift_corr_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['driftCorrType']
     calibrant_cup_type = processing_parameters['nutrientprocessing']['cupnames']['calibrant']
+
     cal_zero_label = processing_parameters['nutrientprocessing']['calibrants']['cal0']
     cal_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calibration']
     cal_error_limit = float(processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calerror'])
+
     mdl_cup = processing_parameters['nutrientprocessing']['qcsamplenames']['mdl']
     sample_cup_type = processing_parameters['nutrientprocessing']['cupnames']['sample']
     qc_cup_ids = [processing_parameters['nutrientprocessing']['qcsamplenames'][x] for x in
@@ -544,8 +547,10 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
     original_indexes = [x for i, x in enumerate(range(len(calibrant_medians))) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
     flags_to_fit = [x for x in calibrant_flags]
 
+    cal_coefficients  = []
     while repeat_calibration:
         try:
+
             calibration_iteration += 1
 
             if cal_type == 'Linear':
@@ -637,6 +642,7 @@ def apply_dilution(mdl_indexes, dilution_factors, calculated_concentrations):
     mdl_concs = cc[mdl_indexes]
     mdl = npmean(mdl_concs)
 
+    # This equation makes sure we account for the little bit of nutrients in the diluent
     cc_2 = cc * df - (df - 1) * mdl
 
     calculated_concentrations = list(cc_2)
@@ -661,9 +667,9 @@ def find_duplicate_indexes(sample_ids):
 def find_duplicate_samples(duplicate_indexes, sample_ids, cup_types, sample_cup_type, qc_samples_names):
     duplicate_samples = []
     for indices_list in duplicate_indexes:
-        # Logic here, make sure sample ID doesn't correspond to a QC sample e.g. RMNS or MDL
+        # Logic here is: make sure sample ID doesn't correspond to a QC sample e.g. RMNS or MDL
         # Then got to also make sure cup type is a sample, otherwise Nulls would be listed
-        # Keeping the duplicate indexes in the dictionary structure as well to differentiate
+        # Keeping the duplicate indexes in dictionary structure as well to differentiate
         if not any(qc_name in sample_ids[indices_list[1][0]] for qc_name in qc_samples_names):
             if sample_ids[indices_list[1][0]] != 'Sample':
                 if cup_types[indices_list[1][0]] == sample_cup_type:

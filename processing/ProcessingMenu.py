@@ -342,26 +342,27 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
     def refresh(self):
 
         self.thread = QThread()
-        self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState(),
-                                          self.performance_mode, self.ultra_performance_mode)
+        self.refreshing = refreshFunction(self.currpath, self.currproject)
         self.refreshing.moveToThread(self.thread)
         self.thread.started.connect(self.refreshing.refresh)
         self.thread.start()
 
-        self.refreshing.files_found_signal.connect(self.process_files_found_routine)
+        self.refreshing.files_found_signal.connect(self.collect_found_files)
         self.refreshing.files_found_signal.connect(self.thread.quit)
 
+    def collect_found_files(self, files):
+        self.files_to_process = files
+        self.process_files_found_routine(files)
 
     def process_files_found_routine(self, files):
-        self.files_to_process = files
-
         # Iterate through the different file types
         for file_type in files:
             # Check if there are any files of that given type
             if len(files[file_type]) > 0:
                 for file_name in files[file_type]:
                     self.process_file(file_name, file_type)
-                    # Break because we have found a file to process
+                    # Break because we have found a file to process, as files are processing they will be removed
+                    # from the list of files to process and this function will get called each time
                     break
                 break
 
@@ -390,11 +391,17 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
                                                           self.interactive_processing.checkState(), False,
                                                           self.performance_mode,
                                                           self.ultra_performance_mode)
+        # Once the processing is completed, remove from the list of files to process then go again on the
+        # files to process function
+        self.init_nutrient_data.processing_completed.connect(lambda: self.files_to_process['Nutrients'].remove(file))
+        self.init_nutrient_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
 
     def run_oxygen_process(self, file):
         self.init_oxy_data = processingOxygenWindow(file, self.db, self.currpath,
                                                   self.currproject,
                                                   self.interactive_processing.checkState(), False)
+        self.init_oxy_data.processing_completed.connect(lambda: self.files_to_process['Oxygen'].remove(file))
+        self.init_oxy_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
 
     def run_salinity_process(self, file):
         self.init_salt_data = processingSalinityWindow(file,
@@ -404,6 +411,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
                                                      self.interactive_processing.checkState(),
                                                      False)
 
+        self.init_salt_data.processing_completed.connect(lambda: self.files_to_process['Salinity'].remove(file))
+        self.init_salt_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
+
     def run_ctd_process(self, file):
         self.init_ctd_data = InitialiseCTDData.initCTDdata(file,
                                                          self.db,
@@ -411,6 +421,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
                                                          self.currproject,
                                                          self.interactive_processing.checkState(),
                                                          False)
+        self.init_ctd_data.processing_completed.connect(lambda: self.files_to_process['CTD'].remove(file))
+        self.init_ctd_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
 
     def run_sampling_process(self, file):
         self.init_sample_data = InitialiseSampleSheet.initSampleSheet(file,
@@ -419,6 +431,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
                                                                     self.currpath,
                                                                     self.interactive,
                                                                     False)
+        self.init_ctd_data.processing_completed.connect(lambda: self.files_to_process['Sampling'].remove(file))
+        self.init_ctd_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
+
     def open_directory(self):
         if os.path.isdir(self.currpath):
             os.startfile(self.currpath)
