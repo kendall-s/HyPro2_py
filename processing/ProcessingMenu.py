@@ -29,6 +29,11 @@ import hyproicons, style
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
+from processing.procdata.InteractiveNutrientsProcessing import processingNutrientsWindow
+from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
+from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
+from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
+
 # TODO: Make output for ODV
 # TODO: make logsheet go to Dissolved Oxygen box file
 
@@ -309,12 +314,12 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
         analyses = params['analysisparams'].keys()
-        anyactivated = False
+        any_activated = False
         for x in analyses:
             if params['analysisparams'][x]['activated']:
-                anyactivated = True
+                any_activated = True
 
-        if not anyactivated:
+        if not any_activated:
             logging.info("There is not any analyses currently activated, HyPro can not recognise files that need "
                          "processing if you don't activate and assign a naming nomenclature. If this is also the first "
                          "time setting up the project it would be a good idea to check Parameters, under Edit. "
@@ -335,24 +340,85 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.viewDataDialog.show()
 
     def refresh(self):
-        #self.refresh_thread = threading.Thread(target=refreshFunction, args=(self.currpath,
-        #                                                                     self.currproject,
-        #                                                                     self.interactive_processing.checkState()))
-        #self.refresh_thread.start()
-        self.thread = QThread()
 
+        self.thread = QThread()
         self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState(),
                                           self.performance_mode, self.ultra_performance_mode)
+        self.refreshing.moveToThread(self.thread)
+        self.thread.started.connect(self.refreshing.refresh)
+        self.thread.start()
 
-        self.refreshing.files_found.connect(self.print_files_found)
-        #self.refreshing.moveToThread(self.thread)
-        #self.thread.started.connect(self.refreshing.refresh)
-        #self.thread.start()
-        self.refreshing.refresh()
+        self.refreshing.files_found_signal.connect(self.process_files_found_routine)
+        self.refreshing.files_found_signal.connect(self.thread.quit)
 
-    def print_files_found(self, files):
-        logging.info(files)
 
+    def process_files_found_routine(self, files):
+        self.files_to_process = files
+
+        # Iterate through the different file types
+        for file_type in files:
+            # Check if there are any files of that given type
+            if len(files[file_type]) > 0:
+                for file_name in files[file_type]:
+                    self.process_file(file_name, file_type)
+                    # Break because we have found a file to process
+                    break
+                break
+
+    def process_file(self, file, type):
+        """
+        Process a file of a given type - i.e. process a nutrients file with the right pipeline
+        """
+        if type == 'CTD':
+            self.run_ctd_process(file)
+
+        if type == 'Sampling':
+            self.run_sampling_process(file)
+
+        if type == 'Salinity':
+            self.run_salinity_process(file)
+
+        if type == 'Oxygen':
+            self.run_oxygen_process(file)
+
+        if type == 'Nutrients':
+            self.run_nutrients_process(file)
+
+    def run_nutrients_process(self, file):
+        self.init_nutrient_data = processingNutrientsWindow(file, self.db,
+                                                          self.currpath, self.currproject,
+                                                          self.interactive_processing.checkState(), False,
+                                                          self.performance_mode,
+                                                          self.ultra_performance_mode)
+
+    def run_oxygen_process(self, file):
+        self.init_oxy_data = processingOxygenWindow(file, self.db, self.currpath,
+                                                  self.currproject,
+                                                  self.interactive_processing.checkState(), False)
+
+    def run_salinity_process(self, file):
+        self.init_salt_data = processingSalinityWindow(file,
+                                                     self.db,
+                                                     self.currpath,
+                                                     self.currproject,
+                                                     self.interactive_processing.checkState(),
+                                                     False)
+
+    def run_ctd_process(self, file):
+        self.init_ctd_data = InitialiseCTDData.initCTDdata(file,
+                                                         self.db,
+                                                         self.currpath,
+                                                         self.currproject,
+                                                         self.interactive_processing.checkState(),
+                                                         False)
+
+    def run_sampling_process(self, file):
+        self.init_sample_data = InitialiseSampleSheet.initSampleSheet(file,
+                                                                    self.currproject,
+                                                                    self.db,
+                                                                    self.currpath,
+                                                                    self.interactive,
+                                                                    False)
     def open_directory(self):
         if os.path.isdir(self.currpath):
             os.startfile(self.currpath)

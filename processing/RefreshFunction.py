@@ -11,7 +11,7 @@ from processing.procdata.InteractiveNutrientsProcessing import processingNutrien
 # Provides the functionality for finding new or updated files that need to be processed when hypro is 'refreshed'
 class refreshFunction(QObject):
 
-    files_found = pyqtSignal(list)
+    files_found_signal = pyqtSignal(dict)
 
     def __init__(self, path, project, interactive, perf_mode, ultra_perf_mode):
         super().__init__()
@@ -22,53 +22,45 @@ class refreshFunction(QObject):
         self.ultra_perf_mode = ultra_perf_mode
 
         self.db = (self.currpath + '/' + self.currproject + 'Data.db')
-        
-        self.files_found = {'CTD': [], 'Nutrients': [], 'Salinity': [], 'Oxygen': [], 'Sampling': []}
+
+        self.files_found = {'CTD': [], 'Sampling': [], 'Salinity': [], 'Oxygen': [], 'Nutrients': []}
 
     def refresh(self):
         with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
             self.params = json.loads(file.read())
 
         # The order is important as it finds CTD first, then sampling sheet then processes files
-        differentfoldertypes = ['CTD', 'Sampling', 'Salinity', 'Oxygen', 'Nutrients']
+        different_folder_types = ['CTD', 'Sampling', 'Salinity', 'Oxygen', 'Nutrients']
+        db_name_folder_converter = {'CTD': 'ctd', 'Sampling': 'logsheet', 'Salinity': 'salinity', 'Oxygen': 'oxygen',
+                                    'Nutrients': 'nutrient'}
         procfile = False
         try:
-            for folder in differentfoldertypes:
-                filesindirec = []
+            for folder in different_folder_types:
+                files_in_directory = []
 
                 # Little special method for nutrients so it only selects the .SLK files in the folder
                 if folder == 'Nutrients':
                     for file in os.listdir(self.currpath + '/' + folder):
                         if file.endswith('.SLK') or file.endswith('.slk'):
-                            filesindirec.append(file)
+                            files_in_directory.append(file)
                 else:
-                    filesindirec = os.listdir(self.currpath + '/' + folder)
+                    files_in_directory = os.listdir(self.currpath + '/' + folder)
 
                 # Load up database where files already processed are stored
                 conn = sqlite3.connect(self.db)
                 c = conn.cursor()
+                c.execute(f'SELECT * from {db_name_folder_converter[folder]}FilesProcessed')
 
-                if folder == 'CTD':
-                    c.execute('SELECT * from ctdFilesProcessed')
-                elif folder == 'Nutrients':
-                    c.execute('SELECT * from nutrientFilesProcessed')
-                elif folder == 'Salinity':
-                    c.execute('SELECT * from salinityFilesProcessed')
-                elif folder == 'Oxygen':
-                    c.execute('SELECT * from oxygenFilesProcessed')
-                elif folder == 'Sampling':
-                    c.execute('SELECT * from logsheetFilesProcessed')
                 data = list(c.fetchall())
                 c.close()
 
                 # Get the processed_file_names and modified times that were stored in the database
                 processed_file_names = [x[0] for x in data]
                 time_modified = [x[1] for x in data]
-
                 # Go through each file and determine if it is in the database and if it has changed
-                for file in filesindirec:
+                for file in files_in_directory:
                     if (file != 'Hidden' or file != 'hidden') & (not procfile):
-                        file_last_modified_time = os.path.getmtime(self.currpath + '/' + folder + '/' + 'file')
+                        file_last_modified_time = os.path.getmtime(self.currpath + '/' + folder + '/' + file)
                         file_changed = False
                         # Lets just check if the file has already been processed, if it has, just double check it
                         # if it has or not been updated
@@ -93,12 +85,6 @@ class refreshFunction(QObject):
                                 if file[: run_format_length] == self.params['analysisparams']['seal']['filePrefix']:
                                     logging.info(f'Nutrient file {file} found. Not yet in database.')
                                     self.files_found['Nutrients'].append(file)
-
-                                    # self.initnutrientdata = processingNutrientsWindow(file, self.db,
-                                    #                                                   self.currpath, self.currproject,
-                                    #                                                   self.interactive, False,
-                                    #                                                   self.perf_mode,
-                                    #                                                   self.ultra_perf_mode)
                                 else:
                                     logging.info(f'{file} does not match analysis settings')
 
@@ -114,6 +100,7 @@ class refreshFunction(QObject):
                                 run_format_length = -(len(self.params['analysisparams']['scripps']['runFormat']) + 4)
                                 if file[: run_format_length] == self.params['analysisparams']['scripps']['filePrefix']:
                                     logging.info(f'Oxygen file {file} found. Not yet in database.')
+                                    self.files_found['Oxygen'].append(file)
                                 else:
                                     logging.info(f'{file} does not match analysis settings')
 
@@ -121,13 +108,14 @@ class refreshFunction(QObject):
                                 neglen = -(len(self.params['analysisparams']['logsheet']['runFormat']) + 5)
                                 if file[: neglen] == self.params['analysisparams']['logsheet']['filePrefix']:
                                     logging.info('Logsheet file - ' + file + ' found. Not yet in database.')
+                                    self.files_found['Sampling'].append(file)
                                 else:
                                     logging.info('%s does not match analysis settings' % file)
                 if procfile:
                     break
-            if not procfile:
-                logging.info('No new files to process')
-
+            # if not procfile:
+            #     logging.info('No new files to process')
+            self.files_found_signal.emit(self.files_found)
 
         except Exception:
             pass
