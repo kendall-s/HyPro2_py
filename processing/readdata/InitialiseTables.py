@@ -261,6 +261,17 @@ def form_tables(database):
                         driftMedians FLOAT,
                         driftFlags INTEGER, UNIQUE(nutrient, runNumber, driftIndexes))''')
 
+    c.execute(''' CREATE TABLE IF NOT EXISTS nutrientMeasurements
+                        (runNumber INTEGER,
+                        sampleID TEXT,
+                        cupType TEXT,
+                        peakNumber INTEGER,
+                        survey TEXT,
+                        deployment TEXT,
+                        rosettePosition TEXT,
+                        time FLOAT,
+                        UNIQUE(time))''')
+
 
     c.close()
 

@@ -1,6 +1,6 @@
-import os, logging, json, sys
+import os, logging, json
 from PyQt5.QtWidgets import (QPushButton, QLabel, QFileDialog, QFrame, QAction, QCheckBox, QPlainTextEdit,
-                             QGraphicsDropShadowEffect, QApplication)
+                             QApplication)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from dialogs.ViewDataDialog import viewDataDialog
@@ -16,7 +16,7 @@ from dialogs.RMNSDialog import rmnsDialog
 from dialogs.ParametersDialog import parametersDialog
 from processing.QCStats import statsDialog
 import processing.readdata.InitialiseTables as inittabs
-import processing.plotting.QCPlots as qcp
+
 from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow
 import sqlite3
 from netCDF4 import Dataset
@@ -24,7 +24,7 @@ import numpy as np
 import traceback
 import time
 import calendar
-import threading
+
 import hyproicons, style
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
@@ -311,6 +311,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         open_directory_button.clicked.connect(self.open_directory)
 
     def user_prompter(self):
+        """
+        In the case that there hasn't been any analyses setup, Hypro will show this lengthy warning in the output
+
+        """
         with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
         analyses = params['analysisparams'].keys()

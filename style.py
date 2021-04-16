@@ -296,6 +296,7 @@ QScrollBar:vertical {
     background: white;
     border-radius: 3px;
     margin: 0px 0px 0px 0px;
+    min-height: 6px;
 }
 QScrollBar:handle:vertical::pressed {
     background: #555c78;
@@ -654,6 +655,7 @@ QScrollBar:vertical {
     background: transparent;
     border-radius: 3px;
     margin: 0px 0px 0px 0px;
+    min-height: 6px;
 }
 QScrollBar:handle:vertical::pressed {
     background: #8F8F8F;

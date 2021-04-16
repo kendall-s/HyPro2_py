@@ -763,9 +763,14 @@ def pack_data(slk_data, working_data, database, file_path):
     c.executemany('INSERT OR REPLACE INTO nutrientDrifts VALUES (?,?,?,?,?,?)', package)
     conn.commit()
 
-    # Put file modfied time into db as salinity file processed
+    # Put file modfied time into db as nutrient file processed
     mod_time = float(os.path.getmtime(file_path))
     c.executemany('INSERT OR REPLACE INTO nutrientFilesProcessed VALUES(?,?)', ((working_data.run, mod_time),))
+    conn.commit()
+
+    package = tuple(zip(run_list, slk_data.sample_ids, slk_data.cup_types, peak_number, slk_data.survey,
+                        slk_data.deployment, slk_data.rosette_position, slk_data.epoch_timestamps))
+    c.executemany('INSERT OR REPLACE INTO nutrientMeasurements VALUES (?,?,?,?,?,?,?,?)', package)
     conn.commit()
 
     conn.close()
