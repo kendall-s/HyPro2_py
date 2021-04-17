@@ -235,5 +235,5 @@ left join
 silicateData
 on silicateData.time = nutrientMeasurements.time
 
-where nutrientMeasurements.%s in (%s) 
+where nutrientMeasurements.%s in (%s) and nutrientMeasurements.survey = ?
 """

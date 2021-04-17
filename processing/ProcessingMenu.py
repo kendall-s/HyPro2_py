@@ -640,9 +640,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             self.survey_menu.addAction(survey)
 
     def about_information(self):
-        message_box = hyproMessageBoxTemplate('About Hypro',
-                                              'This is an experimental version of HyPro built using Python.',
-                                              'about')
+        hyproMessageBoxTemplate('About Hypro',
+                                'This is an experimental version of HyPro built using Python.',
+                                'about')
 
     def show_manual(self):
         file = 'C:/Users/she384/Documents/Tests/Manual.pdf'

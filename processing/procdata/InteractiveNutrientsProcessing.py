@@ -398,8 +398,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.w_d.analyte = self.current_nutrient
 
+            self.graph_widget.removeItem(self.window_lines)
+
             self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
                                               self.current_nutrient)
+
             self.interactive_routine()
 
         except IndexError:

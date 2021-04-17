@@ -31,100 +31,83 @@ class viewData(hyproDialogTemplate):
         conn = sqlite3.connect(self.db)
         c = conn.cursor()
 
-        queryq = '?'
-        queryplace = ', '.join(queryq for unused in self.selected)
+        query_length_deployments = ', '.join('?' for unused in self.selected)
 
         if self.analysis == 'Salinity':
             headers = ['Run Number', 'Deployment', 'Bottle Label', 'Date/Time', 'Uncorrected Ratio',
                        'Unorrected Ratio StDev', 'Salinity', 'Salinity StDev', 'Comment', 'Flag', 'Deployment',
                        'RP', 'Survey']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM salinityData WHERE deployment IN (%s) AND survey=?' % queryplace
+                q = 'SELECT * FROM salinityData WHERE deployment IN (%s) AND survey=?' % query_length_deployments
                 self.selected.append(self.survey)
-                c.execute(q, self.selected)
             elif self.view == 'File':
-                q = 'SELECT * FROM salinityData WHERE runNumber IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM salinityData WHERE runNumber IN (%s) AND survey=?' % query_length_deployments
 
         elif self.analysis == 'Dissolved Oxygen':
-            headers = ['Run Number', 'Deployment', 'Cast', 'RP', 'Bottle ID', 'Bottle Vol', 'Raw Titer', 'Titer',
-                       'Oxygen', 'Oxygen uM', 'Thio Temp', 'Draw Temp', 'Final Volt', 'Time', 'Flag']
+            headers = ['Run Number', 'Station #', 'Cast', 'RP', 'Bottle ID', 'Bottle Vol', 'Raw Titer', 'Titer',
+                       'Oxygen', 'Oxygen uM', 'Thio Temp', 'Draw Temp', 'Final Volt', 'Time', 'Flag', 'Deployment',
+                       'RP', 'Survey']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM oxygenData WHERE stationNumber IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM oxygenData WHERE stationNumber IN (%s) AND survey=?' % query_length_deployments
             elif self.view == 'File':
-                q = 'SELECT * FROM oxygenData WHERE runNumber IN (%s)' % queryplace
-                c.execute(q, self.selected)
+
+                q = 'SELECT * FROM oxygenData WHERE runNumber IN (%s) and survey =?' % query_length_deployments
 
         elif self.analysis == 'CTD':
             headers = ['Deployment', 'Temp #1', 'Temp #2', 'Conductivity #1', 'Conductivity #2', 'Oxygen #1',
                        'Oxygen #2', 'Pressure', 'Salinity #1', 'Salinity #2', 'Bottle Fired', 'RP', 'Time', 'Longitude',
                        'Latitiude', 'Fluorescence']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM ctdData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM ctdData WHERE deployment IN (%s) AND survey=?' % query_length_deployments
             elif self.view == 'File':
-                q = 'SELECT * FROM ctdData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM ctdData WHERE deployment IN (%s) AND survey=?' % query_length_deployments
 
         elif self.analysis == 'Logsheet':
             headers = ['Deployment', 'RP', 'Oxygen', 'Oxygen Draw Temp', 'Salinity', 'Nutrient']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM logsheetData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM logsheetData WHERE deployment IN (%s)' % query_length_deployments
             elif self.view == 'File':
-                q = 'SELECT * FROM logsheetData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM logsheetData WHERE deployment IN (%s)' % query_length_deployments
 
         elif self.analysis == 'Silicate':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
                        'Concentration', 'Survey', 'Deployment', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM silicateData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM silicateData WHERE deployment IN (%s) and survey=?' % query_length_deployments
             elif self.view == 'File':
-                q = 'SELECT * FROM silicateData WHERE runNumber IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM silicateData WHERE runNumber IN (%s) and survey=?' % query_length_deployments
 
         elif self.analysis == 'Nitrate':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
                        'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM  nitrateData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM  nitrateData WHERE deployment IN (%s) and survey=?' % query_length_deployments
             elif self.view == 'File':
-                q = 'SELECT * FROM nitrateData WHERE runNumber IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM nitrateData WHERE runNumber IN (%s) and survey=?' % query_length_deployments
 
         elif self.analysis == 'Phosphate':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
                        'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM phosphateData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM phosphateData WHERE deployment IN (%s) and survey=?' % query_length_deployments
             elif self.view == 'File':
-                q = 'SELECT * FROM phosphateData WHERE runNumber IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM phosphateData WHERE runNumber IN (%s) and survey=?' % query_length_deployments
 
         elif self.analysis == 'Nitrite':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
                        'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM nitriteData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM nitriteData WHERE deployment IN (%s) and survey=?' % query_length_deployments
             elif self.view == 'File':
-                q = 'SELECT * FROM nitriteData WHERE runNumber IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM nitriteData WHERE runNumber IN (%s) and survey=?' % query_length_deployments
 
         elif self.analysis == 'Ammonia':
             headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
                        'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
             if self.view == 'Deployment':
-                q = 'SELECT * FROM ammoniaData WHERE deployment IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM ammoniaData WHERE deployment IN (%s) and survey=?' % query_length_deployments
             elif self.view == 'File':
-                q = 'SELECT * FROM ammoniaData WHERE runNumber IN (%s)' % queryplace
-                c.execute(q, self.selected)
+                q = 'SELECT * FROM ammoniaData WHERE runNumber IN (%s) and survey=?' % query_length_deployments
 
         elif self.analysis == 'All Available Nutrients':
 
@@ -133,27 +116,29 @@ class viewData(hyproDialogTemplate):
                        'Phosphate Conc', 'Phosphate Flag', 'Silicate Conc', 'Silicate Flag']
 
             if self.view == 'Deployment':
-                # Looks odd but export_ctd_data is a super long SQL query. queryplace is just filling in the ?
-                q = export_all_nuts % ('deployment', queryplace)
+                # Looks odd but export_ctd_data is a super long SQL query. query_length_deployments is just filling in the ?
+                q = export_all_nuts % ('deployment', query_length_deployments)
 
             elif self.view == 'File':
-                q = export_all_nuts % ('runNumber', queryplace)
+                q = export_all_nuts % ('runNumber', query_length_deployments)
 
-            c.execute(q, self.selected)
 
         elif self.analysis == 'As CTD Results':
-
             headers = ['Deployment', 'RP', 'Pressure(db)', 'CTD Temp 1', 'CTD Temp 2', 'CTD Salinity 1',
                        'CTD Salinity 2', 'CTD Oxygen 1', 'CTD Oxygen 2', 'CTD Fluoro', 'Time', 'Lon', 'Lat',
                        'Nut Label', 'Ammonium Conc', 'Ammonium Flag', 'Nitrate Conc', 'Nitrate Flag', 'Nitrite Conc',
                        'Nitrite Flag', 'Phosphate Conc', 'Phosphate Flag', 'Silicate Conc', 'Silicate Flag', 'Salinity',
                        'Salinity Flag', 'Oxygen (ml/l)', 'Oxygen (uM)', 'Oxygen Flag']
+            q = export_ctd_data % query_length_deployments
 
-            q = export_ctd_data % queryplace
-            c.execute(q, self.selected)
+        # Add the survey to the query input if anything other than logsheet data
+        if not self.analysis == 'Logsheet':
+            if not self.analysis == 'As CTD Results':
+                self.selected.append(self.survey)
 
+        c.execute(q, self.selected)
         data = list(c.fetchall())
-        print(data)
+
         c.close()
 
         self.datatable.setRowCount(len(data))

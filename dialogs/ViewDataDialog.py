@@ -7,7 +7,7 @@ from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
 class viewDataDialog(hyproDialogTemplate):
     def __init__(self, database, parameters):
-        super().__init__(380, 420, 'HyPro - Select Data to View')
+        super().__init__(220, 550, 'HyPro - Select Data to View')
 
         self.db = database
         self.params = parameters
@@ -25,7 +25,7 @@ class viewDataDialog(hyproDialogTemplate):
 
 
     def init_ui(self):
-        survey_label = QLabel('Survey')
+        survey_label = QLabel('Survey:')
 
         self.survey_combo = QComboBox()
         self.survey_combo.clear()
@@ -66,20 +66,21 @@ class viewDataDialog(hyproDialogTemplate):
         cancelbut = QPushButton('Cancel', self)
         cancelbut.clicked.connect(self.cancel)
 
-        self.grid_layout.addWidget(survey_label, 0, 0)
-        self.grid_layout.addWidget(self.survey_combo, 0, 1, 1, 4)
+        self.grid_layout.addWidget(survey_label, 0, 0, 1, 2)
+        self.grid_layout.addWidget(self.survey_combo, 1, 0, 1, 2)
 
-        self.grid_layout.addWidget(analysistypelabel, 1, 0)
-        self.grid_layout.addWidget(self.analysis_type, 1, 1, 1, 4)
+        self.grid_layout.addWidget(analysistypelabel, 2, 0, 1, 2)
+        self.grid_layout.addWidget(self.analysis_type, 3, 0, 1, 2)
 
-        self.grid_layout.addWidget(view_by_label, 2, 0)
-        self.grid_layout.addWidget(self.view_by, 2, 1, 1, 4)
+        self.grid_layout.addWidget(view_by_label, 4, 0, 1, 2)
+        self.grid_layout.addWidget(self.view_by, 5, 0, 1, 2)
 
-        self.grid_layout.addWidget(datafileslabel, 3, 0)
-        self.grid_layout.addWidget(self.datafiles, 3, 1, 1, 4)
+        self.grid_layout.addWidget(datafileslabel, 6, 0, 1, 2)
+        self.grid_layout.addWidget(self.datafiles, 7, 0, 5, 2)
+        self.grid_layout.setRowStretch(7, 1)
 
-        self.grid_layout.addWidget(okbut, 4, 1)
-        self.grid_layout.addWidget(cancelbut, 4, 2)
+        self.grid_layout.addWidget(okbut, 13, 0)
+        self.grid_layout.addWidget(cancelbut, 13, 1)
 
     def view_data(self):
         try:

@@ -381,7 +381,7 @@ def sensor_difference_plot(fig, axes, x_data, difference, max_rp, flags=None, sh
         col = '#71ce40'
 
     if show_flags:
-        if flag_ref_inds:
+        if not flag_ref_inds:
             for i, x_dat in enumerate(x_data):
                 axes.plot(x_dat, difference[i], lw=0, ms=5, marker='o', color=FLAG_COLORS[flags[i]])
         else:
@@ -389,7 +389,7 @@ def sensor_difference_plot(fig, axes, x_data, difference, max_rp, flags=None, sh
                 axes.plot(x_data[i], difference[i], lw=0, ms=5, marker='o', color=FLAG_COLORS[flags[ind]])
 
     axes.plot(x_data, difference, linewidth=0.75, linestyle=':', marker='o', markersize=13, mfc='none',
-              color=col, picker=7, gid='picking_line')
+              color=col, picker=7, gid='picking_line', label=sensor)
 
     labels = axes.get_xticks().tolist()
     new_labels = []

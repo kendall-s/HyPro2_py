@@ -78,6 +78,8 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
         ctd_db_converter = {'Salinity': 'salt', 'Oxygen': 'oxygen'}
         sensor_converter = {'Primary': 1, 'Secondary': 2}
 
+        mark_bad_data = self.mark_bad_data.isChecked()
+
         selected = self.run_list.selectedItems()
         selected_deps = [int(item.text()) for item in selected]
 
@@ -94,6 +96,7 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
 
             self.bottle_deps = list(bottle_data_df['deployment'])
             self.bottle_rps = list(bottle_data_df['rosettePosition'])
+            self.bottle_flags = list(bottle_data_df['flag'])
 
             # Match up the CTD data to the bottle data, as there will always be less bottle data...
             matched_ctd_data = pd.DataFrame()
@@ -104,6 +107,9 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
 
             bottle_data = np.asarray(bottle_data_df[analyte_db_converter[sensor]])
 
+            bottle_flags = bottle_data_df['flag']
+
+            difference_two = []
             # If both sensors are to be plotted, use the correct data
             if sensor_number != 'Both':
                 sensor_one = np.asarray(list(matched_ctd_data[str(ctd_db_converter[sensor]) +
@@ -118,12 +124,16 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
 
             max_rp = get_max_rp(self.bottle_rps)
 
+            # Create the X axis values which spaces deployment/rp equally along
             plottable_dep_rp = [(((dep - 1) * max_rp) + self.bottle_rps[i]) for i, dep in enumerate(self.bottle_deps)]
 
-            sensor_difference_plot(self.figure, self.main_plot, plottable_dep_rp, difference_one, max_rp)
+            sensor_difference_plot(self.figure, self.main_plot, plottable_dep_rp, difference_one, max_rp,
+                                   flags=bottle_flags, show_flags=mark_bad_data)
 
             if sensor_number == 'Both':
-                sensor_difference_plot(self.figure, self.main_plot, plottable_dep_rp, difference_two, max_rp)
+                sensor_difference_plot(self.figure, self.main_plot, plottable_dep_rp, difference_two, max_rp,
+                                       flags=bottle_flags, sensor='Secondary', clear_plot=False,
+                                       show_flags=mark_bad_data)
                 self.main_plot.legend()
 
             self.canvas.draw()
