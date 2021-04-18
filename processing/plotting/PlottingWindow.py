@@ -5,14 +5,20 @@ import matplotlib.pyplot as plt
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QDesktopWidget, QAction, QVBoxLayout, QFileDialog, QApplication,
                              QGridLayout, QLabel, QListWidget, QCheckBox, QPushButton, QAbstractItemView, QFrame)
 from PyQt5.QtGui import QFont, QIcon, QImage
+from PyQt5.QtCore import pyqtSignal
 import io, json, sqlite3
 import hyproicons, style
 from dialogs.TraceSelectionDialog import traceSelection
 from dialogs.BottleSelectionDialog import bottleSelection
 
 class QMainPlotterTemplate(QMainWindow):
-    def __init__(self):
+
+    need_update = pyqtSignal()
+
+    def __init__(self, database):
         super().__init__()
+
+        self.database = database
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -104,12 +110,12 @@ class QMainPlotterTemplate(QMainWindow):
         self.figure.savefig(buffer, dpi=300)
         QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
 
-    def base_on_pick(self, event, database, runs, peak_nums, nutrient=None, oxygen=None, salinity=None):
+    def base_on_pick(self, event, runs, peak_nums, nutrient=None, oxygen=None, salinity=None):
         plotted_data_index = event.ind[0]
         picked_run_number = runs[plotted_data_index]
         picked_peak_number = peak_nums[plotted_data_index]
 
-        conn = sqlite3.connect(database)
+        conn = sqlite3.connect(self.database)
 
         if nutrient:
             c = conn.cursor()
@@ -126,11 +132,38 @@ class QMainPlotterTemplate(QMainWindow):
                                                                                                     picked_peak_number))
                 data = list(c.fetchall())[0]
                 conn.close()
-                self.picked_bottle_dialog = bottleSelection(data[0], data[15], data[16], data[4], round(data[9], 3), data[14])
+                self.picked_bottle_dialog = bottleSelection(data[0], data[15], data[16], data[4], round(data[9], 3),
+                                                            data[14], analyte='oxygen')
 
             elif salinity:
                 c.execute('SELECT * from salinityData WHERE deployment = ? and rosettePosition = ?', (picked_run_number,
                                                                                                     picked_peak_number))
                 data = list(c.fetchall())[0]
                 conn.close()
-                self.picked_bottle_dialog = bottleSelection(data[0], data[10], data[11], data[2], data[6], data[9])
+                self.picked_bottle_dialog = bottleSelection(data[0], data[10], data[11], data[2], data[6],
+                                                            data[9], analyte='salinity')
+
+            self.picked_bottle_dialog.saveSig.connect(self.update_flag)
+        conn.close()
+
+    def update_flag(self, update_inputs):
+        # tuple update_inputs: new_flag, file, deployment, rosette, bottle_id, analyte
+        id_or_label = {'oxygen': 'ID', 'salinity': 'Label'}
+        flag_conversion = {'Good': 1, 'Suspect': 2, 'Bad': 3}
+
+        conn = sqlite3.connect(self.database)
+        c = conn.cursor()
+        # Little bit messy. String formatting either the Salinity or Oxygen table, along with changing the column
+        # header based on either table.
+        # Might change the tuple to a named tuple or a dict to make this more readable?
+        c.execute("""UPDATE %sData 
+                SET flag=?
+                WHERE runNumber=? and deployment=? and rosettePosition=? and bottle%s=?"""
+                % (update_inputs[5], id_or_label[update_inputs[5]]),
+                (flag_conversion[update_inputs[0]], update_inputs[1], update_inputs[2], update_inputs[3],
+                 update_inputs[4]))
+
+        conn.commit()
+        conn.close()
+
+        self.need_update.emit()

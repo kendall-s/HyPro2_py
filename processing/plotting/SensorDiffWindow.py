@@ -9,7 +9,8 @@ from processing.plotting.QCPlots import sensor_difference_plot
 
 class ctdSensorDifferencePlot(QMainPlotterTemplate):
     def __init__(self, database, type):
-        super().__init__()
+        super().__init__(database)
+
         self.database = database
         self.type = type
 
@@ -50,6 +51,8 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
 
         self.populate_fields()
         self.show()
+
+        self.need_update.connect(self.draw_data)
 
         self.canvas.mpl_connect('pick_event', self.on_pick)
 
@@ -140,6 +143,6 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
 
     def on_pick(self, event):
         if self.sensor_selector.currentText() == 'Salinity':
-            self.base_on_pick(event, self.database, self.bottle_deps, self.bottle_rps, salinity=True)
+            self.base_on_pick(event, self.bottle_deps, self.bottle_rps, salinity=True)
         elif self.sensor_selector.currentText() == 'Oxygen':
-            self.base_on_pick(event, self.database, self.bottle_deps, self.bottle_rps, oxygen=True)
+            self.base_on_pick(event, self.bottle_deps, self.bottle_rps, oxygen=True)
