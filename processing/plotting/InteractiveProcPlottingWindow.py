@@ -14,6 +14,8 @@ import hyproicons, style
 flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad', 6: 'Cal Bad',
                     91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
 
+# TODO: This windows code could probably be scaled back and re-use some of the general plotting functionality, there is now some double ups i.e. flagging
+
 class hyproProcPlotWindow(QMainWindow):
     redraw = pyqtSignal()
 

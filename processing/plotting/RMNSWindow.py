@@ -10,7 +10,7 @@ from processing.plotting.QCPlots import rmns_plot
 
 class rmnsPlotWindowTemplate(QMainPlotterTemplate):
     def __init__(self, database, params_path):
-        super().__init__()
+        super().__init__(database)
 
         self. database = database
         with open(params_path, 'r') as file:
@@ -153,4 +153,4 @@ class rmnsPlotWindowTemplate(QMainPlotterTemplate):
             print(traceback.print_exc())
 
     def on_pick(self, event):
-        self.base_on_pick(event, self.database, self.runs, self.peak_nums, nutrient=self.nutq)
+        self.base_on_pick(event, self.runs, self.peak_nums, nutrient=self.nutq)

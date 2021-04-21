@@ -87,19 +87,20 @@ class viewDataDialog(hyproDialogTemplate):
             print('View Data')
             selected = self.datafiles.selectedItems()
             selected_text = [item.text() for item in selected]
-            sel = 0
-            if self.view_by.currentText() == 'Deployment':
-                sel = [x[11:] for x in selected_text]
+            if len(selected_text) > 0:
+                sel = 0
+                if self.view_by.currentText() == 'Deployment':
+                    sel = [x[11:] for x in selected_text]
 
-            if self.view_by.currentText() == 'File':
-                sel = [x[5:] for x in selected_text]
+                if self.view_by.currentText() == 'File':
+                    sel = [x[5:] for x in selected_text]
 
-            survey = self.survey_combo.currentText()
-            analysis = self.analysis_type.currentText()
-            view = self.view_by.currentText()
+                survey = self.survey_combo.currentText()
+                analysis = self.analysis_type.currentText()
+                view = self.view_by.currentText()
 
-            self.tableview = viewData(survey, analysis, view, sel, self.db)
-            self.tableview.show()
+                self.tableview = viewData(survey, analysis, view, sel, self.db)
+                self.tableview.show()
 
         except Exception as e:
             print(e)
@@ -216,4 +217,5 @@ class viewDataDialog(hyproDialogTemplate):
         if view == 'File':
             for i in data:
                 data_to_display.append('File ' + str(i[0]))
+
         self.datafiles.addItems(data_to_display)

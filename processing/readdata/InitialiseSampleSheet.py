@@ -1,10 +1,10 @@
 import sys, os, pprint, statistics, json, xlrd, sqlite3, traceback, logging
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QObject
 
 # Reads in the sample log sheet for the bottle numbers, currently using a prototype excel sheet, was meant to be easy
 # to edit and modify as needed for hydrochem members
 
-class initSampleSheet():
+class initSampleSheet(QObject):
 
     processing_completed = pyqtSignal()
 

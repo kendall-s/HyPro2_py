@@ -93,9 +93,6 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         analysis_menu = self.main_menu.addMenu('Analyses')
         self.survey_menu = self.main_menu.addMenu('Surveys')
         view_menu = self.main_menu.addMenu('View')
-        nutrient_qc_menu = view_menu.addMenu('Nutrient QC Plots')
-        salinity_qc_menu = view_menu.addMenu('Salinity QC Plots')
-        oxygen_qc_menu = view_menu.addMenu('Oxygen QC Plots')
         help_menu = self.main_menu.addMenu('Help')
 
         add_analysis_menu = analysis_menu.addMenu(QIcon(':/assets/flask.svg'), 'Add Analysis')
@@ -172,39 +169,39 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         rmns_plots = QAction('RMNS', self)
         rmns_plots.triggered.connect(self.rmnsplots)
-        nutrient_qc_menu.addAction(rmns_plots)
+        view_menu.addAction(rmns_plots)
 
         mdl_plots = QAction('MDL', self)
         mdl_plots.triggered.connect(self.mdlplots)
-        nutrient_qc_menu.addAction(mdl_plots)
+        view_menu.addAction(mdl_plots)
 
         redfield_plots = QAction('Redfield Ratio', self)
         redfield_plots.triggered.connect(self.redfield)
-        nutrient_qc_menu.addAction(redfield_plots)
+        view_menu.addAction(redfield_plots)
 
         duplicate_plots = QAction('Duplicates', self)
         duplicate_plots.triggered.connect(self.duplicate)
-        nutrient_qc_menu.addAction(duplicate_plots)
+        view_menu.addAction(duplicate_plots)
 
         nutrient_trace = QAction('Analysis Trace', self)
         nutrient_trace.triggered.connect(self.analysis_trace)
-        nutrient_qc_menu.addAction(nutrient_trace)
-
-        salinity_error_plot = QAction('Salinity - CTD Error', self)
-        salinity_error_plot.triggered.connect(self.salinityerror)
-        salinity_qc_menu.addAction(salinity_error_plot)
+        view_menu.addAction(nutrient_trace)
+        
+        view_menu.addSeparator()
+    
+        ctd_error_plot = QAction('Bottle - CTD Error', self)
+        ctd_error_plot.triggered.connect(self.ctd_error)
+        view_menu.addAction(ctd_error_plot)
 
         salinity_standard_plot = QAction('Salinity Standards', self)
         salinity_standard_plot.triggered.connect(self.salinitystandards)
-        salinity_qc_menu.addAction(salinity_standard_plot)
-
-        oxygen_error_plot = QAction('Oxygen - CTD Error', self)
-        oxygen_error_plot.triggered.connect(self.oxygenerror)
-        oxygen_qc_menu.addAction(oxygen_error_plot)
+        view_menu.addAction(salinity_standard_plot)
 
         oxygen_standard_plot = QAction('Oxygen Standards', self)
         oxygen_standard_plot.triggered.connect(self.oxygenstandards)
-        oxygen_qc_menu.addAction(oxygen_standard_plot)
+        view_menu.addAction(oxygen_standard_plot)
+
+        view_menu.addSeparator()
 
         plots_action = QAction('Create Plots', self)
         plots_action.triggered.connect(self.produce_plots_window)
@@ -464,7 +461,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
     def analysis_trace(self):
         pass
 
-    def salinityerror(self):
+    def ctd_error(self):
         self.salinity_error_window = SensorDiffWindow.ctdSensorDifferencePlot(self.db, 'Salinity')
         self.salinity_error_window.show()
 
