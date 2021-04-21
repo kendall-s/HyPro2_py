@@ -192,7 +192,58 @@ left join ctdData on ctdData.deployment = (logsheetData.deployment and ctdData.b
 where logsheetData.nutrient != "" and logsheetData.deployment in (%s)
 """
 
+
+# This query and the one after it are identical - except for a WHERE filter for the survey!
+# export_all_nuts does not include survey so it just grabs everything
+
 export_all_nuts = \
+"""
+select
+nutrientMeasurements.runNumber,
+nutrientMeasurements.sampleID,
+nutrientMeasurements.cupType,
+nutrientMeasurements.peakNumber,
+nutrientMeasurements.survey,
+nutrientMeasurements.deployment,
+nutrientMeasurements.rosettePosition,
+ammoniaData.concentration as amm_conc,
+ammoniaData.flag, 
+nitrateData.concentration as nitrate_conc, 
+nitrateData.flag,
+nitriteData.concentration as nitrite_conc,
+nitriteData.flag,
+phosphateData.concentration as phos_conc, 
+phosphateData.flag,
+silicateData.concentration as sil_conc, 
+silicateData.flag
+
+from nutrientMeasurements
+
+left join
+ammoniaData
+on ammoniaData.time = nutrientMeasurements.time
+
+left join 
+nitrateData
+on nitrateData.time = nutrientMeasurements.time
+
+left join 
+nitriteData
+on nitriteData.time = nutrientMeasurements.time
+
+left join 
+phosphateData
+on phosphateData.time = nutrientMeasurements.time
+
+left join 
+silicateData
+on silicateData.time = nutrientMeasurements.time
+
+where nutrientMeasurements.%s in (%s)
+"""
+
+
+export_all_nuts_in_survey = \
 """
 select
 nutrientMeasurements.runNumber,

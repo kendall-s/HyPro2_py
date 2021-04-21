@@ -430,10 +430,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
                                                                     self.currproject,
                                                                     self.db,
                                                                     self.currpath,
-                                                                    self.interactive,
+                                                                    self.interactive_processing.checkState(),
                                                                     False)
-        self.init_ctd_data.processing_completed.connect(lambda: self.files_to_process['Sampling'].remove(file))
-        self.init_ctd_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
+        self.init_sample_data.processing_completed.connect(lambda: self.files_to_process['Sampling'].remove(file))
+        self.init_sample_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
 
     def open_directory(self):
         if os.path.isdir(self.currpath):

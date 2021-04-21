@@ -4,6 +4,8 @@ from dialogs.ViewData import viewData
 import traceback
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
+DATABASE_NAME_CONVERTER = {'Salinity': 'salinity', 'Dissolved Oxygen': 'oxygen', 'Nitrate': 'nitrate',
+                           'Silicate': 'silicate', 'Phosphate': 'phosphate', 'Nitrite': 'nitrite', 'Ammonia': 'ammonia'}
 
 class viewDataDialog(hyproDialogTemplate):
     def __init__(self, database, parameters):
@@ -19,7 +21,7 @@ class viewDataDialog(hyproDialogTemplate):
 
         self.init_ui()
 
-        self.populatelist()
+        self.populate_list()
 
         self.show()
 
@@ -30,19 +32,19 @@ class viewDataDialog(hyproDialogTemplate):
         self.survey_combo = QComboBox()
         self.survey_combo.clear()
         self.survey_combo.addItems(self.params['surveyparams'].keys())
+        self.survey_combo.addItems(['Any', 'StandardQC', 'RMNS', 'Null', 'MDL', 'BQC', 'Test'])
         self.survey_combo.setEditable(True)
         self.survey_combo.setEditable(False)
-        self.survey_combo.activated.connect(self.populatelist)
+        self.survey_combo.activated.connect(self.populate_list)
 
         analysistypelabel = QLabel('Analysis Type: ', self)
-
 
         self.analysis_type = QComboBox()
         self.analysis_type.clear()
         self.analysis_type.addItems(self.analyses)
         self.analysis_type.setEditable(True)
         self.analysis_type.setEditable(False)
-        self.analysis_type.activated.connect(self.populatelist)
+        self.analysis_type.activated.connect(self.populate_list)
 
         view_by_label = QLabel('View Data by: ', self)
 
@@ -53,7 +55,7 @@ class viewDataDialog(hyproDialogTemplate):
         self.view_by.addItems(views)
         self.view_by.setEditable(True)
         self.view_by.setEditable(False)
-        self.view_by.activated.connect(self.populatelist)
+        self.view_by.activated.connect(self.populate_list)
 
         datafileslabel = QLabel('Select data to view: ', self)
 
@@ -84,7 +86,6 @@ class viewDataDialog(hyproDialogTemplate):
 
     def view_data(self):
         try:
-            print('View Data')
             selected = self.datafiles.selectedItems()
             selected_text = [item.text() for item in selected]
             if len(selected_text) > 0:
@@ -109,7 +110,7 @@ class viewDataDialog(hyproDialogTemplate):
     def cancel(self):
         self.close()
 
-    def populatelist(self):
+    def populate_list(self):
 
         all_nuts = False
         self.view_by.setDisabled(False)
@@ -118,8 +119,6 @@ class viewDataDialog(hyproDialogTemplate):
 
         # If the survey is anything other than the base (i.e. one for voyage deployments
         # remove the deployments option. The base survey will always be index 0
-        print(self.survey_combo.currentIndex())
-
         in_combobox = self.analysis_type.findText('As CTD Results')
         if self.survey_combo.currentIndex() != 0:
             self.view_by.setCurrentText('File')
@@ -141,17 +140,20 @@ class viewDataDialog(hyproDialogTemplate):
         conn = sqlite3.connect(self.db)
         c = conn.cursor()
 
-        if analysis == 'Salinity':
-            if view == 'Deployment':
-                c.execute('SELECT DISTINCT deployment from salinityData WHERE survey=?', (survey,))
-            elif view == 'File':
-                c.execute('SELECT DISTINCT runNumber from salinityData WHERE survey=?', (survey,))
 
-        elif analysis == 'Dissolved Oxygen':
-            if view == 'Deployment':
-                c.execute('SELECT DISTINCT stationNumber from oxygenData WHERE survey=?', (survey,))
-            elif view == 'File':
-                c.execute('SELECT DISTINCT runNumber from oxygenData WHERE survey=?', (survey,))
+        if analysis in ['Salinity', 'Dissolved Oxygen', 'Nitrate', 'Silicate', 'Phosphate', 'Nitrite', 'Ammonia']:
+            analysis = DATABASE_NAME_CONVERTER[analysis]
+
+            # If the survey is set to any, remove the WHERE survey filter and just get all runNumbers for an analysis
+            if survey == 'Any':
+                c.execute('SELECT DISTINCT runNumber from %sData' % analysis)
+
+            else:
+                if view == 'Deployment':
+                    c.execute('SELECT DISTINCT deployment from %sData WHERE survey=?' % analysis, (survey,))
+                elif view == 'File':
+                    c.execute('SELECT DISTINCT runNumber from %sData WHERE survey=?' % analysis, (survey,))
+
 
         elif analysis == 'CTD':
             if view == 'Deployment':
@@ -159,46 +161,19 @@ class viewDataDialog(hyproDialogTemplate):
             elif view == 'File':
                 c.execute('SELECT DISTINCT deployment from ctdData')
 
+
         elif analysis == 'Logsheet':
             if view == 'Deployment':
                 c.execute('SELECT DISTINCT deployment from logsheetData')
             elif view == 'File':
                 c.execute('SELECT DISTINCT deployment from logsheetData')
 
-        elif analysis == 'Nitrate':
-            if view == 'Deployment':
-                c.execute('SELECT DISTINCT deployment from nitrateData WHERE survey=?', (survey,))
-            elif view == 'File':
-                c.execute('SELECT DISTINCT runNumber from nitrateData WHERE survey=?', (survey,))
-
-        elif analysis == 'Silicate':
-            if view == 'Deployment':
-                c.execute('SELECT DISTINCT deployment from silicateData WHERE survey=?', (survey,))
-            elif view == 'File':
-                c.execute('SELECT DISTINCT runNumber from silicateData WHERE survey=?', (survey,))
-
-        elif analysis == 'Phosphate':
-            if view == 'Deployment':
-                c.execute('SELECT DISTINCT deployment from phosphateData WHERE survey=?', (survey,))
-            elif view == 'File':
-                c.execute('SELECT DISTINCT runNumber from phosphateData WHERE survey=?', (survey,))
-
-        elif analysis == 'Nitrite':
-            if view == 'Deployment':
-                c.execute('SELECT DISTINCT deployment from nitriteData WHERE survey=?', (survey,))
-            elif view == 'File':
-                c.execute('SELECT DISTINCT runNumber from nitriteData WHERE survey=?', (survey,))
-
-        elif analysis == 'Ammonia':
-            if view == 'Deployment':
-                c.execute('SELECT DISTINCT deployment from ammoniaData WHERE survey=?' (survey,))
-            elif view == 'File':
-                c.execute('SELECT DISTINCT runNumber from ammoniaData WHERE survey=?', (survey,))
 
         elif analysis == 'As CTD Results':
             self.view_by.setCurrentText('Deployment')
             self.view_by.setDisabled(True)
             c.execute('SELECT DISTINCT deployment from logsheetData')
+
 
         elif analysis == 'All Available Nutrients':
                 if view == 'Deployment':
@@ -206,8 +181,8 @@ class viewDataDialog(hyproDialogTemplate):
                 elif view == 'File':
                     c.execute('SELECT DISTINCT runNumber from nutrientMeasurements')
 
-        data = list(c.fetchall())
 
+        data = list(c.fetchall())
         c.close()
         
         data_to_display = []

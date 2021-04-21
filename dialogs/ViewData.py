@@ -1,14 +1,9 @@
 # https://stackoverflow.com/questions/283645/python-list-in-sql-query-as-parameter
-
-from PyQt5.QtWidgets import (QTableWidget, QApplication)
+from PyQt5.QtCore import Qt
 import sqlite3
-import csv, io
-from PyQt5 import QtWidgets
 from dialogs.templates.DataTable import Datatable
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import QEvent
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
-from processing.algo.ComplexSQL import export_ctd_data, export_all_nuts
+from processing.algo.ComplexSQL import export_ctd_data, export_all_nuts, export_all_nuts_in_survey
 
 NUTRIENT_HEADER = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
                    'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
@@ -56,6 +51,9 @@ class viewData(hyproDialogTemplate):
         self.show()
 
     def init_ui(self):
+
+        self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint);
+
         self.datatable = Datatable(self.data)
         self.datatable.setHorizontalHeaderLabels(HEADERS[self.analysis])
         self.datatable.resizeColumnsToContents()
@@ -68,17 +66,25 @@ class viewData(hyproDialogTemplate):
 
         query_length_deployments = ', '.join('?' for unused in self.selected)
 
+        """
+        If statements here follow analysis -> survey -> view structuring 
+        """
         if self.analysis == 'All Available Nutrients':
-            if self.view == 'Deployment':
-                # Looks odd but export_ctd_data is a super long SQL query. query_length_deployments is just filling in the ?
-                q = export_all_nuts % ('deployment', query_length_deployments)
+            # If survey is Any, we can remove the survey filter from the query
+            if self.survey == 'Any':
+                if self.view == 'File':
+                    q = export_all_nuts % ('runNumber', query_length_deployments)
 
-            elif self.view == 'File':
-                q = export_all_nuts % ('runNumber', query_length_deployments)
+            else: # Otherwise standard filtering with the survey
+                if self.view == 'Deployment':
+                    q = export_all_nuts_in_survey % ('deployment', query_length_deployments)
+
+                elif self.view == 'File':
+                    q = export_all_nuts_in_survey % ('runNumber', query_length_deployments)
 
 
         elif self.analysis == 'As CTD Results':
-            q = export_ctd_data
+            q = export_ctd_data % query_length_deployments
 
         # CTD and logsheet grouped together because FILE always equals DEPLOYMENT
         elif self.analysis == 'CTD' or self.analysis == 'Logsheet':
@@ -90,19 +96,32 @@ class viewData(hyproDialogTemplate):
 
         # Everything else includes the individual nutrients, salinity and DO
         else:
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM %sData WHERE deployment IN (%s) AND survey=?' % \
-                    (self.analysis, query_length_deployments)
-            elif self.view == 'File':
-                q = 'SELECT * FROM %sData WHERE runNumber IN (%s) AND survey=?' % \
-                    (self.analysis, query_length_deployments)
+            # Again, if survey is any we remove the WHERE for survey
+            if self.survey == 'Any':
+                if self.view == 'Deployment':
+                    q = 'SELECT * FROM %sData WHERE deployment IN (%s)' % \
+                        (self.analysis, query_length_deployments)
+                elif self.view == 'File':
+                    q = 'SELECT * FROM %sData WHERE runNumber IN (%s)' % \
+                        (self.analysis, query_length_deployments)
+
+            else: # We've picked a specific survey here
+                if self.view == 'Deployment':
+                    q = 'SELECT * FROM %sData WHERE deployment IN (%s) AND survey=?' % \
+                        (self.analysis, query_length_deployments)
+                elif self.view == 'File':
+                    q = 'SELECT * FROM %sData WHERE runNumber IN (%s) AND survey=?' % \
+                        (self.analysis, query_length_deployments)
 
         # Add the survey to the query input if anything other than logsheet, CTD results and CTD
-        if not self.analysis in ['Logsheet', 'As CTD Results', 'CTD']:
-            self.selected.append(self.survey)
+        # And also no need to append it to the query if the survey selection is any
+        if self.survey != 'Any':
+            if not self.analysis in ['Logsheet', 'As CTD Results', 'CTD']:
+                self.selected.append(self.survey)
 
         c.execute(q, self.selected)
         data = list(c.fetchall())
+        print(data)
 
         conn.close()
 

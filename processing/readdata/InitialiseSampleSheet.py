@@ -9,6 +9,7 @@ class initSampleSheet(QObject):
     processing_completed = pyqtSignal()
 
     def __init__(self, file, project, database, path, interactive, rereading):
+        super().__init__()
 
         self.currproject = project
 
