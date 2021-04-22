@@ -198,11 +198,11 @@ def form_tables(database):
                         salt1 FLOAT,
                         salt2 FLOAT,
                         bottlesfired INTEGER,
-                        bottleposition INTEGER,
+                        rosettePosition INTEGER,
                         time FLOAT,
                         longitude FLOAT,
                         latitude FLOAT,
-                        fluoro FLOAT, UNIQUE(deployment, bottleposition))''')
+                        fluoro FLOAT, UNIQUE(deployment, rosettePosition))''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS logsheetData
                         (deployment INTEGER, 

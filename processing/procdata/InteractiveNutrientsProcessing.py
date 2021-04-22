@@ -2,13 +2,13 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QCheckBox, QFrame, QV
                              QDesktopWidget, QApplication, QLineEdit)
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt, QSize, pyqtSignal
+from PyQt5.QtCore import Qt, QSize, pyqtSignal, QObject, QThread
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from pylab import *
 import matplotlib as mpl
 import processing.plotting.QCPlots as qcp
-import sys, logging, traceback
+import sys, logging, traceback, os
 import json
 import hyproicons
 import style
@@ -22,6 +22,10 @@ from threading import Thread
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from processing.plotting.TracePlot import TracePlotter
 import pyqtgraph as pg
+import threading
+
+import concurrent.futures
+
 
 import cProfile
 #background-color: #ededed;
@@ -30,6 +34,34 @@ import cProfile
 # TODO: Finish new implementation of cleaned up testable Nutrients
 # TODO: Reimplement the QC chart tab system to be more L I G H T W E I G H T
 # TODO: Re-create style sheet in styles file
+
+
+class processNutrientsRoutine(QObject):
+
+    processing_routine_completed = pyqtSignal(tuple)
+
+    def __init__(self, file, file_path, database, w_d, processing_parameters):
+        super().__init__()
+
+        self.file = file
+        self.file_path = file_path
+        self.database = database
+        self.w_d = w_d
+        self.processing_parameters = processing_parameters
+
+    def routine(self):
+
+        slk_data, chd_data, self.w_d, current_nutrient = rsn.get_data_routine(self.file_path,
+                                                                              self.w_d,
+                                                                              self.processing_parameters,
+                                                                              self.database)
+
+        slk_data.run_number = int(self.file[len(self.processing_parameters['analysisparams']['seal']['filePrefix']):-4])
+
+        self.w_d = psn.processing_routine(slk_data, chd_data, self.w_d, self.processing_parameters, current_nutrient)
+
+        return_package = (current_nutrient, slk_data, chd_data, self.w_d)
+        self.processing_routine_completed.emit(return_package)
 
 class processingNutrientsWindow(hyproMainWindowTemplate):
 
@@ -42,6 +74,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     """
 
     processing_completed = pyqtSignal()
+    aborted = pyqtSignal()
 
     def __init__(self, file, database, path, project, interactive=True, rereading=False, perf_mode=False,
                  ultra_perf_mode=False):
@@ -70,6 +103,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.perf_mode = perf_mode
         self.ultra_perf_mode = ultra_perf_mode
 
+        self.ui_initialised = False
+
         # General HyPro settings, use for setting theme of window
         with open('C:/HyPro/hyprosettings.json', 'r') as temp:
             params = json.loads(temp.read())
@@ -83,33 +118,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         # Holds all the calculation data
         self.w_d = WorkingData(file)
+        self.slk_data = []
+        self.chd_data = []
+        self.current_nutrient = 'none yet'
 
         # Pull out the data from the files in the directory
         try:
-            self.slk_data, self.chd_data, self.w_d, self.current_nutrient = rsn.get_data_routine(self.file_path,
-                                                                                                 self.w_d,
-                                                                                                 self.processing_parameters,
-                                                                                                 self.database)
-            self.slk_data.run_number = int(file[len(self.processing_parameters['analysisparams']['seal']['filePrefix']):-4])
-
-            # Process the data and return calculated values
-            self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
-                                              self.current_nutrient)
-
-            # If interactive processing is activated on the Processing Menu window, then continue to plot everything up
-            # Otherwise store data and exit without drawing or creating any UI elements
-            if self.interactive:
-                self.init_ui()
-
-                self.create_standard_qc_tabs()
-                qc_cups = self.processing_parameters['nutrientprocessing']['qcsamplenames']
-                self.create_custom_qc_tabs(self.slk_data.sample_ids, qc_cups)
-
-                self.interactive_routine()
-
-            else:
-                # TODO: Store data if not interactive processing
-                sys.exit()
+            # Run the nutrient procesisng QObject in a different thread
+            self.run_nutrient_processing_thread()
 
         except TypeError:
             logging.error(f'Formatting error in .SLK file. Processing aborted.')
@@ -121,15 +137,51 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         except IndexError:
             logging.error('HyPro could not find any nutrients! Please check the spelling of your analyte names')
 
+    def run_nutrient_processing_thread(self):
+        self.thread = QThread()
+
+        self.nutrient_processing_routine = processNutrientsRoutine(self.file,
+                                                                   self.file_path,
+                                                                   self.database,
+                                                                   self.w_d,
+                                                                   self.processing_parameters)
+        self.nutrient_processing_routine.moveToThread(self.thread)
+        self.thread.started.connect(self.nutrient_processing_routine.routine)
+        self.nutrient_processing_routine.processing_routine_completed.connect(self.update_ui)
+        self.nutrient_processing_routine.processing_routine_completed.connect(self.thread.quit)
+
+        self.thread.start()
+
+    def update_ui(self, return_package):
+        self.current_nutrient, self.slk_data, self.chd_data, self.w_d = return_package
+
+        if self.w_d == None:
+            self.aborted.emit()
+
+        if not self.interactive:
+            self.store_data()
+            self.close()
+            return
+
+        if not self.ui_initialised:
+            self.init_ui()
+            if self.w_d == None:
+                time.sleep(0.3)
+                self.close()
+            else:
+                self.create_standard_qc_tabs()
+                qc_cups = self.processing_parameters['nutrientprocessing']['qcsamplenames']
+                self.create_custom_qc_tabs(self.slk_data.sample_ids, qc_cups)
+
+        self.interactive_routine()
+
 
     def interactive_routine(self, trace_redraw=False):
         """
         Routine called every time the data has been reprocessed, this will redraw all as necessary.
         :return:
         """
-        # thread = Thread(target=self.draw_data, args=(self.chd_data, self.w_d, self.current_nutrient, trace_redraw,))
-        # thread.start()
-        # thread.join()
+
         self.draw_data(self.chd_data, self.w_d, self.current_nutrient, trace_redraw)
 
         st = time.time()
@@ -138,12 +190,15 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.plot_custom_data()
         print('QCTabs: ' + str(time.time() - st))
 
+
+
     def init_ui(self):
         """
         Initialises all the GUI elements required for the nutrient processing window
         :return:
         """
         try:
+
             self.setFont(QFont('Segoe UI'))
 
             self.setWindowModality(Qt.WindowModal)
@@ -153,9 +208,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             fileMenu = mainMenu.addMenu('File')
             editMenu = mainMenu.addMenu('Edit')
 
-            self.analysistraceLabel = QLabel('<b>Processing file: </b>' + str(self.file) +
-                                             '   |   <b>Analysis Trace: </b>' + str(self.current_nutrient).capitalize())
-
+            label_text = f'<b>Processing File:</b> {self.file}  |  <b>Analysis Trace:</b> {self.current_nutrient.capitalize()}'
+            self.analysistraceLabel = QLabel(label_text)
             self.analysistraceLabel.setProperty('headertext', True)
 
             tracelabelframe = QFrame()
@@ -337,6 +391,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.grid_layout.addWidget(cancelbut, 20, 13, 1, 2, Qt.AlignJustify)
 
             self.bootup = True
+            self.ui_initialised = True
 
             self.show()
 
@@ -374,8 +429,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         psn.pack_data(self.slk_data, self.w_d, self.database, self.file_path)
 
     def proceed(self):
-
-
         self.store_data()
 
         # If the matching lat/lons check box is active assume the file is a underway one. Pull out samples and
@@ -391,6 +444,21 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         index = self.slk_data.active_nutrients.index(self.current_nutrient)
 
         try:
+            if self.current_nutrient == 'nitrate':
+                recovery_tab_index = self.qctabs.indexOf(self.recovery_tab)
+                self.qctabs.removeTab(recovery_tab_index)
+
+            if not os.path.exists(f'{self.path}/Nutrients/plot'):
+                os.mkdir(f'{self.path}/Nutrients/plot')
+
+            if not os.path.exists(f'{self.path}/Nutrients/plot/{self.file}'):
+                os.mkdir(f'{self.path}/Nutrients/plot/{self.file}')
+
+            self.drift_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_drift_plot.png',
+                                   dpi=300)
+            self.baseline_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_basel_plot.png',
+                                      dpi=300)
+
             self.current_nutrient = self.slk_data.active_nutrients[index+1]
 
             self.analysistraceLabel.setText('<b>Processing file: </b>' + str(self.file) +
@@ -452,6 +520,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                    self.w_d.calculated_concentrations[peak_index],
                                                    self.w_d.quality_flag[peak_index],
                                                    self.w_d.dilution_factor[peak_index], 'Trace')
+
                 self.peak_display.setStart.connect(lambda: self.move_peak_start(x_point, peak_index))
                 self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_point, peak_index))
                 self.peak_display.saveSig.connect(lambda: self.update_from_dialog(peak_index))
@@ -690,7 +759,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             x_min = 0
         if y_min < 0:
             y_min = 0
+
         max_height = max(self.chd_data.ad_data[self.current_nutrient][int(x_min): int(x_max)])
+
+        y_min = 0
 
         self.graph_widget.setYRange(y_min, max_height * 1.02)
 
@@ -836,10 +908,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     qcp.mdl_plot(self.MDL_fig, self.MDL_plot, self.w_d.MDL_indexes, self.w_d.MDL_concentrations,
                                  self.w_d.MDL_flags)
 
-                # elif qc.lower() == 'bqc':
-                #     qcp.bqc_plot(self.BQC_fig, self.BQC_plot, self.w_d.BQC_indexes, self.w_d.BQC_concentrations,
-                #                  self.w_d.BQC_flags)
-                #
+                elif qc.lower() == 'bqc':
+                    qcp.bqc_plot(self.BQC_fig, self.BQC_plot, self.w_d.BQC_indexes, self.w_d.BQC_concentrations,
+                                 self.w_d.BQC_flags)
+
                 # elif qc.lower() == 'intqc':
                 #     qcp.intqc_plot(self.IntQC_fig, self.IntQC_plot, self.w_d.)
                     # pass

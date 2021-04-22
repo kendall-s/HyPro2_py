@@ -9,15 +9,16 @@ from dialogs.RereadDialog import rereadDialog
 from dialogs.ProducePlotsDialog import producePlotsDialog
 from dialogs.DeleteDialog import deleteDialog
 from dialogs.ExportDeployments import exportDeployments
-from processing.LoggerOutput import QTextEditLogger
 from dialogs.AnalysisDialog import analysisSettings
 from dialogs.SurveyDialog import surveyDialog
 from dialogs.RMNSDialog import rmnsDialog
 from dialogs.ParametersDialog import parametersDialog
+from processing.LoggerOutput import QTextEditLogger
 from processing.QCStats import statsDialog
 import processing.readdata.InitialiseTables as inittabs
+from processing.algo.HyproComplexities import load_proc_settings, save_proc_settings
 
-from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow
+from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow, ParamParamWindow
 import sqlite3
 from netCDF4 import Dataset
 import numpy as np
@@ -60,6 +61,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.ultra_performance_mode = False
 
         self.params_path = self.currpath + '/' + '%sParams.json' % self.currproject
+        self.make_default_params_file()
+        self.processing_parameters = load_proc_settings(self.currpath, self.currproject)
 
         inittabs.main(self.currproject, self.currpath)
 
@@ -69,8 +72,6 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
 
     def init_ui(self):
-
-        self.make_default_params_file()
 
         file_menu = self.main_menu.addMenu('File')
         export_menu = file_menu.addMenu(QIcon(':/assets/archivebox.svg'), 'Export')
@@ -100,6 +101,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         export_data = QAction(QIcon(':/assets/ship.svg'), 'Export Deployments', self)
         export_data.triggered.connect(self.export_data_window)
         export_menu.addAction(export_data)
+
+        export_odv = QAction('Export ODV', self)
+        export_menu.addAction(export_odv)
 
         exportUnderwayNutrients = QAction('Export Underway Nutrients', self)
         exportUnderwayNutrients.triggered.connect(self.exportuwynuts)
@@ -202,6 +206,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         view_menu.addAction(oxygen_standard_plot)
 
         view_menu.addSeparator()
+
+        param_param_plot = QAction('Param/Param Plots', self)
+        param_param_plot.triggered.connect(self.param_param_window)
+        view_menu.addAction(param_param_plot)
 
         plots_action = QAction('Create Plots', self)
         plots_action.triggered.connect(self.produce_plots_window)
@@ -312,12 +320,11 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         In the case that there hasn't been any analyses setup, Hypro will show this lengthy warning in the output
 
         """
-        with open(self.params_path, 'r') as file:
-            params = json.loads(file.read())
-        analyses = params['analysisparams'].keys()
+
+        analyses = self.processing_parameters['analysisparams'].keys()
         any_activated = False
         for x in analyses:
-            if params['analysisparams'][x]['activated']:
+            if self.processing_parameters['analysisparams'][x]['activated']:
                 any_activated = True
 
         if not any_activated:
@@ -474,6 +481,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
     def oxygenstandards(self):
         pass
+
+    def param_param_window(self):
+        self.param_param_window = ParamParamWindow.paramPlotWindowTemplate(self.db, self.params_path)
+        self.param_param_window.show()
 
     def produce_plots_window(self):
         self.prodplots = producePlotsDialog()

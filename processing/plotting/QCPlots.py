@@ -25,7 +25,7 @@ FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4: '#3CB6C9', 5: '#C927
                     91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
 '''
 
-File contains methods to produce various specific plots with the very specific nature of it
+File contains methods to produce various specific plots if you pass the Matplotlib figure, axes and data
 These are just all functions that will apply to data and changes to an axes or figure
 
 '''
@@ -69,7 +69,7 @@ def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
     del axes.texts[:]
 
     # Figure out which ones are which, make a sub index number to reference the concentrations and flags
-    # The indexes parameter function references the peak index relative to the whole run just FYI
+    # The indexes parameter function references the peak number index relative to the whole run just FYI
 
     if indexes:
         # Get the subset indexes as lists, could be case where an analysis has multiple column checks
@@ -154,7 +154,7 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
     axes.set_ylim((0-(max(cal_concs)*0.05)), max(cal_concs)*1.05)
     axes.set_xlim((0-(max(cal_medians)*0.05)), max(cal_medians)*1.05)
 
-    axes.annotate(f'R Squared: {round(r_score,4)}', xy=(0.8, 0.05), xycoords="axes fraction")
+    axes.annotate(f'R Squared: {round(r_score,4)}', xy=(0.76, 0.05), xycoords="axes fraction", fontsize=11)
 
     #axes.plot(cal_medians, cal_concs, marker='o', mfc='none', lw=0, ms=11)
     fig.set_tight_layout(tight=True)
@@ -202,8 +202,8 @@ def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
     handles, labels = axes.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     axes.legend(by_label.values(), by_label.keys())
-    axes.set_xlim((0-(max(cal)*0.05)), max(cal)*1.05)
-    axes.set_ylim(min(cal_error)*0.9, max(cal_error)*1.1)
+    axes.set_xlim((0-(max(cal)*0.05)), 0+max(cal)*1.05)
+    axes.set_ylim(0-max(cal_error)*1.1, max(cal_error)*1.1)
 
     fig.set_tight_layout(tight=True)
 
@@ -283,9 +283,9 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
     axes.grid(alpha=0.2, zorder=1)
 
     for i, ind in enumerate(indexes):
-        axes.plot(ind, concentrations[i], lw=0, marker='o', ms=5, color=FLAG_COLORS[flags[i]])
+        axes.plot(ind, concentrations[i], lw=0, marker='o', ms=6, color=FLAG_COLORS[flags[i]])
 
-    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o', picker=5, mfc='None',  color='C0')
+    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o', ms=10, picker=5, mfc='None',  color='C0')
 
     axes.set_ylim(min(concentrations) * 0.975, max(concentrations) * 1.025)
     axes.set_xlim(min(indexes)-1, max(indexes)+1)
@@ -295,12 +295,18 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
         by_label = dict(zip(labels, handles))
         axes.legend(by_label.values(), by_label.keys())
 
-    axes.annotate(f'Average: {round(statistics.mean(concentrations), 3)}', [0.8, 0.05], xycoords='axes fraction')
+    axes.annotate(f'Average: {round(statistics.mean(concentrations), 3)}', [0.02, 0.96],
+                  xycoords='axes fraction', fontsize=11)
+    axes.annotate(f'St. Dev.: {round(statistics.stdev(concentrations), 3)}', [0.02, 0.92],
+                  xycoords='axes fraction', fontsize=11)
+
 
 def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=None, show_flags=None, show_bad=None):
 
     if len(axes.lines) > 0:
         del axes.lines[:]
+        del axes.texts[:]
+
     else:
         axes.set_title('MDL', fontsize=12)
         axes.set_xlabel('Peak Number')
@@ -334,23 +340,33 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=No
         axes.set_zorder(stdev_plot.get_zorder() + 1)
         axes.patch.set_visible(False)
 
-        axes.set_xlim(min(indexes)-1, max(indexes)+1)
+        #axes.set_xlim(min(indexes)-1, max(indexes)+1)
         all_lines = mean_mdl_plot + upper_mdl_plot + stdev_runs_plot
         labs = [l.get_label() for l in all_lines]
         axes.legend(all_lines, labs)
     # Normal in processing plot
     else:
         mdl = 3 * statistics.stdev(concentrations)
-        axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl, 3)),
-                  ms=12, mfc='none', mec='#12BA66', color='C0')
+        axes.plot(indexes, concentrations, linestyle=':', lw=0.25, marker='o', mfc='None', mec='#12BA66', ms=12,
+                  picker=5, color='C0', label=f'3x St.Dev.: {round(mdl, 3)}')
         #axes.set_ylim(min(concentrations)-0.05, max(concentrations)+0.05)
-        axes.legend(fontsize=12)
+
+        axes.annotate(f'Run Average: {round(statistics.mean(concentrations), 3)}', [0.02, 0.96],
+                      xycoords='axes fraction', fontsize=11)
+        axes.annotate(f'3x Standard Deviation: {round(mdl, 3)}', [0.02, 0.92],
+                      xycoords='axes fraction', fontsize=11)
+
+        #axes.legend(fontsize=12)
+
+    axes.set_xlim(min(indexes) - 1, max(indexes) + 1)
 
     fig.set_tight_layout(tight=True)
 
 def bqc_plot(fig, axes, indexes, concentrations, flags):
     if len(axes.lines) > 0:
         del axes.lines[:]
+        del axes.texts[:]
+
     else:
         axes.set_title('BQC')
         axes.set_xlabel('Peak Number')
@@ -359,12 +375,15 @@ def bqc_plot(fig, axes, indexes, concentrations, flags):
 
     mean_bqc = statistics.mean(concentrations)
 
-    axes.plot(indexes, [mean_bqc]*4, lw=1, linestyle='--', label = 'Run Mean: ' + str(round(mean_bqc, 3)))
+    axes.plot(indexes, [mean_bqc]*len(indexes), lw=1, linestyle='--', label = f'Run Mean: {str(round(mean_bqc, 3))}')
 
     axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', mfc='none')
     axes.set_ylim(min(concentrations)*0.99, max(concentrations)*1.01)
 
-    axes.legend()
+    #axes.legend(fontsize=12)
+    axes.annotate(f'Run Average: {round(mean_bqc, 3)}', [0.02, 0.96], xycoords='axes fraction', fontsize=11)
+    axes.annotate(f'Run Standard Deviation: {round(statistics.stdev(concentrations), 3)}', [0.02, 0.92],
+                  xycoords='axes fraction', fontsize=11)
 
     fig.set_tight_layout(tight=True)
 

@@ -1,6 +1,8 @@
 import csv, time, calendar, logging, traceback, os
 from processing.algo.Structures import SLKData, CHDData
 import processing.procdata.ProcessSealNutrients as psn
+from PyQt5.QtCore import QObject, pyqtSignal
+
 NUTRIENTS = ['nitrate', 'phosphate', 'silicate', 'nitrite', 'ammonia']
 
 def get_data_routine(file_path, w_d, processing_parameters, database):

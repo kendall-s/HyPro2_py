@@ -1,4 +1,5 @@
 # https://pythonspot.com/pyqt5-file-dialog/
+# https://pythonspot.com/pyqt5-file-dialog/
 # http://www.qtcentre.org/threads/20895-PyQt4-Want-to-connect-a-window-s-close-button
 # https://pythonprogramminglanguage.com/pyqt5-window-flags/
 # https://stackoverflow.com/questions/23617112/how-to-process-only-new-unprocessed-files-in-linux

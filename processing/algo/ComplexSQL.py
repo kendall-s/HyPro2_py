@@ -187,7 +187,7 @@ on (silicate.deployment = logsheetData.deployment and  silicate.rosettePosition 
 
 left join salinityData on (salinityData.deployment = logsheetData.deployment and salinityData.rosettePosition = logsheetData.rosettePosition)
 left join oxygenData on (oxygenData.deployment = logsheetData.deployment and oxygenData.rosettePosition = logsheetData.rosettePosition)
-left join ctdData on ctdData.deployment = (logsheetData.deployment and ctdData.bottleposition = logsheetData.rosettePosition)
+left join ctdData on ctdData.deployment = (logsheetData.deployment and ctdData.rosettePosition = logsheetData.rosettePosition)
 
 where logsheetData.nutrient != "" and logsheetData.deployment in (%s)
 """

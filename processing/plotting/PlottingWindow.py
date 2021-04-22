@@ -2,7 +2,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from pylab import get_current_fig_manager
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QDesktopWidget, QAction, QVBoxLayout, QFileDialog, QApplication,
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QVBoxLayout, QFileDialog, QApplication,
                              QGridLayout, QLabel, QListWidget, QCheckBox, QPushButton, QAbstractItemView, QFrame)
 from PyQt5.QtGui import QFont, QIcon, QImage
 from PyQt5.QtCore import pyqtSignal
@@ -42,8 +42,11 @@ class QMainPlotterTemplate(QMainWindow):
         self.setFont(QFont('Segoe UI'))
 
         self.setGeometry(0, 0, 780, 820)
+
+        # Center window on active screen
         qtRectangle = self.frameGeometry()
-        centerPoint = QDesktopWidget().availableGeometry().center()
+        screen = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
+        centerPoint = QApplication.desktop().screenGeometry(screen).center()
         qtRectangle.moveCenter(centerPoint)
         self.move(qtRectangle.topLeft())
 
@@ -65,6 +68,10 @@ class QMainPlotterTemplate(QMainWindow):
         copy = QAction(QIcon(':/assets/newdoc.svg'), 'Copy', self)
         copy.triggered.connect(self.copy_plot)
         self.edit_menu.addAction(copy)
+
+        copy_report = QAction('Copy 4Report', self)
+        copy_report.triggered.connect(self.copy_plot_report)
+        self.edit_menu.addAction(copy_report)
 
         self.run_list_label = QLabel('Select Run:', self)
         self.run_list = QListWidget(self)
@@ -90,6 +97,7 @@ class QMainPlotterTemplate(QMainWindow):
             y.set_fontsize(12)
 
         self.grid_layout.addWidget(self.canvas, 0, 1)
+        self.grid_layout.setColumnStretch(1, 2)
         self.grid_layout.addWidget(self.qvbox_frame_holder, 0, 0)
 
         self.qvbox_layout.addWidget(self.run_list_label)
@@ -108,6 +116,12 @@ class QMainPlotterTemplate(QMainWindow):
     def copy_plot(self):
         buffer = io.BytesIO()
         self.figure.savefig(buffer, dpi=300)
+        QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
+
+    def copy_plot_report(self):
+        self.figure.set_size_inches(8.3, 7)
+        buffer = io.BytesIO()
+        self.figure.savefig(buffer, dpi=100)
         QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
 
     def base_on_pick(self, event, runs, peak_nums, nutrient=None, oxygen=None, salinity=None):

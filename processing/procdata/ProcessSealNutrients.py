@@ -80,12 +80,17 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ----------- Find the baseline peaks - apply baseline correction ------------------------------------------
     w_d.baseline_indexes = find_cup_indexes(baseline_cup_type, slk_data.cup_types)
-    w_d.baseline_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.baseline_indexes]
-    w_d.baseline_medians, w_d.baseline_indexes = organise_basedrift_medians(w_d.baseline_indexes,
-                                                                            w_d.raw_window_medians)
-    w_d.baseline_flags = get_basedrift_flags(w_d.baseline_indexes, w_d.quality_flag)
-    w_d.corr_window_medians = baseline_correction(w_d.baseline_indexes, w_d.baseline_medians, baseline_corr_type,
-                                                  w_d.raw_window_medians)
+
+    if len(w_d.baseline_indexes) < 2:
+        logging.info(f'WARNING: No baseline peaks were found, baseline correction not applied for run {w_d.run}')
+        w_d.corr_window_medians = w_d.raw_window_medians
+    else:
+        w_d.baseline_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.baseline_indexes]
+        w_d.baseline_medians, w_d.baseline_indexes = organise_basedrift_medians(w_d.baseline_indexes,
+                                                                                w_d.raw_window_medians)
+        w_d.baseline_flags = get_basedrift_flags(w_d.baseline_indexes, w_d.quality_flag)
+        w_d.corr_window_medians = baseline_correction(w_d.baseline_indexes, w_d.baseline_medians, baseline_corr_type,
+                                                      w_d.raw_window_medians)
 
     # ----------  Find carryover peaks - apply carryover correction ---------------------------------------------
     w_d.high_index, w_d.low_indexes = find_carryover_indexes(high_cup_type, low_cup_type, slk_data.cup_types)
@@ -93,20 +98,27 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     if w_d.high_index:
         w_d.corr_window_medians, w_d.carryover_coefficient = carryover_correction(w_d.high_index, w_d.low_indexes,
                                                                                   w_d.corr_window_medians)
+    else:
+        logging.info(f'WARNING: No carryover correction applied for run {w_d.run}')
 
     # ----------- Find drift peaks - apply drift correction -----------------------------------------------------
     w_d.drift_indexes = find_cup_indexes(drift_cup_type, slk_data.cup_types)
-    w_d.drift_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.drift_indexes]
-    w_d.raw_drift_medians = [w_d.raw_window_medians[x] for x in w_d.drift_indexes]
-    w_d.drift_medians, w_d.drift_indexes = organise_basedrift_medians(w_d.drift_indexes, w_d.corr_window_medians)
-    w_d.drift_flags = get_basedrift_flags(w_d.drift_indexes, w_d.quality_flag)
-    w_d.drift_corr_percent = get_basedrift_corr_percent(w_d.drift_medians, statistics.mean(w_d.drift_medians[1:-1]))
-    w_d.corr_window_medians = drift_correction(w_d.drift_indexes, w_d.drift_medians, drift_corr_type,
-                                               w_d.corr_window_medians)
+    if len(w_d.drift_indexes) < 2:
+        logging.info(f'WARNING: No drift peaks were found, drift correction not applied for run {w_d.run}')
+    else:
+        w_d.drift_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.drift_indexes]
+        w_d.raw_drift_medians = [w_d.raw_window_medians[x] for x in w_d.drift_indexes]
+        w_d.drift_medians, w_d.drift_indexes = organise_basedrift_medians(w_d.drift_indexes, w_d.corr_window_medians)
+        w_d.drift_flags = get_basedrift_flags(w_d.drift_indexes, w_d.quality_flag)
+        w_d.drift_corr_percent = get_basedrift_corr_percent(w_d.drift_medians, statistics.mean(w_d.drift_medians[1:-1]))
+        w_d.corr_window_medians = drift_correction(w_d.drift_indexes, w_d.drift_medians, drift_corr_type,
+                                                   w_d.corr_window_medians)
 
     # ----------- Find calibrant peaks --------------------------------------------------------------------------
     w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type, slk_data.cup_types)
-
+    if len(w_d.calibrant_indexes) < 2:
+        logging.error(f'ERROR: Not enough calibrants were found to create a curve in {w_d.run}. Processing Aborted!')
+        return None
     # ----------- Prepare calibrants and various parameters ------------------------------------------------------
     w_d.calibrant_medians = get_calibrant_medians(w_d.calibrant_indexes, w_d.corr_window_medians)
     # Side note for baseline plot - get highest cal median and determine a percentage corr from that

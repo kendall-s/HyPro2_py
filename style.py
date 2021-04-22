@@ -10,7 +10,9 @@ mplstyle = {'normal': {'axes.edgecolor': '#000000', 'xtick.color': '#000000', 'y
             'dark': {'axes.edgecolor': '#F5F5F5', 'xtick.color': '#F5F5F5', 'ytick.color': '#F5F5F5',
                      'axes.facecolor': '#191919', 'axes.labelcolor': '#F5F5F5', 'figure.facecolor': '#202020',
                      'grid.color': '#F5F5F5', 'lines.color': '#F5F5F5', 'figure.frameon': False,
-                     'text.color': '#F5F5F5', 'axes.prop_cycle': mpl.cycler(color=['#F5F5F5', '#4878d0', '#ee864a']),
+                     'text.color': '#F5F5F5',
+                     'axes.prop_cycle': mpl.cycler(color=['#F5F5F5', '#4878d0', '#ee864a', '#55A868', '#C44E52',
+                                                          '#8172B3', '#B27B4C', '#DA8BC3', '#CCB974', '#64B5CD']),
                      'legend.facecolor': '#191919'}}
 
 stylesheet = {'normal': """
@@ -798,7 +800,8 @@ default_params = {
                 "baseCorrType": "Piecewise",
                 "carryoverCorr": True,
                 "calibration": "Linear",
-                "calerror": 0.2
+                "calerror": 0.2,
+                "sigdigits": 2,
             },
             "phosphate": {
                 "peakPeriod": 80,
@@ -809,7 +812,8 @@ default_params = {
                 "baseCorrType": "Piecewise",
                 "carryoverCorr": True,
                 "calibration": "Linear",
-                "calerror": 0.02
+                "calerror": 0.02,
+                "sigdigits": 3,
             },
             "nitrate": {
                 "peakPeriod": 80,
@@ -820,7 +824,8 @@ default_params = {
                 "baseCorrType": "Piecewise",
                 "carryoverCorr": True,
                 "calibration": "Linear",
-                "calerror": 0.02
+                "calerror": 0.02,
+                "sigdigits": 3,
             },
             "nitrite": {
                 "peakPeriod": 80,
@@ -831,7 +836,8 @@ default_params = {
                 "baseCorrType": "Piecewise",
                 "carryoverCorr": True,
                 "calibration": "Linear",
-                "calerror": 0.02
+                "calerror": 0.02,
+                "sigdigits": 3,
             },
             "ammonia": {
                 "peakPeriod": 80,
@@ -842,7 +848,8 @@ default_params = {
                 "baseCorrType": "Piecewise",
                 "carryoverCorr": True,
                 "calibration": "Linear",
-                "calerror": 0.02
+                "calerror": 0.02,
+                "sigdigits": 3,
             }
         },
         "calibrants": {
@@ -880,7 +887,13 @@ default_params = {
             "internalqc": "IntQC",
             "driftcheck": "Drift Sample Check",
             "underway": "UWY Sample"
-        }
+        },
+        "qcplotted":
+            [
+                {"formatname": "RMNS", "sampleid": "RMNS"},
+                {"formatname": "MDL", "sampleid": "MDL"},
+            ]
+
     },
     "analysisparams": {
         "seal": {
