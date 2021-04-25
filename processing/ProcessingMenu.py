@@ -213,7 +213,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         plots_action = QAction('Create Plots', self)
         plots_action.triggered.connect(self.produce_plots_window)
-        view_menu.addAction(plots_action)
+        #view_menu.addAction(plots_action)
 
         stats_action = QAction('View QC Stats', self)
         stats_action.triggered.connect(self.produce_stats_window)

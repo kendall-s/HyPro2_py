@@ -240,7 +240,7 @@ def match_hover_to_peak(x_time, slk_data, current_nutrient, peak_windows):
 
     st = time.time()
     hovered_peak_index = [i for i, x in enumerate(peak_windows) if int(x_time) in x]
-    print(f'match hover to peak time taken: {time.time() - st}')
+    #print(f'match hover to peak time taken: {time.time() - st}')
     return True, hovered_peak_index
 
 
@@ -258,7 +258,7 @@ def match_click_to_peak(x_time, slk_data, current_nutrient, adj_p_s):
     #clicked_peak_index = bisect.bisect_left(slk_data.clean_peak_starts[current_nutrient], x_time) - 1
     if clicked_peak_index == -1:
         clicked_peak_index = 0
-    print(f'match click to peak time taken: {time.time() - st}')
+    #print(f'match click to peak time taken: {time.time() - st}')
     return True, clicked_peak_index
 
 

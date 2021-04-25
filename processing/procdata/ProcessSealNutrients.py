@@ -63,7 +63,9 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ----------- Match peaks to CHD data ---------------------------------------------------------------------
     # Match the SLK peak start data to the CHD A/D data
-    w_d.window_values, w_d.time_values, w_d.adjusted_peak_starts[current_nutrient] = get_peak_values(slk_data.peak_starts[current_nutrient],
+    # for subsequent processing runs, check if we use
+
+    w_d.window_values, w_d.time_values, w_d.adjusted_peak_starts[current_nutrient] = get_peak_values(slk_data.clean_peak_starts[current_nutrient],
                                                                                     chd_data.ad_data[current_nutrient],
                                                                                     window_size, window_start)
 
@@ -146,6 +148,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
     sample_duplicate_indexes = find_duplicate_samples(duplicate_indexes, slk_data.sample_ids, slk_data.cup_types,
                                                       sample_cup_type, qc_cup_ids)
+    # TODO: add in separate duplicate error limit
     w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes, w_d.calculated_concentrations,
                                                  w_d.quality_flag, cal_error_limit)
 
@@ -183,11 +186,7 @@ def get_peak_values(peak_starts, ad_data, window_size, window_start):
     :param window_start:
     :return:
     """
-
     window_end = int(window_start) + int(window_size)
-
-    # For now remove any hashes that are in the peak starts, this makes the following list comps cleaner.
-    peak_starts = [p_s.replace('#', '') for p_s in peak_starts]
 
     adjusted_peak_starts = [int(p_s) + int(window_start) for p_s in peak_starts]
 
@@ -348,9 +347,10 @@ def organise_basedrift_medians(relevant_indexes, window_medians):
     :param window_medians:
     :return: medians, indexes
     """
-    print(window_medians)
-    print(len(window_medians))
-    print(relevant_indexes)
+    #print(f'Window medians for baseline or drifts: {window_medians}')
+    #print(f'Length of window medians {len(window_medians)}')
+    #print(f'Relevant indexes: {relevant_indexes}')
+
     medians = [window_medians[x] for x in relevant_indexes]
 
     if relevant_indexes[0] != 0:
@@ -811,16 +811,13 @@ def populate_nutrient_survey(database, params, sample_id, cup_types):
 # TODO: Finding a nutrient survey needs fixing, this is messy and does not account for all cases!
 def determine_nutrient_survey(database, params, sample_id, cup_type):
     """
-    Algorithm for determining the survey of a sample, just has a lot of different checks that need to take place to
+    'Algorithm' for determining the survey of a sample, just has a lot of different checks that need to take place to
     account for all cases
     :param database:
     :param params:
     :param sample_id:
     :return: deployment, rosette, survey
     """
-    conn = sqlite3.connect(database)
-    c = conn.cursor()
-
     if 'test' in sample_id[0:4].lower():
         return 'Test', 'Test', 'Test'
 
@@ -859,7 +856,15 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
                         rosettepos = sample_id[-2:]
                         deployment = sample_id[:-2]
 
+                        if match_logsheet(database, sample_id, deployment, rosettepos):
+                            pass
+                        else:
+                            logging.error(f'ERROR: {sample_id} may be a voyage sample, but it is not entered correctly'
+                                          f' on the logsheet file. It has been saved as a sample for dep:{deployment} '
+                                          f'rp:{rosettepos}.')
+
                         return deployment, rosettepos, survey
+
 
                 else:  # Sample id has more than just numbers in it
                     if params['surveyparams'][surv]['seal']['decodesampleid']:  # Decode the sample ID, needs a prefisurv too
@@ -886,6 +891,19 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
                                 survey = surv
                                 return deployment, rosettepos, survey
 
+def match_logsheet(database, sample_id, deployment, rosette_position):
+    """
+    Helper function to determine if a sample believed to be a voyage sample is entered on the sampling logsheet
+    """
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+    q = 'SELECT nutrient FROM logsheetData WHERE deployment=? and rosettePosition=?'
+    c.execute(q, (deployment, rosette_position))
+    data = c.fetchone()
+    if data == sample_id:
+        return True
+    else:
+        return False
 
 def find_qc_present(qc_cups, sample_ids):
     """
@@ -992,15 +1010,15 @@ def match_lat_lons_routine(path, project, database, current_nut, parameters, wor
 
     rvi_times = generate_rvi_timestamps(epoch_date, len(rvi_lon))
 
-    print(parameters['nutrientprocessing']['qcsamplenames']['underway'])
-    print(parameters['nutrientprocessing']['cupnames']['sample'])
+    print(f"Underway sample name: {parameters['nutrientprocessing']['qcsamplenames']['underway']}")
+    print(f"Cup name of a sample: {parameters['nutrientprocessing']['cupnames']['sample']}")
 
     sample_times, sample_concs = extract_underway_samples(slk_data.sample_ids, slk_data.cup_types,
                                                           working_data.quality_flag, slk_data.epoch_timestamps,
                                                           working_data.calculated_concentrations,
                                                           parameters['nutrientprocessing']['qcsamplenames']['underway'],
                                                           parameters['nutrientprocessing']['cupnames']['sample'])
-    print(sample_times)
+    print(f'Underway sample times: {sample_times}')
 
     if len(sample_times) == 0:
         logging.error('The checkbox for matching up underway samples to the RVI file was ticked, however '
@@ -1052,7 +1070,7 @@ def find_rvi_time_subset(sample_times, rvi_times):
     :param rvi_times:
     :return:
     """
-    print(sample_times)
+    print(f'Underway sample times: {sample_times}')
     sample_start_time = min(sample_times)
     sample_end_time = max(sample_times)
 

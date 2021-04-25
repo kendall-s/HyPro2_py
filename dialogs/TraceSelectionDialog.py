@@ -13,7 +13,7 @@ Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Pea
 class traceSelection(hyproDialogTemplate):
     setStart = pyqtSignal()
     setEnd = pyqtSignal()
-    saveSig = pyqtSignal()
+    saveSig = pyqtSignal(dict)
     peakShiftRight = pyqtSignal()
     peakShiftLeft = pyqtSignal()
 
@@ -76,10 +76,10 @@ class traceSelection(hyproDialogTemplate):
         self.dilutionline.setText(str(self.dil))
 
         self.shiftpeakright = QPushButton('Shift Right', self)
-        self.shiftpeakright.clicked.connect(self.peakshiftright)
+        self.shiftpeakright.clicked.connect(self.peak_shift_right)
 
         self.shiftpeakleft = QPushButton('Shift Left', self)
-        self.shiftpeakleft.clicked.connect(self.peakshiftleft)
+        self.shiftpeakleft.clicked.connect(self.peak_shift_left)
 
         self.okbut = QPushButton('Ok', self)
         self.okbut.clicked.connect(self.save)
@@ -133,33 +133,32 @@ class traceSelection(hyproDialogTemplate):
         self.show()
 
     def save(self):
-        if self.any_change:
-            self.saveSig.emit()
-
-        self.close()
-
-    def any_change(self):
         cup = self.peakcupline.text()
         dilution = self.dilutionline.text()
         q_flag = self.flagbox.currentText()
 
         if cup != self.cuptype or dilution != self.dil or q_flag != self.flag_converter[self.flag]:
-            return True
+            # Peak index is the peak number minus one, doing it here for ease of signal
+            updates = {'cup_type': cup, 'dilution_factor': dilution, 'quality_flag': q_flag,
+                       'peak_index': self.peaknum-1}
+            self.saveSig.emit(updates)
+
+        self.close()
 
     def cancel(self):
         self.close()
 
-    def peakshiftright(self):
+    def peak_shift_right(self):
         self.peakShiftRight.emit()
 
-    def peakshiftleft(self):
+    def peak_shift_left(self):
         self.peakShiftLeft.emit()
 
-    def pickstart(self):
+    def pick_start(self):
         self.setStart.emit()
         self.close()
 
-    def pickend(self):
+    def pick_end(self):
         self.setEnd.emit()
         self.close()
 

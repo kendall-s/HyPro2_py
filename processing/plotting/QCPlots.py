@@ -63,7 +63,7 @@ def draw_drifts_baselines(fig, axes, basl_peak_st, basl_medians, drift_peak_st, 
     axes.plot(drift_peak_st, drift_medians, linewidth=1, color="#c6c600", label='drift')
 
 
-def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
+def recovery_plot(fig, axes, indexes, concentrations, ids, flags, title_append=''):
 
     del axes.lines[:]
     del axes.texts[:]
@@ -111,15 +111,17 @@ def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
         axes.set_axis_off()
     fig.set_tight_layout(tight=True)
 
-def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients, r_score=1):
+def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients, r_score=0, title_append=''):
     if len(axes.lines) > 0:
         del axes.lines[:]
         del axes.texts[:]
+
     else:
-        axes.set_title('Calibration Curve')
-        axes.set_xlabel('A/D Medians')
-        axes.set_ylabel('Calibrant Concentrations')
+        axes.set_xlabel('A/D Medians', fontsize=12)
+        axes.set_ylabel('Calibrant Concentrations', fontsize=12)
         axes.grid(alpha=0.3, zorder=1)
+
+    axes.set_title(f'Calibration Curve {title_append}', fontsize=14)
 
     fit = np.poly1d(cal_coefficients)
 
@@ -159,15 +161,16 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
     #axes.plot(cal_medians, cal_concs, marker='o', mfc='none', lw=0, ms=11)
     fig.set_tight_layout(tight=True)
 
-def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
+def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags, title_append=''):
     analyte_error = float(analyte_error)
     if len(axes.lines) > 0:
         del axes.lines[1:]
     else:
-        axes.set_title('Calibrant Error')
-        axes.set_xlabel('Calibrant Concentration')
-        axes.set_ylabel('Error from fitted concentration')
+        axes.set_xlabel('Calibrant Index', fontsize=12)
+        axes.set_ylabel('Error from fitted concentration', fontsize=12)
         axes.grid(alpha=0.3, zorder=1)
+
+    axes.set_title(f'Calibrant Error {title_append}', fontsize=14)
 
     axes.plot([0, max(cal)], [0, 0], lw=1.75, linestyle='--', alpha=0.7, zorder=2, color='#14E43E')
 
@@ -202,17 +205,21 @@ def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
     handles, labels = axes.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     axes.legend(by_label.values(), by_label.keys())
-    axes.set_xlim((0-(max(cal)*0.05)), 0+max(cal)*1.05)
-    axes.set_ylim(0-max(cal_error)*1.1, max(cal_error)*1.1)
+    #axes.set_xlim((0-(max(cal)*0.05)), 0+max(cal)*1.05)
+    axes.set_xlim(min(cal)-1, max(cal)+ 1)
+
+    if max(cal_error) < analyte_error:
+        axes.set_ylim((analyte_error*1.4)*-1, (analyte_error*1.4))
+    else:
+        axes.set_ylim(0-max(cal_error)*1.4, max(cal_error)*1.4)
 
     fig.set_tight_layout(tight=True)
 
-def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medians, flags):
+def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medians, flags, title_append=''):
     if len(axes1.lines) > 0:
         del axes1.lines[:]
         del axes2.lines[:]
     else:
-        axes1.set_title('%s Peak Height' % type)
         axes1.set_xlabel('Peak Number')
         axes1.set_ylabel('Raw Peak Height (A/D)')
         axes1.grid(alpha=0.3, zorder=1)
@@ -220,6 +227,8 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
         axes2.set_xlabel('Peak Number')
         axes2.set_ylabel('Percentage of Top Cal (%)')
         axes2.grid(alpha=0.3, zorder=1)
+
+    axes1.set_title(f'{type} Peak Height {title_append}')
 
     axes1.plot(indexes, medians, mfc='none', linewidth=1.25, linestyle=':', color="#8C8C8C", alpha=0.9)
     for i, x in enumerate(flags):
@@ -247,7 +256,8 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
     axes2.plot(indexes, correction, lw=1.25, marker='s', ms=8, mfc='none', color='#6986e5')
     fig.set_tight_layout(tight=True)
 
-def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_flags=None, show_bad=None):
+def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_flags=None, show_bad=None,
+              title_append=''):
     nut_column = {'phosphate': 1, 'silicate': 3, 'nitrate': 5, 'nitrite': 7, 'ammonia': 9}
 
     del axes.lines[:]
@@ -301,17 +311,17 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
                   xycoords='axes fraction', fontsize=11)
 
 
-def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=None, show_flags=None, show_bad=None):
+def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=None, show_flags=None, show_bad=None,
+             title_append=''):
 
     if len(axes.lines) > 0:
         del axes.lines[:]
         del axes.texts[:]
 
-    else:
-        axes.set_title('MDL', fontsize=12)
-        axes.set_xlabel('Peak Number')
-        axes.set_ylabel('Concentration (uM)')
-        axes.grid(alpha=0.2, zorder=2)
+    axes.set_title(f'MDL {title_append}', fontsize=12)
+    axes.set_xlabel('Peak Number')
+    axes.set_ylabel('Concentration (uM)')
+    axes.grid(alpha=0.2, zorder=2)
 
     # Used when the across voyage plot is required - plots standard deviation per run
     if stdevs:
@@ -351,7 +361,7 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=No
                   picker=5, color='C0', label=f'3x St.Dev.: {round(mdl, 3)}')
         #axes.set_ylim(min(concentrations)-0.05, max(concentrations)+0.05)
 
-        axes.annotate(f'Run Average: {round(statistics.mean(concentrations), 3)}', [0.02, 0.96],
+        axes.annotate(f'Average: {round(statistics.mean(concentrations), 3)}', [0.02, 0.96],
                       xycoords='axes fraction', fontsize=11)
         axes.annotate(f'3x Standard Deviation: {round(mdl, 3)}', [0.02, 0.92],
                       xycoords='axes fraction', fontsize=11)
@@ -362,7 +372,7 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=No
 
     fig.set_tight_layout(tight=True)
 
-def bqc_plot(fig, axes, indexes, concentrations, flags):
+def bqc_plot(fig, axes, indexes, concentrations, flags, title_append=''):
     if len(axes.lines) > 0:
         del axes.lines[:]
         del axes.texts[:]
@@ -381,8 +391,8 @@ def bqc_plot(fig, axes, indexes, concentrations, flags):
     axes.set_ylim(min(concentrations)*0.99, max(concentrations)*1.01)
 
     #axes.legend(fontsize=12)
-    axes.annotate(f'Run Average: {round(mean_bqc, 3)}', [0.02, 0.96], xycoords='axes fraction', fontsize=11)
-    axes.annotate(f'Run Standard Deviation: {round(statistics.stdev(concentrations), 3)}', [0.02, 0.92],
+    axes.annotate(f'Average: {round(mean_bqc, 3)}', [0.02, 0.96], xycoords='axes fraction', fontsize=11)
+    axes.annotate(f'Standard Deviation: {round(statistics.stdev(concentrations), 3)}', [0.02, 0.92],
                   xycoords='axes fraction', fontsize=11)
 
     fig.set_tight_layout(tight=True)
