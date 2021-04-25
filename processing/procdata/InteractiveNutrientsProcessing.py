@@ -175,7 +175,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.plot_custom_data()
         print('QCTabs: ' + str(time.time() - st))
 
-
     def init_ui(self):
         """
         Initialises all the GUI elements required for the nutrient processing window
@@ -414,6 +413,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         psn.pack_data(self.view_slk_data, self.view_w_d, self.database, self.file_path)
 
     def proceed(self):
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
         # TODO: switch data storage to the controller
         self.store_data()
 
@@ -464,7 +465,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.graph_widget.removeItem(self.window_lines)
 
-            self.view_w_d = self.nutrient_processing_controller.re_process()
+            QApplication.restoreOverrideCursor()
+            self.nutrient_processing_controller.re_process()
 
         except IndexError:
             print('Processing completed')
