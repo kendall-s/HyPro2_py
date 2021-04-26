@@ -11,6 +11,7 @@ class Datatable(QTableWidget):
 
         self.installEventFilter(self)
 
+        # Set the row and column count
         self.setRowCount(self.row_count())
         self.setColumnCount(self.column_count())
 
@@ -19,6 +20,19 @@ class Datatable(QTableWidget):
 
 
     def add_data(self, data):
+        # Add the data into the table
+        for row, x in enumerate(data):
+            for col, item in enumerate(x):
+                try:
+                    # Pretty rough way of rounding the values, should implement something slightly better
+                    self.setItem(row, col, QTableWidgetItem(str(round(item, 3))))
+                except TypeError:
+                    self.setItem(row, col, QTableWidgetItem(str(item)))
+
+    def update_data(self, data):
+        self.setRowCount(len(data))
+        self.setColumnCount(len(data[0]))
+
         # Add the data into the table
         for row, x in enumerate(data):
             for col, item in enumerate(x):

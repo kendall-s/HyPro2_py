@@ -76,6 +76,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.ui_initialised = False
         self.plot_title_appender = ''
 
+        self.actions_list = []
+
         # General HyPro settings, use for setting theme of window
         with open('C:/HyPro/hyprosettings.json', 'r') as temp:
             params = json.loads(temp.read())

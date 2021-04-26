@@ -101,6 +101,7 @@ class processNutrientsController(QObject):
     def set_window_start(self, new_window_start):
         self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart'] \
             = new_window_start
+
     def get_window_start(self):
         return self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['windowStart']
 

@@ -160,8 +160,13 @@ class deleteDialog(hyproDialogTemplate):
                     if self.delete_files_checkbox.isChecked():
                         print('Deleting data files as well')
                         file = self.currpath + '/' + 'Sampling' + '/' + selectedfile
-                        os.remove(file)
-                        logging.info('Sample logsheet data - ' + str(selectedfile) + ' deleted, the file was also deleted')
+                        try:
+                            os.remove(file)
+                            logging.info(
+                                'Sample logsheet data - ' + str(selectedfile) + ' deleted, the file was also deleted')
+
+                        except FileNotFoundError:
+                            pass
                     else:
                         logging.info('Sample logsheet data - ' + str(selectedfile) + ' deleted')
 

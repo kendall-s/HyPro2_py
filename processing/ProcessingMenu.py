@@ -13,6 +13,7 @@ from dialogs.AnalysisDialog import analysisSettings
 from dialogs.SurveyDialog import surveyDialog
 from dialogs.RMNSDialog import rmnsDialog
 from dialogs.ParametersDialog import parametersDialog
+from dialogs.SamplingLogsheet import samplingLogsheet
 from processing.LoggerOutput import QTextEditLogger
 from processing.QCStats import statsDialog
 import processing.readdata.InitialiseTables as inittabs
@@ -108,6 +109,19 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         exportUnderwayNutrients = QAction('Export Underway Nutrients', self)
         exportUnderwayNutrients.triggered.connect(self.exportuwynuts)
         export_menu.addAction(exportUnderwayNutrients)
+
+        file_menu.addSeparator()
+
+
+        enter_sampling_logsheet = QAction('Enter Sampling Logsheet', self)
+        enter_sampling_logsheet.triggered.connect(self.enter_sampling_log)
+        file_menu.addAction(enter_sampling_logsheet)
+
+        cross_check_samples = QAction('Cross Check Logsheet', self)
+        cross_check_samples.triggered.connect(self.cross_check_logsheet)
+        file_menu.addAction(cross_check_samples)
+
+        file_menu.addSeparator()
 
         delete_files = QAction(QIcon(':/assets/trash2.svg'), 'Delete Files', self)
         delete_files.triggered.connect(self.delete_files_window)
@@ -490,6 +504,13 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.prodplots = producePlotsDialog()
         self.prodplots.show()
 
+    def cross_check_logsheet(self):
+        #TODO: add a logsheet cross check to make sure all samples are account for if they are entered!
+        pass
+
+    def enter_sampling_log(self):
+        self.sampling_logsheet = samplingLogsheet(self.db, self.currpath, self.currproject)
+
     def delete_files_window(self):
         self.deletefilesdialog = deleteDialog(self.currpath, self.currproject, self.db)
         self.deletefilesdialog.show()
@@ -509,7 +530,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.output_box.clear()
 
     def export_data_window(self):
-        self.exporter = exportDeployments(self.db)
+        self.exporter = exportDeployments(self.db, self.currproject)
         self.exporter.show()
 
     def exportuwynuts(self):

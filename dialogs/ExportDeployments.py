@@ -12,10 +12,11 @@ from dialogs.templates.DialogTemplate import hyproDialogTemplate
 # # TODO: implement proper data exporting functionality after everything is setup that way it will be
 
 class exportDeployments(hyproDialogTemplate):
-    def __init__(self, database):
+    def __init__(self, database, curr_project):
         super().__init__(224, 500, 'HyPro - Export')
 
         self.db = database
+        self.current_project = curr_project
 
         self.init_ui()
 
@@ -85,7 +86,7 @@ class exportDeployments(hyproDialogTemplate):
                 rows = list(self.c.fetchall())
                 self.deployment = [x[0] for x in rows]
 
-                self.c.execute('SELECT bottleposition from ctdData where deployment in (%s)' % queryplace, deployments)
+                self.c.execute('SELECT rosettePosition from ctdData where deployment in (%s)' % queryplace, deployments)
                 rows = list(self.c.fetchall())
                 self.rp = [x[0] for x in rows]
 
@@ -119,18 +120,18 @@ class exportDeployments(hyproDialogTemplate):
                 rows = list(self.c.fetchall())
                 self.saltrp = [x[0] for x in rows]
 
-                self.c.execute('SELECT oxygenMoles from oxygenData where stationNumber in (%s)' % queryplace,
+                self.c.execute('SELECT oxygenMoles from oxygenData where deployment in (%s)' % queryplace,
                                deployments)
                 rows = list(self.c.fetchall())
                 self.oxygen = [x[0] for x in rows]
-                self.c.execute('SELECT flag from oxygenData where stationNumber in (%s)' % queryplace, deployments)
+                self.c.execute('SELECT flag from oxygenData where deployment in (%s)' % queryplace, deployments)
                 rows = list(self.c.fetchall())
                 self.oxygenflags = [x[0] for x in rows]
-                self.c.execute('SELECT stationNumber from oxygenData where stationNumber in (%s)' % queryplace,
+                self.c.execute('SELECT stationNumber from oxygenData where deployment in (%s)' % queryplace,
                                deployments)
                 rows = list(self.c.fetchall())
                 self.oxygendeps = [x[0] for x in rows]
-                self.c.execute('SELECT rosettePosition from oxygenData where stationNumber in (%s)' % queryplace,
+                self.c.execute('SELECT rosettePosition from oxygenData where deployment in (%s)' % queryplace,
                                deployments)
                 rows = list(self.c.fetchall())
                 self.oxygenrp = [x[0] for x in rows]
@@ -159,7 +160,7 @@ class exportDeployments(hyproDialogTemplate):
             filepath = filedialog[0] + filedialog[1]
             filebuffer = open(filepath, 'w', newline='')
             writer = csv.writer(filebuffer, delimiter=',')
-            writer.writerow(['Deployment', 'RP', 'Time (UTC)', 'Latitiude', 'Longitude', 'Pressure', 'Temperature',
+            writer.writerow(['Voyage', 'Deployment', 'RP', 'Time (UTC)', 'Latitiude', 'Longitude', 'Pressure', 'Temperature',
                              'Salinity (PSU)', 'Salinity Flag', 'Oxygen (uM)', 'Oxygen Flag'])
 
             for i, dep in enumerate(self.deployment):
@@ -177,8 +178,8 @@ class exportDeployments(hyproDialogTemplate):
                         saltflag = self.saltflags[y]
 
                 writer.writerow(
-                    [dep, self.rp[i], self.time[i], self.lat[i], self.lon[i], self.pressure[i], self.temp[i], salt,
-                     saltflag, oxy, oxyflag])
+                    [self.current_project, dep, self.rp[i], self.time[i], self.lat[i], self.lon[i],
+                     self.pressure[i], self.temp[i], salt, saltflag, oxy, oxyflag])
 
             filebuffer.close()
 

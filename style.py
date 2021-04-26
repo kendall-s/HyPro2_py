@@ -802,6 +802,7 @@ default_params = {
                 "calibration": "Linear",
                 "calerror": 0.2,
                 "sigdigits": 2,
+                "duplicateError": 0.2,
             },
             "phosphate": {
                 "peakPeriod": 80,
@@ -814,6 +815,7 @@ default_params = {
                 "calibration": "Linear",
                 "calerror": 0.02,
                 "sigdigits": 3,
+                "duplicateError": 0.02,
             },
             "nitrate": {
                 "peakPeriod": 80,
@@ -826,6 +828,7 @@ default_params = {
                 "calibration": "Linear",
                 "calerror": 0.02,
                 "sigdigits": 3,
+                "duplicateError": 0.6,
             },
             "nitrite": {
                 "peakPeriod": 80,
@@ -838,6 +841,7 @@ default_params = {
                 "calibration": "Linear",
                 "calerror": 0.02,
                 "sigdigits": 3,
+                "duplicateError": 0.02,
             },
             "ammonia": {
                 "peakPeriod": 80,
@@ -850,6 +854,7 @@ default_params = {
                 "calibration": "Linear",
                 "calerror": 0.02,
                 "sigdigits": 3,
+                "duplicateError": 0.02,
             }
         },
         "calibrants": {
@@ -951,5 +956,6 @@ default_params = {
                 "usesampleid": False
             }
         }
-    }
+    },
+    "rosettedefault": 24
 }

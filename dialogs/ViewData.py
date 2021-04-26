@@ -56,9 +56,11 @@ class viewData(hyproDialogTemplate):
 
         self.datatable = Datatable(self.data)
         self.datatable.setHorizontalHeaderLabels(HEADERS[self.analysis])
-        self.datatable.resizeColumnsToContents()
 
         self.grid_layout.addWidget(self.datatable, 0, 0)
+
+        self.datatable.resizeColumnsToContents()
+
 
     def get_data(self):
         conn = sqlite3.connect(self.db)
@@ -88,11 +90,13 @@ class viewData(hyproDialogTemplate):
 
         # CTD and logsheet grouped together because FILE always equals DEPLOYMENT
         elif self.analysis == 'CTD' or self.analysis == 'Logsheet':
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM ctdData WHERE deployment IN (%s)' % query_length_deployments
-            elif self.view == 'File':
-                q = 'SELECT * FROM ctdData WHERE deployment IN (%s)' % query_length_deployments
 
+            lower_case_analysis = self.analysis.lower()
+
+            if self.view == 'Deployment':
+                q = 'SELECT * FROM %sData WHERE deployment IN (%s)' % (lower_case_analysis, query_length_deployments)
+            elif self.view == 'File':
+                q = 'SELECT * FROM %sData WHERE deployment IN (%s)' % (lower_case_analysis, query_length_deployments)
 
         # Everything else includes the individual nutrients, salinity and DO
         else:

@@ -54,6 +54,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     cal_zero_label = processing_parameters['nutrientprocessing']['calibrants']['cal0']
     cal_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calibration']
     cal_error_limit = float(processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calerror'])
+    dupe_error_limit = float(processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['duplicateError'])
 
     mdl_cup = processing_parameters['nutrientprocessing']['qcsamplenames']['mdl']
     sample_cup_type = processing_parameters['nutrientprocessing']['cupnames']['sample']
@@ -71,8 +72,12 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     w_d.quality_flag = flag_null_samples(slk_data.cup_types, null_cup_type, w_d.quality_flag)
     w_d.quality_flag = flag_hashed_samples(slk_data.peak_starts[current_nutrient], w_d.quality_flag)
+
+    # Get channel specifiers finds Sample IDs where round brackets are used to specify a channel
+    w_d.specific_cup_types[current_nutrient] = get_channel_specifier(slk_data.sample_ids, slk_data.cup_types,
+                                                                     slk_data.chd_channel[current_nutrient], null_cup_type)
     w_d.dilution_factor = get_dilution_factor(slk_data.sample_ids, w_d.dilution_factor)
-    # w_d = matchup_peaks(slk_data, chd_data, processing_parameters, current_nutrient, w_d)
+
 
     # ----------- Check peaks for peak shape - apply quality control -------------------------------------------
     w_d.quality_flag = peak_shape_qc(w_d.window_values, w_d.quality_flag)
@@ -81,10 +86,10 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     w_d.raw_window_medians = window_medians(w_d.window_values)
 
     # ----------- Find the baseline peaks - apply baseline correction ------------------------------------------
-    w_d.baseline_indexes = find_cup_indexes(baseline_cup_type, slk_data.cup_types)
+    w_d.baseline_indexes = find_cup_indexes(baseline_cup_type, w_d.specific_cup_types[current_nutrient])
 
     if len(w_d.baseline_indexes) < 2:
-        logging.info(f'WARNING: No baseline peaks were found, baseline correction not applied for run {w_d.run}')
+        logging.info(f'WARNING: Not enough baseline peaks found, baseline correction not applied for run {w_d.run}')
         w_d.corr_window_medians = w_d.raw_window_medians
     else:
         w_d.baseline_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.baseline_indexes]
@@ -104,9 +109,9 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
         logging.info(f'WARNING: No carryover correction applied for run {w_d.run}')
 
     # ----------- Find drift peaks - apply drift correction -----------------------------------------------------
-    w_d.drift_indexes = find_cup_indexes(drift_cup_type, slk_data.cup_types)
+    w_d.drift_indexes = find_cup_indexes(drift_cup_type, w_d.specific_cup_types[current_nutrient])
     if len(w_d.drift_indexes) < 2:
-        logging.info(f'WARNING: No drift peaks were found, drift correction not applied for run {w_d.run}')
+        logging.info(f'WARNING: Not enough drift peaks found, drift correction not applied for run {w_d.run}')
     else:
         w_d.drift_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.drift_indexes]
         w_d.raw_drift_medians = [w_d.raw_window_medians[x] for x in w_d.drift_indexes]
@@ -117,7 +122,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
                                                    w_d.corr_window_medians)
 
     # ----------- Find calibrant peaks --------------------------------------------------------------------------
-    w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type, slk_data.cup_types)
+    w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type, w_d.specific_cup_types[current_nutrient])
     if len(w_d.calibrant_indexes) < 2:
         logging.error(f'ERROR: Not enough calibrants were found to create a curve in {w_d.run}. Processing Aborted!')
         return None
@@ -146,11 +151,11 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ----- Find duplicates and flag if outside analyte tolerance ------------------------------------------------
     duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
-    sample_duplicate_indexes = find_duplicate_samples(duplicate_indexes, slk_data.sample_ids, slk_data.cup_types,
-                                                      sample_cup_type, qc_cup_ids)
-    # TODO: add in separate duplicate error limit
+    sample_duplicate_indexes = find_duplicate_samples(duplicate_indexes, slk_data.sample_ids,
+                                                      w_d.specific_cup_types[current_nutrient], sample_cup_type,
+                                                      qc_cup_ids)
     w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes, w_d.calculated_concentrations,
-                                                 w_d.quality_flag, cal_error_limit)
+                                                 w_d.quality_flag, dupe_error_limit)
 
     # ------------- Pull out the data for the QC samples that were measured --------------------------------------
     w_d.qc_present = find_qc_present(qc_cups, slk_data.sample_ids)
@@ -164,7 +169,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ----------- Get NOx recovery peaks ---------------------------------------------------------------------------
     if w_d.analyte == 'nitrate':
-        w_d.recovery_indexes = find_cup_indexes(recovery_cup_type, slk_data.cup_types)
+        w_d.recovery_indexes = find_cup_indexes(recovery_cup_type, w_d.specific_cup_types[current_nutrient])
         w_d.recovery_ids = [slk_data.sample_ids[ind] for ind in w_d.recovery_indexes]
         w_d.recovery_medians = [w_d.corr_window_medians[ind] for ind in w_d.recovery_indexes]
         w_d.recovery_concentrations = [w_d.calculated_concentrations[ind] for ind in w_d.recovery_indexes]
@@ -227,6 +232,25 @@ def flag_null_samples(analysis_cups, null_cup, quality_flags):
     quality_flags = [quality_flags[i] if x != null_cup else 3 for i, x in enumerate(analysis_cups)]
 
     return quality_flags
+
+def get_channel_specifier(sample_ids, cup_types, current_channel, null_type):
+    """
+    Sometimes a sample should only be recognised on a specific channel, round brackets and a number for the
+    channel are used to specify this. If the channel is not in the brackets, we will turn that cup type to a NULL
+    """
+    for i, sample_id in enumerate(sample_ids):
+        if '(' in sample_id:
+            open_bracket_index = sample_id.find('(')
+            if ')' in sample_id:
+                closing_bracket_index = sample_id.find(')')
+
+                bracketed_substring = sample_id[open_bracket_index: closing_bracket_index]
+
+                if str(current_channel) not in bracketed_substring:
+                    cup_types[i] = null_type
+
+    return cup_types
+
 
 def get_dilution_factor(sample_ids, dilution_factors):
 
