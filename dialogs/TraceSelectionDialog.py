@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox)
 from PyQt5.QtCore import *
+from PyQt5.QtGui import QIntValidator
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
 # Small GUI dialog that provides information and functionality when a peak is clicked on the trace of
@@ -74,6 +75,8 @@ class traceSelection(hyproDialogTemplate):
 
         self.dilutionline = QLineEdit(self)
         self.dilutionline.setText(str(self.dil))
+        self.onlyInt = QIntValidator()
+        self.dilutionline.setValidator(self.onlyInt)
 
         self.shiftpeakright = QPushButton('Shift Right', self)
         self.shiftpeakright.clicked.connect(self.peak_shift_right)
@@ -134,10 +137,10 @@ class traceSelection(hyproDialogTemplate):
 
     def save(self):
         cup = self.peakcupline.text()
-        dilution = self.dilutionline.text()
+        dilution = float(self.dilutionline.text())
         q_flag = self.flagbox.currentText()
-
-        if cup != self.cuptype or dilution != self.dil or q_flag != self.flag_converter[self.flag]:
+        print(q_flag)
+        if (cup != self.cuptype) or (dilution != self.dil) or (q_flag != self.flag_converter[self.flag]):
             # Peak index is the peak number minus one, doing it here for ease of signal
             updates = {'cup_type': cup, 'dilution_factor': dilution, 'quality_flag': q_flag,
                        'peak_index': self.peaknum-1}

@@ -25,10 +25,10 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='HyPro v0.12',
+          name='HyPro v0.20',
           debug=False,
           strip=False,
           upx=False,
           runtime_tmpdir=None,
           console=True, icon='assets/2dropsshadow.ico',
-		  version = 'C:\\Users\\she384\\Documents\\HyPro2\\hypro_version.rc')
+		  version = 'C:\\Users\\she384\\OneDrive - CSIRO\\Documents\\HyPro2\\hypro_version.rc')

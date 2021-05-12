@@ -522,7 +522,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
                 self.peak_display.setStart.connect(lambda: self.move_peak_start(x_point, peak_index))
                 self.peak_display.setEnd.connect(lambda: self.move_peak_end(x_point, peak_index))
-                self.peak_display.saveSig.connect(lambda: self.update_from_dialog)
+                self.peak_display.saveSig.connect(self.update_from_dialog)
                 self.peak_display.peakShiftLeft.connect(lambda: self.shift_trace(x_point, 'left'))
                 self.peak_display.peakShiftRight.connect(lambda: self.shift_trace(x_point, 'right'))
 
@@ -616,7 +616,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         window_start = int(self.nutrient_processing_controller.get_window_start())
         window_size = int(self.nutrient_processing_controller.get_window_size())
 
-        print(f'Key ID pressed: {event.key()}')
+        #print(f'Key ID pressed: {event.key()}')
         if k_id == Qt.Key_A: # Assign A to move left
             self.move_camera_left()
         elif k_id == Qt.Key_D: # Assign D to move right
@@ -780,6 +780,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def update_from_dialog(self, updates):
         updated_peak_index = updates['peak_index']
+        print(updated_peak_index)
         self.nutrient_processing_controller.set_one_cup_type(updated_peak_index, updates['cup_type'])
         self.nutrient_processing_controller.set_one_dilution_factor(updated_peak_index, updates['dilution_factor'])
 

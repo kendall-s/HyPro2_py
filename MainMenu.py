@@ -29,7 +29,7 @@ import hyproicons, style
 class Mainmenu(hyproMainWindowTemplate):
 
     def __init__(self):
-        super().__init__(900, 430, 'HyPro - Main Menu')
+        super().__init__(890, 420, 'HyPro - Main Menu')
 
         self.grid_layout.setContentsMargins(0, 0, 5, 0)
 

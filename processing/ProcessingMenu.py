@@ -14,6 +14,7 @@ from dialogs.SurveyDialog import surveyDialog
 from dialogs.RMNSDialog import rmnsDialog
 from dialogs.ParametersDialog import parametersDialog
 from dialogs.SamplingLogsheet import samplingLogsheet
+from processing.util.OxygenBoxFileGenerator import generateBoxFile
 from processing.LoggerOutput import QTextEditLogger
 from processing.QCStats import statsDialog
 import processing.readdata.InitialiseTables as inittabs
@@ -116,6 +117,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         enter_sampling_logsheet = QAction('Enter Sampling Logsheet', self)
         enter_sampling_logsheet.triggered.connect(self.enter_sampling_log)
         file_menu.addAction(enter_sampling_logsheet)
+
+        generate_box_file = QAction('Generate Box Files', self)
+        generate_box_file.triggered.connect(self.generate_box_file)
+        file_menu.addAction(generate_box_file)
 
         cross_check_samples = QAction('Cross Check Logsheet', self)
         cross_check_samples.triggered.connect(self.cross_check_logsheet)
@@ -510,6 +515,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
     def enter_sampling_log(self):
         self.sampling_logsheet = samplingLogsheet(self.db, self.currpath, self.currproject)
+
+    def generate_box_file(self):
+        self.gen_box_file = generateBoxFile(self.db, self.currpath, self.currproject)
+        self.gen_box_file.show()
 
     def delete_files_window(self):
         self.deletefilesdialog = deleteDialog(self.currpath, self.currproject, self.db)

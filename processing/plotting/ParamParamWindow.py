@@ -102,6 +102,7 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
 
         self.canvas.mpl_connect('pick_event', self.on_pick)
 
+
     def populate_deployment_list(self):
         try:
             self.run_list.clear()
@@ -119,14 +120,20 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
             print(traceback.print_exc())
 
     def draw_data(self):
+        """
+        Look kind of long and needs refactoring but gist here is that we grab the input the comboboxes
+        parse those, create a SQL query based on the selections the draw those to the plot axes
+        """
+
         try:
+            # Delete any lines that already exist
             del self.main_plot.lines[:]
             del self.secondary_plot.lines[:]
 
+            # Get the inputs
             y_axis_selection = self.y_axis_combo.currentText()
             x_axis_selection = self.x_axis_1_combo.currentText()
             x_axis_two_selection = self.x_axis_2_combo.currentText()
-
             selected = self.run_list.selectedItems()
             selected_runs = [item.text() for item in selected]
 
@@ -134,6 +141,7 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
             conn = sqlite3.connect(self.database)
             c = conn.cursor()
 
+            # Conver the inputs to to the fields needed for the DB queries
             y_axis_db = COMBO_BOX_CONVERTER[y_axis_selection]['db']
             y_axis_col = COMBO_BOX_CONVERTER[y_axis_selection]['col']
             y_axis_name = COMBO_BOX_CONVERTER[y_axis_selection]['plot_name']
@@ -145,6 +153,8 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
             x_two_param = ''
             x_two_join = ''
 
+            # If a selection is made for the secondary X axis, then we create part of a SQL query which
+            # will be added to the full query later on
             if x_axis_two_selection != 'N/A':
                 x_axis_db_2 = COMBO_BOX_CONVERTER[x_axis_two_selection]['db']
                 x_axis_col_2 = COMBO_BOX_CONVERTER[x_axis_two_selection]['col']
@@ -195,6 +205,7 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
             data = list(c.fetchall())
             c.close()
 
+            # Pull out our data and structure it for plotting
             deployment = [x[0] for x in data if x[2] != None]
             y = [x[1] for x in data if x[2] != None]
             x = [x[2] for x in data if x[2] != None]
@@ -217,7 +228,6 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
                     self.secondary_plot.plot(subset['x'], subset['y'],
                                     lw=0.5, marker='s', mfc='None', ms=10, ls='-.', label=f'X2 Dep #{dep}')
 
-
             if len(set(deployment)) > 1 or x_axis_two_selection !='N/A':
                 self.main_plot.legend()
 
@@ -225,7 +235,12 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
                 self.main_plot.invert_yaxis()
                 self.already_inverted = True
 
+            if not self.invert_y_axis_check.isChecked():
+                if self.already_inverted == True:
+                    self.main_plot.invert_yaxis()
+                    self.already_inverted = False
 
+            self.main_plot.relim()
             self.canvas.draw()
             self.main_plot.set_prop_cycle(None)
 
