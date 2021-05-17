@@ -254,6 +254,7 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
         axes1.set_ylim(min(medians) * 0.975, max(medians) * 1.025)
 
     axes2.plot(indexes, correction, lw=1.25, marker='s', ms=8, mfc='none', color='#6986e5')
+    axes2.relim()
     fig.set_tight_layout(tight=True)
 
 def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_flags=None, show_bad=None,

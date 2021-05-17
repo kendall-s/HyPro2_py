@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QCheckBox, QFrame, QV
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt, QSize, pyqtSignal, QObject, QThread
+import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pylab import *
 import processing.plotting.QCPlots as qcp
@@ -23,7 +24,7 @@ from processing.procdata.ProcessNutrientsController import processNutrientsContr
 import cProfile
 #background-color: #ededed;
 
-
+mpl.use('Agg')
 
 
 # TODO: Finish new implementation of cleaned up testable Nutrients
@@ -176,6 +177,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.plot_standard_data()
         self.plot_custom_data()
         print('QCTabs: ' + str(time.time() - st))
+
+        # The show call is here as the very last thing - so we do not blind the user with a white screen
+        self.show()
 
     def init_ui(self):
         """
@@ -379,7 +383,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.bootup = True
             self.ui_initialised = True
 
-            self.show()
+
 
         except Exception:
             print(traceback.print_exc())
@@ -560,8 +564,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             # If point is actually less than the value given of the peak starts...
             if x_axis_time < picked_peak_start:
                 time_offset = picked_peak_start - x_axis_time
-                adjusted_peak_starts = [p_s - time_offset for p_s in self.view_slk_data.peak_starts]
-                self.nutrient_processing_controller.set_peak_starts(adjusted_peak_starts)
+                adjusted_peak_starts = [p_s - time_offset for p_s in self.view_slk_data.clean_peak_starts[self.current_nutrient]]
+                self.nutrient_processing_controller.set_clean_peak_starts(adjusted_peak_starts)
 
             self.nutrient_processing_controller.re_process()
 
@@ -714,6 +718,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         result = HyproComplexities.move_camera_calc(self.graph_widget, right=True, ad_max=ad_max)
         if result:
             new_x_min, new_x_max = result
+            print(new_x_min)
+            print(new_x_max)
+
             self.graph_widget.setXRange(new_x_min, new_x_max)
 
             if self.auto_size.isChecked():
@@ -933,6 +940,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
     def closeEvent(self, event):
         plt.close('all')
+        self.thread.exit()
         del self.plotted_data
         del self.graph_widget
 

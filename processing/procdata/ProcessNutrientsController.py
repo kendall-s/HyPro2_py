@@ -53,7 +53,10 @@ class processNutrientsController(QObject):
         self.current_nutrient = curr_nut
 
     def set_peak_starts(self, new_peak_starts):
-        self.slk_data.peak_starts = new_peak_starts
+        self.slk_data.peak_starts[self.current_nutrient] = new_peak_starts
+
+    def set_clean_peak_starts(self, new_peak_starts):
+        self.slk_data.clean_peak_starts[self.current_nutrient] = new_peak_starts
 
     def set_quality_flags(self, new_flags):
         self.w_d.quality_flag = new_flags

@@ -108,6 +108,9 @@ class QMainPlotterTemplate(QMainWindow):
 
         self.centralWidget().setLayout(self.grid_layout)
 
+    def closeEvent(self, event):
+        plt.close('all')
+
     def export_plot(self):
         filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.png')
         if filedialog[0]:

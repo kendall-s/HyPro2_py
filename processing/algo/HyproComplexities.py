@@ -220,16 +220,17 @@ def zoom(axes, ad_max=None, ad_min=None, out=None):
 
 def move_camera_calc(axes, right=None, ad_max=None):
 
-    #x_min, x_max = axes.get_xbound()
     trace_state = axes.getViewBox().state
     x_min = trace_state['viewRange'][0][0]
     x_max = trace_state['viewRange'][0][1]
 
+    x_difference = x_max - x_min
+
     movement_amount = (x_max - x_min) * 0.065
     if right:
         if x_max < ad_max + 100:
-            new_x_min = x_min + movement_amount
             new_x_max = x_max + movement_amount
+            new_x_min = new_x_max - x_difference
             return new_x_min, new_x_max
     if x_min > 0 - 200:
         new_x_min = x_min - movement_amount
