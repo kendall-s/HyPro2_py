@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QApplication, QTabWi
                              QFileDialog)
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QImage
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from processing.algo.HyproComplexities import find_closest, update_annotation, check_hover
@@ -10,6 +11,9 @@ import json
 import time
 import io
 import hyproicons, style
+
+# Set the matplotlib backend to be more stable with PyQt integration
+mpl.use('Agg')
 
 flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad', 6: 'Cal Bad',
                     91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}

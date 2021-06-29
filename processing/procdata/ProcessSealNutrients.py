@@ -725,12 +725,14 @@ def determine_duplicate_error(duplicate_samples, calculated_concentrations, qual
     """
     for sample_indexes in duplicate_samples:
         tested_concentrations = [calculated_concentrations[i] for i in sample_indexes[1]]
+        mean_tested_concs = statistics.mean(tested_concentrations)
         for i, conc in enumerate(tested_concentrations):
-            if i > 0:
-                difference = conc - tested_concentrations[i - 1]
-                if difference > analyte_tolerance:
-                    for ind in sample_indexes[1]:
-                        quality_flags[ind] = 8
+            difference = abs(conc - mean_tested_concs)
+            if difference > analyte_tolerance:
+                for ind in sample_indexes[1]:
+                    quality_flags[ind] = 8
+                # Break because there was a duplicate outside the tolerance
+                break
 
     return quality_flags
 
@@ -738,7 +740,7 @@ def determine_duplicate_error(duplicate_samples, calculated_concentrations, qual
 def reset_calibrant_flags(quality_flags):
     """
     Reset the calibrant flags on an interactive processing update, essentially removes the flags put in place from the
-    calibration reoutine
+    calibration routine
     :param quality_flags:
     :return:
     """

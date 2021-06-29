@@ -577,6 +577,7 @@ class Mainmenu(hyproMainWindowTemplate):
                     params = json.loads(file.read())
 
                 path = params['projects'][self.project]['path']
+
                 self.proccing = Processingmenu(self.project, path)
                 self.proccing.show()
                 sleep(0.3)
@@ -586,7 +587,7 @@ class Mainmenu(hyproMainWindowTemplate):
                 #self.proccing.backToMain.connect(self.proccing.output_box.close)
                 self.proccing.backToMain.connect(lambda: self.proccing.output_box.widget.close())
                 self.proccing.backToMain.connect(lambda: logging.shutdown())
-                self.proccing.backToMain.connect(self.proccing.hide)
+                self.proccing.backToMain.connect(lambda: self.proccing.hide())
 
         except Exception as e:
             print(e)

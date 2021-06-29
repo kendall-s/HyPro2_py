@@ -2,6 +2,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from pylab import get_current_fig_manager
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QVBoxLayout, QFileDialog, QApplication,
                              QGridLayout, QLabel, QListWidget, QCheckBox, QPushButton, QAbstractItemView, QFrame)
 from PyQt5.QtGui import QFont, QIcon, QImage
@@ -10,6 +11,9 @@ import io, json, sqlite3
 import hyproicons, style
 from dialogs.TraceSelectionDialog import traceSelection
 from dialogs.BottleSelectionDialog import bottleSelection
+
+# Set the matplotlib backend to be more stable with PyQt integration
+mpl.use('Agg')
 
 class QMainPlotterTemplate(QMainWindow):
 

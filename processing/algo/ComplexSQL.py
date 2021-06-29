@@ -1,11 +1,8 @@
 """
-
-Yeah, yeah, yeah, I know. This is ugly and most likely a product of my piss poor database design, but with close
+Yeah, yeah, yeah, I know. This is ugly and most likely a product of my poor database design, but with close
 to 10k samples to join together, these queries make sure it happens in a fraction of a second. Which is good enough
 for me.
-
 """
-
 
 export_ctd_data = \
 f"""

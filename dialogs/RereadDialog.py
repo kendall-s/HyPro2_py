@@ -13,13 +13,16 @@ from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 # GUI interface for reprocessing any files, the files need to already be processed and ingested through the refresh
 # function
 class rereadDialog(hyproDialogTemplate):
-    def __init__(self, path, project, database, interactive):
+    def __init__(self, path, project, database, interactive, perf_mode, ultra_perf_mode):
         super().__init__(220, 480, 'HyPro - Reread Data')
 
         self.currpath = path
         self.currproject = project
         self.db = database
         self.interactive = interactive
+
+        self.performance_mode = perf_mode
+        self.ultra_performance_mode = ultra_perf_mode
 
         self.init_ui()
 
@@ -109,8 +112,9 @@ class rereadDialog(hyproDialogTemplate):
 
             if file_type == 'Nutrients':
                 self.initnutrientdata = processingNutrientsWindow(selected_file, self.db, self.currpath,
-                                                                  self.currproject, self.interactive, True)
-
+                                                                  self.currproject, self.interactive, rereading=True,
+                                                                  perf_mode=self.performance_mode,
+                                                                  ultra_perf_mode=self.ultra_performance_mode)
             if file_type == 'Salinity':
                 self.initsaltdata = processingSalinityWindow(selected_file, self.db, self.currpath, self.currproject,
                                                              self.interactive, True)

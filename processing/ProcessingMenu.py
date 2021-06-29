@@ -20,7 +20,7 @@ from processing.QCStats import statsDialog
 import processing.readdata.InitialiseTables as inittabs
 from processing.algo.HyproComplexities import load_proc_settings, save_proc_settings
 
-from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow, ParamParamWindow
+from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow, ParamParamWindow, DuplicatesWindow
 import sqlite3
 from netCDF4 import Dataset
 import numpy as np
@@ -355,7 +355,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
     def reread(self):
         self.rereadDialog = rereadDialog(self.currpath, self.currproject, self.db,
-                                         self.interactive_processing.checkState())
+                                         self.interactive_processing.checkState(),
+                                         self.performance_mode, self.ultra_performance_mode)
         self.rereadDialog.show()
 
     def view_data_window(self):
@@ -466,9 +467,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             os.startfile(self.currpath)
 
     def backtomenufunction(self):
-        #logging.getLogger().removeHandler(self.output_box)
-        #self.backToMain.emit()
-        pass
+        logging.getLogger().removeHandler(self.output_box)
+        self.backToMain.emit()
+        #self.close()
+        #pass
 
     def rmnsplots(self):
         self.rmns_window = RMNSWindow.rmnsPlotWindowTemplate(self.db, self.params_path)
@@ -482,7 +484,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.redfield_window = RedfieldWindow.redfieldPlot(self.db)
 
     def duplicate(self):
-        pass
+        self.duplcate_window = DuplicatesWindow.duplicatesPlot(self.db, self.processing_parameters)
 
     def analysis_trace(self):
         pass
