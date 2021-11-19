@@ -20,8 +20,9 @@ class duplicatesPlot(QMainPlotterTemplate):
         self.runs_max_peak = {}
         self.cutoff = 0
 
-        self.peak_numbers = []
-        self.run_numbers = []
+        self.runs =[]
+        self.peak_nums = []
+
         self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
                               'Ammonia': 'ammonia'}
 
@@ -54,7 +55,7 @@ class duplicatesPlot(QMainPlotterTemplate):
         nutrient = self.nutrient.currentText()
         nutq = self.nut_converter[nutrient]
 
-        self.cutoff = self.processing_parameters['nutrientprocessing']['processingpars'][nutq]['duplicateError']
+        self.cutoff = self.processing_parameters['nutrient_processing']['processing_pars'][nutq]['duplicate_error']
 
         conn = sqlite3.connect(self.database)
         c = conn.cursor()
@@ -96,8 +97,6 @@ class duplicatesPlot(QMainPlotterTemplate):
             # Get the matching duplicates and determine the difference between them
             set_sample_ids = set([x[2] for x in selected_retrieved_data])
 
-            print(selected_retrieved_data)
-
             # Get the difference to the sample mean for the sample
             y_plot = []
             x_plot = []
@@ -108,13 +107,20 @@ class duplicatesPlot(QMainPlotterTemplate):
                 differences = [abs(x[6]-mean_concentration) for x in replicates]
                 peak_run_x_axes = [x[0]+ (self.runs_max_peak[x[0]] / x[3]) for x in replicates]
 
+                runs = [x[0] for x in replicates]
+                peak_nums = [x[3] for x in replicates]
+
                 # Put the differences into a 1D list for plotting
                 for i, samp_diff in enumerate(differences):
                     y_plot.append(samp_diff)
                     x_plot.append(peak_run_x_axes[i])
 
+                    self.runs.append(runs[i])
+                    self.peak_nums.append(peak_nums[i])
 
-            self.main_plot.plot(x_plot, y_plot, lw=0, marker='o', ms=16, picker=5, mec="#3C3F41", mfc='None')
+
+            self.main_plot.plot(x_plot, y_plot, lw=0, marker='o', ms=11, picker=5, mec="#3C3F41", mfc='None')
+            self.main_plot.plot(x_plot, y_plot, lw=0, marker='.', ms=4, mec="#3C3F41", mfc='None')
 
             self.main_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
 
@@ -127,5 +133,6 @@ class duplicatesPlot(QMainPlotterTemplate):
             self.canvas.draw()
 
     def on_pick(self, event):
-        #self.base_on_pick(event, self.runs, self.peak_nums, 'nitrate')
-        pass
+        nutrient = self.nutrient.currentText()
+        nutq = self.nut_converter[nutrient]
+        self.base_on_pick(event, self.runs, self.peak_nums, nutq)

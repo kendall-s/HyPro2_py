@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QMessageBox, QListWidget)
 import sqlite3, re
+import logging
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
 from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
@@ -105,6 +106,7 @@ class rereadDialog(hyproDialogTemplate):
 
         if self.item_selected_check == 1:
             selected_file = str(self.datafiles.currentItem().text())
+            logging.info(f'Rereading file {selected_file}')
 
             if file_type == 'CTD':
                 self.initctd = InitialiseCTDData.initCTDdata(selected_file, self.db, self.currpath, self.currproject,

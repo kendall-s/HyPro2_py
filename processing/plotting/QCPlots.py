@@ -466,17 +466,20 @@ def sensor_profile_plot(fig, axes, pressure, bottle, flags, flag_ref_inds=None, 
             bottle_oxy_dep_subset = [bottle[x] for x in plotting_indexes]
             pressure_dep_subset = [pressure[x] for x in plotting_indexes]
 
-            axes.plot(bottle_oxy_dep_subset, pressure_dep_subset, marker='o', lw=1, mfc='None', markersize=0,
+            temp = axes.plot(bottle_oxy_dep_subset, pressure_dep_subset, marker='o', lw=1.2, mfc='None', markersize=0,
                       label=f'Deployment {dep}')
+
+            # Get the plotted bottle profile color, so that the CTD profile matches
+            current_axes_color = temp[0].get_color()
 
             if primary:
                 primary_dep_subset = [primary[x] for x in plotting_indexes]
-                axes.plot(primary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='-.', color='#2b9997',
+                axes.plot(primary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='-.', color=current_axes_color,
                           alpha=0.8, label=f'Primary Sens: Dep {dep}')
 
             if secondary:
                 secondary_dep_subset = [secondary[x] for x in plotting_indexes]
-                axes.plot(secondary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='--', color='#2b9997',
+                axes.plot(secondary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='--', color=current_axes_color,
                           alpha=0.8, label=f'Secondary Sens: Dep {dep}')
 
     else:

@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QApplication, QTabWidget, QVBoxLayout, QPushButton,
-                             QFileDialog)
+                             QFileDialog, QSizePolicy)
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QImage
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from processing.algo.HyproComplexities import find_closest, update_annotation, check_hover
 from dialogs.BottleSelectionDialog import bottleSelection
 import json
@@ -190,6 +191,8 @@ class hyproProcPlotWindow(QMainWindow):
         self.both_sensor_figure = plt.figure()
         self.both_sensor_figure.set_tight_layout(tight=True)
         self.both_sensor_canvas = FigureCanvas(self.both_sensor_figure)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         self.both_sensor_canvas.setParent(self)
 
         self.both_sensor_tab.layout.addWidget(self.both_sensor_canvas)
@@ -224,7 +227,10 @@ class hyproProcPlotWindow(QMainWindow):
         self.profile_canvas.mpl_connect('pick_event', self.on_pick)
         self.profile_canvas.mpl_connect('motion_notify_event', self.on_hover)
 
+        self.profile_toolbar = NavigationToolbar(self.profile_canvas, self)
+
         self.profile_tab.layout.addWidget(self.profile_canvas)
+        self.profile_tab.layout.addWidget(self.profile_toolbar)
         self.profile_tab.setLayout(self.profile_tab.layout)
 
         self.profile_plot = self.profile_figure.add_subplot(111)
@@ -249,6 +255,7 @@ class hyproProcPlotWindow(QMainWindow):
 
     def proceed_proc(self):
         time.sleep(0.2)
+        plt.close('all')
         self.close()
 
     def export_sensor_one_plot(self):
@@ -288,7 +295,7 @@ class hyproProcPlotWindow(QMainWindow):
             concentration = round(self.full_data.oxygen_mols[self.referenced_index], 3)
             analyte = 'oxygen'
         elif self.type == 'Salinity':
-            concentration = self.full_data.salinity[self.referenced_index]
+            concentration = round(self.full_data.salinity[self.referenced_index], 4)
             analyte = 'salinity'
 
         self.picked_bottle_dialog = bottleSelection(self.full_data.file, self.full_data.deployment[self.referenced_index],

@@ -113,7 +113,6 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         file_menu.addSeparator()
 
-
         enter_sampling_logsheet = QAction('Enter Sampling Logsheet', self)
         enter_sampling_logsheet.triggered.connect(self.enter_sampling_log)
         file_menu.addAction(enter_sampling_logsheet)
@@ -269,6 +268,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         logged_path = self.currpath + '/' +self.currproject + '.txt'
         self.output_box = QTextEditLogger(self, logged_path)
+        self.output_box.append_text.connect(self.output_box.widget.appendPlainText)
+        self.output_box.start_up()
+
         logging.getLogger().addHandler(self.output_box)
         logging.getLogger().setLevel(logging.INFO)
 
@@ -340,10 +342,10 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         """
 
-        analyses = self.processing_parameters['analysisparams'].keys()
+        analyses = self.processing_parameters.get('analysis_params', [])
         any_activated = False
         for x in analyses:
-            if self.processing_parameters['analysisparams'][x]['activated']:
+            if self.processing_parameters['analysis_params'][x]['activated']:
                 any_activated = True
 
         if not any_activated:
@@ -388,7 +390,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             # Check if there are any files of that given type
             if len(files[file_type]) > 0:
                 for file_name in files[file_type]:
+                    logging.info(f'Processing {file_type} file: {file_name}')
                     self.process_file(file_name, file_type)
+
                     # Break because we have found a file to process, as files are processing they will be removed
                     # from the list of files to process and this function will get called each time
                     break
@@ -424,6 +428,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.init_nutrient_data.processing_completed.connect(lambda: self.files_to_process['Nutrients'].remove(file))
         self.init_nutrient_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
 
+        self.init_nutrient_data.logging_signal.connect(self.processing_thread_logger_interface)
+
     def run_oxygen_process(self, file):
         self.init_oxy_data = processingOxygenWindow(file, self.db, self.currpath,
                                                   self.currproject,
@@ -442,6 +448,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.init_salt_data.processing_completed.connect(lambda: self.files_to_process['Salinity'].remove(file))
         self.init_salt_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
 
+        self.init_salt_data.process_routine()
+
+
     def run_ctd_process(self, file):
         self.init_ctd_data = InitialiseCTDData.initCTDdata(file,
                                                          self.db,
@@ -451,6 +460,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
                                                          False)
         self.init_ctd_data.processing_completed.connect(lambda: self.files_to_process['CTD'].remove(file))
         self.init_ctd_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
+
+        self.init_ctd_data.loadfilein()
 
     def run_sampling_process(self, file):
         self.init_sample_data = InitialiseSampleSheet.initSampleSheet(file,
@@ -636,7 +647,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             params = json.loads(file.read())
 
         for i in analyses:
-            if params['analysisparams'][i]['activated'] == True:
+            if params['analysis_params'][i]['activated'] == True:
                 if i == 'guildline':
                     self.add_guildline_salinity.setIcon(QIcon(':/assets/roundchecked.svg'))
                 elif i == 'scripps':
@@ -672,7 +683,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
 
-        surveys = list(params['surveyparams'].keys())
+        surveys = list(params['survey_params'].keys())
 
         for k in surveys:
             survey = QAction(k, self)
@@ -701,20 +712,20 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             pass
         else:
             default_params = style.default_params
-            default_params['surveyparams'][f'{self.currproject}'] = default_params['surveyparams'].pop('default')
+            default_params['survey_params'][f'{self.currproject}'] = default_params['survey_params'].pop('default')
 
             with open('C:/HyPro/hyprosettings.json', 'r') as f:
                 hyproprojs = json.load(f)
             if hyproprojs['projects'][self.currproject]['type'] == 'Shore':
-                default_params['surveyparams'][self.currproject]['guildline']['ctdsurvey'] = False
-                default_params['surveyparams'][self.currproject]['guildline']['decodedepfromid'] = False
-                default_params['surveyparams'][self.currproject]['guildline']['usesampleid'] = True
-                default_params['surveyparams'][self.currproject]['scripps']['ctdsurvey'] = False
-                default_params['surveyparams'][self.currproject]['scripps']['decodedepfromid'] = False
-                default_params['surveyparams'][self.currproject]['scripps']['usesampleid'] = True
-                default_params['surveyparams'][self.currproject]['seal']['ctdsurvey'] = False
-                default_params['surveyparams'][self.currproject]['seal']['decodedepfromid'] = False
-                default_params['surveyparams'][self.currproject]['seal']['usesampleid'] = True
+                default_params['survey_params'][self.currproject]['guildline']['ctd_survey'] = False
+                default_params['survey_params'][self.currproject]['guildline']['decode_dep_from_id'] = False
+                default_params['survey_params'][self.currproject]['guildline']['use_sample_id'] = True
+                default_params['survey_params'][self.currproject]['scripps']['ctd_survey'] = False
+                default_params['survey_params'][self.currproject]['scripps']['decode_dep_from_id'] = False
+                default_params['survey_params'][self.currproject]['scripps']['use_sample_id'] = True
+                default_params['survey_params'][self.currproject]['seal']['ctd_survey'] = False
+                default_params['survey_params'][self.currproject]['seal']['decode_dep_from_id'] = False
+                default_params['survey_params'][self.currproject]['seal']['use_sample_id'] = True
 
             with open(self.params_path, 'w') as file:
                 json.dump(default_params, file)
@@ -741,8 +752,17 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         else:
             self.ultra_performance_mode = True
 
+    def processing_thread_logger_interface(self, message):
+        logging.info(message)
+
+
     def closeEvent(self, event):
         # Closes everything if main processing window is closed
+
+        logging.getLogger().removeHandler(self.output_box)
+        self.output_box.widget.close()
+        logging.shutdown()
+
         app = QApplication.instance()
         app.closeAllWindows()
         # self.backToMain.emit()

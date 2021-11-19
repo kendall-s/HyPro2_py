@@ -1,5 +1,9 @@
 # old color fcfcfc
 import sys, os, sqlite3, json, traceback
+# Need these imports for pyinstaller
+import sqlalchemy
+import sqlalchemy.ext.baked
+import sqlalchemy.sql.default_comparator
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QPushButton, QLabel, QGridLayout,
                              QInputDialog, QComboBox, QAction, QDesktopWidget, QFrame)
@@ -29,7 +33,7 @@ import hyproicons, style
 class Mainmenu(hyproMainWindowTemplate):
 
     def __init__(self):
-        super().__init__(890, 420, 'HyPro - Main Menu')
+        super().__init__(870, 420, 'HyPro - Main Menu')
 
         self.grid_layout.setContentsMargins(0, 0, 5, 0)
 
@@ -430,11 +434,11 @@ class Mainmenu(hyproMainWindowTemplate):
                 with open(params_file, 'r') as file:
                     params = json.loads(file.read())
 
-                if params['analysisparams']['seal']['activated']:
+                if params['analysis_params']['seal']['activated']:
                     self.nutrients_activated_state.setText('Yes')
-                if params['analysisparams']['guildline']['activated']:
+                if params['analysis_params']['guildline']['activated']:
                     self.salinity_activated_state.setText('Yes')
-                if params['analysisparams']['scripps']['activated']:
+                if params['analysis_params']['scripps']['activated']:
                     self.oxygen_activated_state.setText('Yes')
 
                 conn = sqlite3.connect(proj_db_file)

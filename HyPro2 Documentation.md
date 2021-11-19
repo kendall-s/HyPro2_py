@@ -183,6 +183,10 @@ This data is ingested to be used for the quality control and checking of sample 
 
 # HyPro in Python documentation
 
+## Note
+For making the icons file you need to input a .qrc file into pyrcc5.exe, this will generate bytecode of the icons to use in the PyQt app 
+
+
 ### Structure 
 HyPro in python was very heavily based off of the processing and workflow of the first HyPro, written in Matlab. This workflow allows data to be contained on a voyage basis and also allows for a systematic approach in processing files.
 The structure of how HyPro runs is outlined:

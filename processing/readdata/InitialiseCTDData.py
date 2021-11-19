@@ -16,18 +16,13 @@ class initCTDdata(QObject):
         self.file = file
 
         self.database = database
-
         self.currpath = path
-
         self.currproject = project
-
         self.interactive = interactive
 
         self.rereading = rereading
 
         self.filepath = self.currpath + '/' + 'CTD' + '/' + self.file
-
-        self.loadfilein()
 
     def loadfilein(self):
         # Open file

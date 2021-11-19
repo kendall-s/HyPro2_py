@@ -1,8 +1,7 @@
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QCheckBox, QFrame, QVBoxLayout, QTabWidget,
-                             QDesktopWidget, QApplication, QLineEdit)
-from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QDockWidget, QListWidget, QVBoxLayout, QTabWidget,
+                             QDesktopWidget, QApplication, QLineEdit, QHBoxLayout, QSplitter, QAction)
 from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt, QSize, pyqtSignal, QObject, QThread
+from PyQt5.QtCore import Qt, QSize, pyqtSignal, QThread
 import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pylab import *
@@ -12,7 +11,7 @@ import json
 import hyproicons
 import style
 import processing.procdata.ProcessSealNutrients as psn
-from processing.algo.HyproComplexities import load_proc_settings, match_click_to_peak, match_hover_to_peak
+from processing.algo.HyproComplexities import save_proc_settings, load_proc_settings, match_click_to_peak, match_hover_to_peak
 from processing.algo import HyproComplexities
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.algo.Structures import WorkingData, SLKData, CHDData
@@ -26,11 +25,7 @@ import cProfile
 
 mpl.use('Agg')
 
-
 # TODO: Finish new implementation of cleaned up testable Nutrients
-# TODO: Reimplement the QC chart tab system to be more L I G H T W E I G H T
-# TODO: Re-create style sheet in styles file
-
 
 class processingNutrientsWindow(hyproMainWindowTemplate):
 
@@ -43,6 +38,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
     """
 
     processing_completed = pyqtSignal()
+    logging_signal = pyqtSignal(str)
     aborted = pyqtSignal()
 
     def __init__(self, file, database, path, project, interactive=True, rereading=False, perf_mode=False,
@@ -74,10 +70,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.perf_mode = perf_mode
         self.ultra_perf_mode = ultra_perf_mode
 
+        self.reverted_history_index = 999
+
         self.ui_initialised = False
         self.plot_title_appender = ''
 
-        self.actions_list = []
+        self.actions_list = {'initial_window_start': {}, 'initial_window_size': {}}
 
         # General HyPro settings, use for setting theme of window
         with open('C:/HyPro/hyprosettings.json', 'r') as temp:
@@ -96,7 +94,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.view_chd_data = CHDData(file)
         self.current_nutrient = 'none yet'
 
-        # Pull out the data from the files in the directory
+        # Pull out the data from the files in the directoryR
         try:
             # Start the nutrient processisng QObject in a different thread, this will handle all the data side
             self.start_nutrient_processing_thread()
@@ -112,23 +110,25 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             logging.error('HyPro could not find any nutrients! Please check the spelling of your analyte names')
 
     def start_nutrient_processing_thread(self):
-        self.thread = QThread()
+        self.processing_thread = QThread()
 
         self.nutrient_processing_controller = processNutrientsController(self.file,
                                                                          self.file_path,
                                                                          self.database,
                                                                          self.processing_parameters)
-        self.nutrient_processing_controller.moveToThread(self.thread)
-        self.thread.started.connect(self.nutrient_processing_controller.startup_routine)
+        self.nutrient_processing_controller.moveToThread(self.processing_thread)
+        self.processing_thread.started.connect(self.nutrient_processing_controller.startup_routine)
+        
+        # After startup and subsequent reprocessing, update the UI elements
         self.nutrient_processing_controller.startup_routine_completed.connect(self.update_ui)
-
         self.nutrient_processing_controller.reprocessing_completed.connect(self.update_ui)
-
+        
+        # Set cursor based on what the processing controller is up to
         self.nutrient_processing_controller.thinking.connect(self.loading_cursor)
         self.nutrient_processing_controller.startup_routine_completed.connect(self.reset_cursor)
         self.nutrient_processing_controller.reprocessing_completed.connect(self.reset_cursor)
 
-        self.thread.start()
+        self.processing_thread.start()
 
     def loading_cursor(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
@@ -137,32 +137,41 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         QApplication.restoreOverrideCursor()
 
     def update_ui(self, return_package):
-        trace_redraw = True
-        self.current_nutrient, self.view_slk_data, self.view_chd_data, self.view_w_d = return_package
+        if return_package:
+            trace_redraw = True
+            self.current_nutrient, self.view_slk_data, self.view_chd_data, self.view_w_d = return_package
 
-        self.plot_title_appender = f' - {self.current_nutrient.capitalize()} | {self.file}'
+            self.plot_title_appender = f' - {self.current_nutrient.capitalize()} | {self.file}'
 
-        if self.view_w_d == None:
-            self.aborted.emit()
-
-        if not self.interactive:
-            self.store_data()
-            self.close()
-            return
-
-        if not self.ui_initialised:
-            trace_redraw = False
-            self.init_ui()
             if self.view_w_d == None:
-                time.sleep(0.3)
+                self.aborted.emit()
+
+            if not self.interactive:
+                self.store_data()
                 self.close()
-            else:
-                self.create_standard_qc_tabs()
-                qc_cups = self.processing_parameters['nutrientprocessing']['qcsamplenames']
-                self.create_custom_qc_tabs(self.view_slk_data.sample_ids, qc_cups)
+                return
 
-        self.interactive_routine(trace_redraw=trace_redraw)
+            if not self.ui_initialised:
+                trace_redraw = False
+                self.init_ui()
+                if self.view_w_d == None:
+                    time.sleep(0.3)
+                    self.close()
+                else:
+                    self.create_standard_qc_tabs()
+                    qc_cups = self.processing_parameters['nutrient_processing']['qc_sample_names']
+                    self.create_custom_qc_tabs(self.view_slk_data.sample_ids, qc_cups)
 
+                    self.actions_list[self.current_nutrient] = []
+                    self.actions_list['initial_window_start'][self.current_nutrient] = self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['window_start']
+                    self.actions_list['initial_window_size'][self.current_nutrient] = self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['window_size']
+
+            self.interactive_routine(trace_redraw=trace_redraw)
+        else:
+            self.logging_signal.emit('Cannot find any nutrients in the SLK file. Check the naming in parameters?')
+            #logging.info('Cannot find any nutrients in the SLK file. Check the naming in parameters?')
+            self.processing_thread.quit()
+            self.destroy(destroyWindow=True)
 
     def interactive_routine(self, trace_redraw=True):
         """
@@ -192,141 +201,93 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.setWindowModality(Qt.WindowModal)
             self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint | Qt.WindowCloseButtonHint)
-            #self.showMaximized()
+
+            self.grid_layout.setSpacing(0)
+
+            """
+            Menu bar 
+            """
             mainMenu = self.menuBar()
             fileMenu = mainMenu.addMenu('File')
+            self.auto_size = QAction('Auto Zoom', mainMenu, checkable=True)
+            fileMenu.addAction(self.auto_size)
+            self.find_lat_lons = QAction('Match Lat/Longs', mainMenu, checkable=True)
+            fileMenu.addAction(self.find_lat_lons)
+
+            fileMenu.addSeparator()
+
+            reset_inital_windows = QAction('Reset Initial Windows', self)
+            fileMenu.addAction(reset_inital_windows)
+            reset_inital_windows.triggered.connect(self.reset_initial_windows)
+            reset_inital_windows.setEnabled(False)
+
+            replay_processing = QAction('Replay Processing', self)
+            fileMenu.addAction(replay_processing)
+            replay_processing.triggered.connect(self.replay_processing)
+            replay_processing.setEnabled(False)
+
+            if os.path.exists(f'{self.path}/Nutrients/processing/{self.file}_procfile.json'):
+                reset_inital_windows.setEnabled(True)
+                replay_processing.setEnabled(True)
+
             editMenu = mainMenu.addMenu('Edit')
 
-            label_text = f'<b>Processing File:</b> {self.file}  |  <b>Analysis Trace:</b> {self.current_nutrient.capitalize()}'
+            undo_action = QAction('Undo', self)
+            editMenu.addAction(undo_action)
+            undo_action.triggered.connect(self.undo_action)
+
+
+            """
+            Widgets for UI
+            """
+
+            # View splitter + the left and right Vertical Box layouts
+            self.view_splitter = QSplitter(Qt.Horizontal)
+            self.grid_layout.addWidget(self.view_splitter, 0, 0)
+
+            left_v_widget = QWidget(self)
+            left_v_box = QVBoxLayout(self)
+            left_v_widget.setLayout(left_v_box)
+
+            self.qc_dock = QDockWidget('QC Tabs')
+
+            self.qc_dock.setFeatures(QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
+
+            right_v_widget = QWidget(self)
+            right_v_box = QVBoxLayout(self)
+            right_v_widget.setLayout(right_v_box)
+
+            self.qc_dock.setWidget(right_v_widget)
+
+            self.addDockWidget(Qt.RightDockWidgetArea, self.qc_dock)
+
+            # Processing trace
+            label_text = f'Processing Nutrient File: {self.file} - Analyte: {self.current_nutrient.capitalize()}'
             self.analysistraceLabel = QLabel(label_text)
-            self.analysistraceLabel.setProperty('headertext', True)
-            self.analysistraceLabel.setStyleSheet("font: 16px; font-family: Segoe UI;")
+            #analysistraceLabel.setProperty('headerText', True)
+            self.analysistraceLabel.setStyleSheet('font: 18px Segoe UI; font-weight: 500;')
 
-            tracelabelframe = QFrame()
-            tracelabelframe.setProperty('nutrientHeadFrame', True)
-            tracelabelframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-            tracelabelframeshadow.setBlurRadius(6)
-            tracelabelframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-            tracelabelframeshadow.setYOffset(2)
-            tracelabelframeshadow.setXOffset(3)
-            tracelabelframe.setGraphicsEffect(tracelabelframeshadow)
-
-            traceframe = QFrame()
-            traceframe.setProperty('nutrientFrame', True)
-            traceframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-            traceframeshadow.setBlurRadius(6)
-            traceframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-            traceframeshadow.setYOffset(2)
-            traceframeshadow.setXOffset(3)
-            traceframe.setGraphicsEffect(traceframeshadow)
-
-            self.qctabsLabel = QLabel('<b>QC Charts:</b>',)
-            self.qctabsLabel.setProperty('headertext', True)
-
-            qclabelframe = QFrame()
-            qclabelframe.setProperty('nutrientHeadFrame', True)
-            qclabelframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-            qclabelframeshadow.setBlurRadius(6)
-            qclabelframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-            qclabelframeshadow.setYOffset(2)
-            qclabelframeshadow.setXOffset(3)
-            qclabelframe.setGraphicsEffect(qclabelframeshadow)
-
-            self.qctabs = QTabWidget()
-
-            qctabsframe = QFrame()
-            qctabsframe.setProperty('nutrientFrame', True)
-            qctabsframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-            qctabsframeshadow.setBlurRadius(6)
-            qctabsframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-            qctabsframeshadow.setYOffset(3)
-            qctabsframeshadow.setXOffset(3)
-            qctabsframe.setGraphicsEffect(qctabsframeshadow)
-
-            buttonsframe = QFrame()
-            buttonsframe.setFixedHeight(60)
-            #buttonsframe.setFixedWidth(300)
-            buttonsframe.setProperty('nutrientButtonFrame', True)
-
-            self.auto_size = QCheckBox('Auto zoom')
-
-            leftonxaxis = QPushButton()
-            leftonxaxis.clicked.connect(self.move_camera_left)
-            leftonxaxis.setIcon(QIcon(':/assets/greenleftarrow.svg'))
-            leftonxaxis.setIconSize(QSize(33, 33))
-            leftonxaxis.setProperty('nutrientControls', True)
-            leftonxaxis.setFixedWidth(50)
-
-            rightonxaxis = QPushButton()
-            rightonxaxis.clicked.connect(self.move_camera_right)
-            rightonxaxis.setIcon(QIcon(':/assets/greenrightarrow.svg'))
-            rightonxaxis.setIconSize(QSize(33, 33))
-            rightonxaxis.setProperty('nutrientControls', True)
-            rightonxaxis.setFixedWidth(50)
-
-            zoomin = QPushButton()
-            zoomin.clicked.connect(self.zoom_in)
-            zoomin.setIcon(QIcon(':/assets/zoomin.svg'))
-            zoomin.setIconSize(QSize(33, 33))
-            zoomin.setProperty('nutrientControls', True)
-            zoomin.setFixedWidth(50)
-
-            zoomout = QPushButton()
-            zoomout.clicked.connect(self.zoom_out)
-            zoomout.setIcon(QIcon(':/assets/zoomout.svg'))
-            zoomout.setIconSize(QSize(33, 33))
-            zoomout.setProperty('nutrientControls', True)
-            zoomout.setFixedWidth(50)
-
-            zoomfit = QPushButton()
-            zoomfit.clicked.connect(self.zoom_fit)
-            zoomfit.setIcon(QIcon(':/assets/expand.svg'))
-            zoomfit.setIconSize(QSize(33, 33))
-            zoomfit.setProperty('nutrientControls', True)
-            zoomfit.setFixedWidth(50)
-
-            self.find_lat_lons = QCheckBox('Find Lat/Longs')
-
-            okcanframe = QFrame()
-            okcanframe.setMinimumHeight(40)
-            okcanframe.setProperty('nutrientFrame2', True)
-            okcanframeshadow = QtWidgets.QGraphicsDropShadowEffect()
-            okcanframeshadow.setBlurRadius(6)
-            okcanframeshadow.setColor(QtGui.QColor('#e1e6ea'))
-            okcanframeshadow.setYOffset(2)
-            okcanframeshadow.setXOffset(3)
-            okcanframe.setGraphicsEffect(okcanframeshadow)
-
-            okbut = QPushButton('Proceed')
-            okbut.setFixedHeight(25)
-            okbut.setFixedWidth(100)
-            okbut.clicked.connect(self.proceed)
-            okbut.setProperty('nutrientControls', True)
-
-            cancelbut = QPushButton('Cancel')
-            cancelbut.clicked.connect(self.cancel)
-            cancelbut.setProperty('nutrientControls', True)
-            cancelbut.setFixedHeight(25)
-            cancelbut.setFixedWidth(95)
+            left_v_box.addWidget(self.analysistraceLabel)
 
             if not self.perf_mode:
                 pg.setConfigOptions(antialias=True)
 
+            # Creating the trace graphing widget
             self.graph_widget = pg.PlotWidget()
 
             if self.ultra_perf_mode:
                 self.graph_widget.useOpenGL(True)
 
-            label_style = {'color': '#C1C1C1', 'font-size': '10pt', 'font-family': 'Segoe UI'}
+            label_style = {'color': '#C1C1C1', 'font-size': '11pt', 'font-family': 'Segoe UI'}
             self.graph_widget.setLabel('left', 'A/D Value', **label_style)
             self.graph_widget.setLabel('bottom', 'Time (s)', **label_style)
             self.graph_widget.showGrid(x=True, y=True)
 
+            # Create the vertical line to indicate the mouse position
             self.vertical_line = pg.InfiniteLine(angle=90, movable=False)
             self.vertical_line.setZValue(10)
 
             self.graph_widget.addItem(self.vertical_line, ignoreBounds=True)
-
             if self.theme == 'normal':
                 self.graph_widget.setBackground('w')
                 graph_pen = pg.mkPen(color=(25, 25, 30), width=1.2)
@@ -338,6 +299,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.plotted_data = self.graph_widget.plot(pen=graph_pen)
             self.plotted_data.scene().sigMouseClicked.connect(self.on_click)
             self.plotted_data.scene().sigMouseMoved.connect(self.move_crosshair)
+
             # These are for holding the lines representing the drift and baseline across the run
             baseline_pen = pg.mkPen(color=('#d69f20'), width=2)
             self.baseline_plotted = self.graph_widget.plot(pen=baseline_pen)
@@ -345,45 +307,130 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             drift_pen = pg.mkPen(color=('#c6c600'), width=2)
             self.drift_plotted = self.graph_widget.plot(pen=drift_pen)
 
+            # This lineedit displays information about the peak which is hovered above
             self.hovered_peak_lineedit = QLineEdit()
             self.hovered_peak_lineedit.setFont(QFont('Segoe UI'))
 
-            # Setting everything into the layout
-            self.grid_layout.addWidget(tracelabelframe, 0, 0, 1, 11)
-            self.grid_layout.addWidget(self.analysistraceLabel, 0, 1, 1, 5)
+            left_v_box.addWidget(self.graph_widget)
+            left_v_box.addWidget(self.hovered_peak_lineedit)
 
-            self.grid_layout.addWidget(qclabelframe, 0, 11, 1, 5)
-            self.grid_layout.addWidget(self.qctabsLabel, 0, 11, 1, 1, Qt.AlignCenter)
+            trace_control_buttons_widget = QWidget()
+            trace_control_buttons_layout = QHBoxLayout()
+            trace_control_buttons_layout.setSpacing(20)
+            trace_control_buttons_widget.setLayout(trace_control_buttons_layout)
+            left_v_box.addWidget(trace_control_buttons_widget)
 
-            self.grid_layout.addWidget(traceframe, 1, 0, 20, 11)
-            self.grid_layout.addWidget(self.graph_widget, 1, 0, 17, 11)
+            trace_control_buttons_layout.addStretch()
 
-            self.grid_layout.addWidget(self.hovered_peak_lineedit, 18, 0, 1, 11)
+            leftonxaxis = QPushButton()
+            leftonxaxis.clicked.connect(self.move_camera_left)
+            leftonxaxis.setIcon(QIcon(':/assets/greenleftarrow.svg'))
+            leftonxaxis.setIconSize(QSize(33, 33))
+            leftonxaxis.setProperty('nutrientControls', True)
+            leftonxaxis.setFixedWidth(50)
+            leftonxaxis.setToolTip('Move left on the X axis')
+            leftonxaxis.setCursor(QCursor(Qt.PointingHandCursor))
 
-            self.grid_layout.addWidget(qctabsframe, 1, 11, 19, 5)
-            self.grid_layout.addWidget(self.qctabs, 1, 11, 19, 5)
+            rightonxaxis = QPushButton()
+            rightonxaxis.clicked.connect(self.move_camera_right)
+            rightonxaxis.setIcon(QIcon(':/assets/greenrightarrow.svg'))
+            rightonxaxis.setIconSize(QSize(33, 33))
+            rightonxaxis.setProperty('nutrientControls', True)
+            rightonxaxis.setFixedWidth(50)
+            rightonxaxis.setToolTip('Move right on the X axis')
+            rightonxaxis.setCursor(QCursor(Qt.PointingHandCursor))
 
-            self.grid_layout.addWidget(self.auto_size, 20, 0, Qt.AlignCenter)
+            zoomin = QPushButton()
+            zoomin.clicked.connect(self.zoom_in)
+            zoomin.setIcon(QIcon(':/assets/zoomin.svg'))
+            zoomin.setIconSize(QSize(33, 33))
+            zoomin.setProperty('nutrientControls', True)
+            zoomin.setFixedWidth(50)
+            zoomin.setToolTip('Zoom in')
+            zoomin.setCursor(QCursor(Qt.PointingHandCursor))
 
-            self.grid_layout.addWidget(buttonsframe, 19, 3, 2, 5)
+            zoomout = QPushButton()
+            zoomout.clicked.connect(self.zoom_out)
+            zoomout.setIcon(QIcon(':/assets/zoomout.svg'))
+            zoomout.setIconSize(QSize(33, 33))
+            zoomout.setProperty('nutrientControls', True)
+            zoomout.setFixedWidth(50)
+            zoomout.setToolTip('Zoom out')
+            zoomout.setCursor(QCursor(Qt.PointingHandCursor))
 
-            self.grid_layout.addWidget(leftonxaxis, 19, 3, 2, 1, Qt.AlignHCenter)
-            self.grid_layout.addWidget(rightonxaxis, 19, 4, 2, 1, Qt.AlignHCenter)
-            self.grid_layout.addWidget(zoomfit, 19, 5, 2, 1, Qt.AlignHCenter)
-            self.grid_layout.addWidget(zoomin, 19, 6, 2, 1, Qt.AlignHCenter)
-            self.grid_layout.addWidget(zoomout, 19, 7, 2, 1, Qt.AlignHCenter)
+            zoomfit = QPushButton()
+            zoomfit.clicked.connect(self.zoom_fit)
+            zoomfit.setIcon(QIcon(':/assets/expand.svg'))
+            zoomfit.setIconSize(QSize(33, 33))
+            zoomfit.setProperty('nutrientControls', True)
+            zoomfit.setFixedWidth(50)
+            zoomfit.setToolTip('Scale to highest peak')
+            zoomfit.setCursor(QCursor(Qt.PointingHandCursor))
 
-            self.grid_layout.addWidget(self.find_lat_lons, 19, 0, Qt.AlignCenter)
 
-            self.grid_layout.addWidget(okcanframe, 20, 11, 1, 5)
+            trace_control_buttons_layout.addWidget(leftonxaxis)
+            trace_control_buttons_layout.addWidget(zoomin)
+            trace_control_buttons_layout.addWidget(zoomfit)
+            trace_control_buttons_layout.addWidget(zoomout)
+            trace_control_buttons_layout.addWidget(rightonxaxis)
 
-            self.grid_layout.addWidget(okbut, 20, 12, 1, 2, Qt.AlignJustify)
-            self.grid_layout.addWidget(cancelbut, 20, 13, 1, 2, Qt.AlignJustify)
+            trace_control_buttons_layout.addStretch()
+
+            self.history_list_dock = QDockWidget('History')
+
+            self.history_list = QListWidget()
+            self.history_list.itemDoubleClicked.connect(self.history_revert)
+
+            self.history_list_dock.setWidget(self.history_list)
+
+            self.addDockWidget(Qt.RightDockWidgetArea, self.history_list_dock)
+
+            """
+            Right Side with QC Tabs
+            """
+
+            # self.qctabs_label = QLabel('<b>QC Charts:</b>', )
+            # self.qctabs_label.setStyleSheet('font: 17px Segoe UI;')
+            # right_v_box.addWidget(self.qctabs_label)
+
+            self.qctabs = QTabWidget()
+            right_v_box.addWidget(self.qctabs)
+
+            process_control_buttons = QHBoxLayout()
+            process_control_buttons.setSpacing(20)
+            #right_v_box.addLayout(process_control_buttons)
+            self.grid_layout.addLayout(process_control_buttons, 1, 0)
+
+            process_control_buttons.addStretch()
+
+            ok_but = QPushButton('Proceed')
+            ok_but.setFixedHeight(30)
+            ok_but.setFixedWidth(125)
+            ok_but.clicked.connect(self.proceed)
+            ok_but.setProperty('nutrientControls', True)
+            ok_but.setStyleSheet("background-color: #0275D8; color: #FFFFFF; font-weight: 500; border: 1px #0275D8;")
+            ok_but.setCursor(QCursor(Qt.PointingHandCursor))
+
+            process_control_buttons.addWidget(ok_but)
+
+            cancel_but = QPushButton('Cancel')
+            cancel_but.clicked.connect(self.cancel)
+            cancel_but.setProperty('nutrientControls', True)
+            cancel_but.setFixedHeight(30)
+            cancel_but.setFixedWidth(120)
+            cancel_but.setStyleSheet("font-weight: 500;")
+            cancel_but.setCursor(QCursor(Qt.PointingHandCursor))
+
+            process_control_buttons.addWidget(cancel_but)
+
+            process_control_buttons.addStretch()
+
+            self.view_splitter.addWidget(left_v_widget)
+
+            self.tabifyDockWidget(self.history_list_dock, self.qc_dock)
 
             self.bootup = True
             self.ui_initialised = True
-
-
 
         except Exception:
             print(traceback.print_exc())
@@ -444,6 +491,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             if not os.path.exists(f'{self.path}/Nutrients/plot'):
                 os.mkdir(f'{self.path}/Nutrients/plot')
 
+            if not os.path.exists(f'{self.path}/Nutrients/processing'):
+                os.mkdir(f'{self.path}/Nutrients/processing')
+
+            with open(f'{self.path}/Nutrients/processing/{self.file}_procfile.json', 'w+') as out_file:
+                json.dump(self.actions_list, out_file)
+
             if not os.path.exists(f'{self.path}/Nutrients/plot/{self.file}'):
                 os.mkdir(f'{self.path}/Nutrients/plot/{self.file}')
 
@@ -455,6 +508,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                       dpi=300)
             self.cal_error_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_error_plot.png',
                                       dpi=300)
+            if hasattr(self, 'RMNS_fig'):
+                self.RMNS_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_rmns_plot.png',
+                                        dpi=300)
+
+            # Resave the processing settings to disk
+            save_proc_settings(self.path, self.project, self.processing_parameters)
 
             # Try to increment the current nutrient - if an index error is raised, there is no more nutrients to process
             self.current_nutrient = self.view_slk_data.active_nutrients[current_nut_index+1]
@@ -462,8 +521,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.analysistraceLabel.setText('<b>Processing file: </b>' + str(self.file) +
                                             '   |   <b>Analysis Trace: </b>' + str(self.current_nutrient).capitalize())
 
-
             self.view_w_d.analyte = self.current_nutrient
+            self.actions_list[self.current_nutrient] = []
+            self.history_list.clear()
 
             self.nutrient_processing_controller.set_current_nutrient(self.current_nutrient)
 
@@ -471,13 +531,15 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.graph_widget.removeItem(self.window_lines)
 
-            QApplication.restoreOverrideCursor()
+            self.reset_cursor()
             self.nutrient_processing_controller.re_process()
 
         except IndexError:
-            print('Processing completed')
+            self.processing_thread.quit()
+            time.sleep(0.3)
             logging.info(f'Processing successfully completed for nutrient file - {self.file}')
-
+            self.reset_cursor()
+            plt.close('all')
             self.processing_completed.emit()
             self.close()
 
@@ -509,7 +571,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         data_coordinates = self.plotted_data.getViewBox().mapSceneToView(trace_coordinates)
 
         if event.button() == 1:
-            x_point = data_coordinates.x()
+            x_point = int(data_coordinates.x())
+
             exists, peak_index = match_click_to_peak(x_point,
                                                      self.view_slk_data,
                                                      self.current_nutrient,
@@ -549,22 +612,32 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             # If picked point is further along than the current peak window
             if x_axis_time > (picked_peak_start + win_start):
-                window_start_time = x_axis_time - picked_peak_start
+                new_window_start_time = x_axis_time - picked_peak_start
+                self.add_action('window_start_set', new_window_start_time, win_start)
+
                 new_window_length = win_length - (x_axis_time - (picked_peak_start+win_start))
-                self.nutrient_processing_controller.set_window_start(window_start_time)
+                self.add_action('window_length_set', new_window_length, win_length)
+
+                self.nutrient_processing_controller.set_window_start(new_window_start_time)
                 self.nutrient_processing_controller.set_window_size(new_window_length)
 
             # If picked point is less than the start of the peak window
             if x_axis_time < (picked_peak_start + win_start):
-                window_start_time = x_axis_time - picked_peak_start
+                new_window_start_time = x_axis_time - picked_peak_start
+                self.add_action('window_start_set', new_window_start_time, win_start)
+
                 new_window_length = win_length + ((picked_peak_start+win_start) - x_axis_time)
-                self.nutrient_processing_controller.set_window_start(window_start_time)
+                self.add_action('window_length_set', new_window_length, win_length)
+
+                self.nutrient_processing_controller.set_window_start(new_window_start_time)
                 self.nutrient_processing_controller.set_window_size(new_window_length)
 
             # If point is actually less than the value given of the peak starts...
             if x_axis_time < picked_peak_start:
                 time_offset = picked_peak_start - x_axis_time
                 adjusted_peak_starts = [p_s - time_offset for p_s in self.view_slk_data.clean_peak_starts[self.current_nutrient]]
+                self.add_action('adjust_peak_starts', time_offset, time_offset)
+
                 self.nutrient_processing_controller.set_clean_peak_starts(adjusted_peak_starts)
 
             self.nutrient_processing_controller.re_process()
@@ -583,13 +656,18 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         if x_axis_time > (picked_peak_start + win_start):
 
             window_end = picked_peak_start + win_start + win_length
-
+            # User has clicked past the end of the window
             if x_axis_time > window_end:
                 window_end_increase = x_axis_time - window_end
+                new_window_length = win_length + window_end_increase + 1
+                self.add_action('window_length_set', new_window_length, win_length)
                 self.nutrient_processing_controller.set_window_size(win_length + window_end_increase + 1)
 
+            # User has clicked before the end of the peak window
             if window_end > x_axis_time:
                 window_end_decrease = window_end - x_axis_time
+                new_window_length = win_length - window_end_decrease
+                self.add_action('window_length_set', new_window_length, win_length)
                 self.nutrient_processing_controller.set_window_size(win_length - window_end_decrease)
 
             self.nutrient_processing_controller.re_process()
@@ -603,8 +681,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         """
         if direction == 'right':
             self.nutrient_processing_controller.add_to_chd(x_axis_time)
+            self.add_action('add_to_chd', x_axis_time, x_axis_time)
         elif direction == 'left':
             self.nutrient_processing_controller.cut_from_chd(x_axis_time)
+            self.add_action('cut_from_chd', x_axis_time, x_axis_time)
 
         self.nutrient_processing_controller.re_process()
 
@@ -695,6 +775,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.nutrient_processing_controller.re_process()
 
+        elif k_id == Qt.Key_P:
+            print(self.actions_list)
+
+
     def move_camera_left(self):
         """
         Shifts the camera to the left on a button press, happy balance of movement seems to be 6.5% of the current
@@ -781,18 +865,25 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         self.graph_widget.setYRange(y_min, max_height * 1.02)
 
-    def validate_cup_type(self):
-        #TODO: add cuptype validation logic here
-        pass
 
     def update_from_dialog(self, updates):
         updated_peak_index = updates['peak_index']
-        print(updated_peak_index)
-        self.nutrient_processing_controller.set_one_cup_type(updated_peak_index, updates['cup_type'])
-        self.nutrient_processing_controller.set_one_dilution_factor(updated_peak_index, updates['dilution_factor'])
+
+        previous_cup_type = self.view_slk_data.cup_types[updated_peak_index]
+        if previous_cup_type != updates['cup_type']:
+            self.nutrient_processing_controller.set_one_cup_type(updated_peak_index, updates['cup_type'])
+            self.add_action('update_cup_type', updates['cup_type'], previous_cup_type, peak=updated_peak_index)
+
+        previous_dilution = self.view_w_d.dilution_factor[updated_peak_index]
+        if previous_dilution != updates['dilution_factor']:
+            self.nutrient_processing_controller.set_one_dilution_factor(updated_peak_index, updates['dilution_factor'])
+            self.add_action('update_dilution', updates['dilution_factor'], previous_dilution, peak=updated_peak_index)
 
         numerical_flag = self.REVERSE_FLAG_CONVERTER[updates['quality_flag']]
-        self.nutrient_processing_controller.set_one_quality_flag(updated_peak_index, numerical_flag)
+        previous_flag = self.view_w_d.quality_flag[updated_peak_index]
+        if previous_flag != numerical_flag:
+            self.nutrient_processing_controller.set_one_quality_flag(updated_peak_index, numerical_flag)
+            self.add_action('update_flag', numerical_flag, previous_flag, peak=updated_peak_index)
 
         self.nutrient_processing_controller.re_process()
 
@@ -881,7 +972,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                    self.view_w_d.calibration_r_score, title_append=self.plot_title_appender)
         self.cal_curve_canvas.draw()
 
-        analyte_error = self.processing_parameters['nutrientprocessing']['processingpars'][self.current_nutrient]['calerror']
+        analyte_error = self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['cal_error']
         qcp.calibration_error_plot(self.cal_error_fig, self.cal_error_plot,
                                    self.view_w_d.calibrant_indexes, self.view_w_d.calibrant_residuals, analyte_error,
                                     self.view_w_d.calibrant_flags, title_append=self.plot_title_appender)
@@ -938,11 +1029,125 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 #     qcp.intqc_plot(self.IntQC_fig, self.IntQC_plot, self.view_w_d.)
                     # pass
 
+    def reset_initial_windows(self):
+        """
+        Used by the menu button to reset the window start and size to what it was the first time the file was
+        being processed. This should be ran before replaying processing.
+        """
+        with open(f'{self.path}/Nutrients/processing/{self.file}_procfile.json') as json_file:
+            procfile_data = json.load(json_file)
+
+        if self.current_nutrient in procfile_data['initial_window_start']:
+            self.nutrient_processing_controller.set_window_start(procfile_data['initial_window_start'][self.current_nutrient])
+            self.nutrient_processing_controller.set_window_size(procfile_data['initial_window_size'][self.current_nutrient])
+
+            self.nutrient_processing_controller.re_process()
+
+
+    # TODO: this could actually be turned into a class method of the nutrient processing controller.
+    def replay_processing(self):
+        """
+        UI functionality for the replaying of processing steps
+
+        """
+
+        with open(f'{self.path}/Nutrients/processing/{self.file}_procfile.json') as json_file:
+            procfile_data = json.load(json_file)
+
+        actions  = procfile_data[self.current_nutrient]
+
+        for action_step in actions:
+            self.actions_list[self.current_nutrient].append(action_step)
+            self.nutrient_processing_controller.replay_processing_step(action_step)
+
+        self.history_list.clear()
+        for action_step in self.actions_list[self.current_nutrient]:
+            list_string = self.create_history_string(action_step['action'], action_step['old_value'], action_step['value'])
+            self.history_list.addItem(list_string)
+
+        self.nutrient_processing_controller.re_process()
+
+    def add_action(self, action, new_value, old_value, peak=False):
+        """
+        Provide the functionality to add a action to the current actions list
+        """
+        if peak:
+            obj = {'action': action, 'peak': peak, 'value': new_value, 'old_value': old_value}
+        else:
+            obj = {'action': action, 'value': new_value, 'old_value': old_value}
+
+        # Our current point in time is at the singularity, meaning we can just append our next action
+        if self.reverted_history_index > len(self.history_list):
+            self.actions_list[self.current_nutrient].append(obj)
+            self.history_list.addItem(self.create_history_string(action, old_value, new_value))
+        # Else, we have to remove the steps which we have reverted, then save our new action
+        else:
+            self.actions_list[self.current_nutrient] = [x for x in self.actions_list[self.current_nutrient][0:self.reverted_history_index]]
+            self.actions_list[self.current_nutrient].append(obj)
+            self.history_list.clear()
+            for action_step in self.actions_list[self.current_nutrient]:
+                history_string = self.create_history_string(action_step['action'], action_step['old_value'], action_step['value'])
+                self.history_list.addItem(history_string)
+
+    def undo_action(self):
+        """
+        Undoes the last executed action
+        """
+        if len(self.actions_list[self.current_nutrient]) > 0:
+            last_action = self.actions_list[self.current_nutrient][-1]
+            self.actions_list[self.current_nutrient].pop(-1)
+
+            self.nutrient_processing_controller.undo_processing_step(last_action)
+            self.nutrient_processing_controller.re_process()
+
+    def history_revert(self):
+        """
+        Handles determining the actions which need to be reverted in the history tree
+        """
+        # If the reverted history index is already less than the requested history selection, we should reapply
+        # the steps instead of triggering undos
+        if self.reverted_history_index < self.history_list.currentIndex().row():
+            # Now assign the reverted_history_index to the selected row, because that will be where the history is at
+            self.reverted_history_index = self.history_list.currentIndex().row()
+            steps_to_reapply = self.actions_list[self.current_nutrient][self.reverted_history_index:]
+            for action_step in steps_to_reapply:
+                self.nutrient_processing_controller.replay_processing_step(action_step)
+
+            self.history_list.setCurrentRow(self.reverted_history_index)
+        # Else, we have available steps to go back on so lets undo them
+        else:
+            self.reverted_history_index = self.history_list.currentIndex().row()
+            steps_to_revert = self.actions_list[self.current_nutrient][self.reverted_history_index:]
+
+            # Lets go back through the steps in reverse order so that they are undone sequentially
+            for action_step in reversed(steps_to_revert):
+                self.nutrient_processing_controller.undo_processing_step(action_step)
+
+            self.history_list.setCurrentRow(self.reverted_history_index)
+
+        self.nutrient_processing_controller.re_process()
+
+
+    def create_history_string(self, action, old_value, value):
+        """
+        Create the semi-human readable string to display in the history list
+        """
+        list_string = f"{action} ({old_value} ➡ {value})"
+        return list_string
+
+
     def closeEvent(self, event):
         plt.close('all')
-        self.thread.exit()
-        del self.plotted_data
-        del self.graph_widget
+        try:
+            self.processing_thread.exit()
+            del self.plotted_data
+            del self.graph_widget
+            self.history_list_dock.close()
+            self.qc_dock.close()
+        except Exception:
+            pass
+
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

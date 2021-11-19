@@ -19,6 +19,10 @@ from numpy import asarray
 import xarray as xr
 from pylab import polyfit
 
+from sqlalchemy import create_engine, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+from processing.algo import Models
 
 # TODO: need small sub routine for resetting values on a RE-process
 # TODO: There may be a double up on functions that find flags and medians between drift/baseline and calibrants
@@ -38,29 +42,29 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     st = time.time()
 
     # ----------- Read in latest configurable processing parameters (in order of use) ------------------------
-    window_size = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['windowSize']
-    window_start = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['windowStart']
+    window_size = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['window_size']
+    window_start = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['window_start']
 
-    null_cup_type = processing_parameters['nutrientprocessing']['cupnames']['null']
-    baseline_cup_type = processing_parameters['nutrientprocessing']['cupnames']['baseline']
-    baseline_corr_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['baseCorrType']
-    high_cup_type = processing_parameters['nutrientprocessing']['cupnames']['high']
-    low_cup_type = processing_parameters['nutrientprocessing']['cupnames']['low']
-    drift_cup_type = processing_parameters['nutrientprocessing']['cupnames']['drift']
-    recovery_cup_type = processing_parameters['nutrientprocessing']['cupnames']['recovery']
-    drift_corr_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['driftCorrType']
-    calibrant_cup_type = processing_parameters['nutrientprocessing']['cupnames']['calibrant']
+    null_cup_type = processing_parameters['nutrient_processing']['cup_names']['null']
+    baseline_cup_type = processing_parameters['nutrient_processing']['cup_names']['baseline']
+    baseline_corr_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['base_corr_type']
+    high_cup_type = processing_parameters['nutrient_processing']['cup_names']['high']
+    low_cup_type = processing_parameters['nutrient_processing']['cup_names']['low']
+    drift_cup_type = processing_parameters['nutrient_processing']['cup_names']['drift']
+    recovery_cup_type = processing_parameters['nutrient_processing']['cup_names']['recovery']
+    drift_corr_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['drift_corr_type']
+    calibrant_cup_type = processing_parameters['nutrient_processing']['cup_names']['calibrant']
 
-    cal_zero_label = processing_parameters['nutrientprocessing']['calibrants']['cal0']
-    cal_type = processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calibration']
-    cal_error_limit = float(processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['calerror'])
-    dupe_error_limit = float(processing_parameters['nutrientprocessing']['processingpars'][current_nutrient]['duplicateError'])
+    cal_zero_label = processing_parameters['nutrient_processing']['calibrants']['cal0']
+    cal_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['calibration']
+    cal_error_limit = float(processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['cal_error'])
+    dupe_error_limit = float(processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['duplicate_error'])
 
-    mdl_cup = processing_parameters['nutrientprocessing']['qcsamplenames']['mdl']
-    sample_cup_type = processing_parameters['nutrientprocessing']['cupnames']['sample']
-    qc_cup_ids = [processing_parameters['nutrientprocessing']['qcsamplenames'][x] for x in
-                  processing_parameters['nutrientprocessing']['qcsamplenames'].keys()]
-    qc_cups = processing_parameters['nutrientprocessing']['qcsamplenames']
+    mdl_cup = processing_parameters['nutrient_processing']['qc_sample_names']['mdl']
+    sample_cup_type = processing_parameters['nutrient_processing']['cup_names']['sample']
+    qc_cup_ids = [processing_parameters['nutrient_processing']['qc_sample_names'][x] for x in
+                  processing_parameters['nutrient_processing']['qc_sample_names'].keys()]
+    qc_cups = processing_parameters['nutrient_processing']['qc_sample_names']
 
     # ----------- Match peaks to CHD data ---------------------------------------------------------------------
     # Match the SLK peak start data to the CHD A/D data
@@ -147,8 +151,10 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ------------ Apply dilution factors -----------------------------------------------------------------------
     mdl_indexes = find_cup_indexes(mdl_cup, slk_data.sample_ids)
-    w_d.calculated_concentrations = apply_dilution(mdl_indexes, w_d.dilution_factor, w_d.calculated_concentrations)
-
+    if len(mdl_indexes) > 0:
+        w_d.calculated_concentrations = apply_dilution(mdl_indexes, w_d.dilution_factor, w_d.calculated_concentrations)
+    else:
+        logging.error(f'ERROR: No MDL samples were found. Dilution factors cannot be applied for run {w_d.run}.')
     # ----- Find duplicates and flag if outside analyte tolerance ------------------------------------------------
     duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
     sample_duplicate_indexes = find_duplicate_samples(duplicate_indexes, slk_data.sample_ids,
@@ -750,15 +756,110 @@ def reset_calibrant_flags(quality_flags):
 
     return quality_flags
 
+def save_nutrient_samples(session, samples_array):
+    sample_db_ids = []
+    for row in samples_array:
+        returned = session.execute(
+            select(Models.NutrientSamples).filter_by(run_number=row[7], peak_number=row[2])).scalar()
+        if returned:
+            returned.sample_id = row[0]
+            returned.cup_type = row[1]
+            returned.peak_number = row[2]
+            returned.dilution = row[3]
+            returned.time = row[4]
+            returned.deployment = row[5]
+            returned.rosette_position = row[6]
+            returned.run_number = row[7]
+            returned.survey_name = row[8]
+            sample_db_ids.append(returned.id)
+        else:
+            row = Models.NutrientSamples(sample_id=row[0], cup_type=row[1], peak_number=row[2], dilution=row[3],
+                                         time=row[4], deployment=row[5], rosette_position=row[6], run_number=row[7],
+                                         survey_name=row[8])
+            session.add(row)
+            session.commit()
+            sample_db_ids.append(row.id)
+    return sample_db_ids
+
+def save_nutrient_measurements(session, measurements_array):
+    for row in measurements_array:
+        returned = session.execute(
+            select(Models.NutrientMeasurements).filter_by(nutrient_sample=row[4], analyte=row[5])).scalar()
+        if returned:
+            returned.raw_measurement = row[0]
+            returned.corrected_measurement = row[1]
+            returned.concentration = row[2]
+            returned.quality_flag = row[3]
+            returned.nutrient_sample = row[4]
+            returned.analyte = row[5]
+
+        else:
+            row = Models.NutrientMeasurements(raw_measurement=row[0], corrected_measurement=row[1], concentration=row[2],
+                                         quality_flag=row[3], nutrient_sample=row[4], analyte=row[5])
+            session.add(row)
+        session.commit()
 
 def pack_data(slk_data, working_data, database, file_path):
+
+    engine = create_engine("sqlite+pysqlite:///C:/HyPro/sqlite_sqlalchemy_testing_db.db", echo=False)
+    session = Session(engine)
+
+    # Lets save the analyte in use
+    exists = session.query(Models.NutrientAnalyte.id).filter_by(type=working_data.analyte).scalar()
+    if not exists:
+        nut = Models.NutrientAnalyte(type=working_data.analyte)
+        session.add(nut)
+        session.commit()
+        nut_id = nut.id
+    else:
+        nut_id = exists
+
+    analyte_list = [nut_id for x in slk_data.sample_ids]
+
+    # Check if the run has been added to the db
+    exists = session.query(Models.NutrientRun.id).filter_by(file_name=working_data.run).scalar()
+    if not exists:
+        run = Models.NutrientRun(file_name = working_data.run)
+        session.add(run)
+        session.commit()
+
+        run_id = run.id
+    else:
+        run_id = exists
+
+    # Check if the survey exists in the database
+    for survey in set(slk_data.survey):
+        exists = session.query(Models.Survey.id).filter_by(survey_name=survey).scalar()
+        if not exists:
+            session.add(Models.Survey(survey_name=survey))
+            session.commit()
+
+    # Return the survey ID of the survey for each sample
+    survey_id_list = []
+    for survey in slk_data.survey:
+        result = session.query(Models.Survey.id).filter_by(survey_name=survey).scalar()
+        survey_id_list.append(result)
+
+    run_id_list = [run_id for x in slk_data.sample_ids]
+    peak_number = [i for i, x in enumerate(slk_data.sample_ids)]
+
+
+    arr = list(zip(slk_data.sample_ids, slk_data.cup_types, peak_number, working_data.dilution_factor,
+                   slk_data.epoch_timestamps, slk_data.deployment, slk_data.rosette_position, run_id_list,
+                   survey_id_list))
+
+    sample_db_ids = save_nutrient_samples(session, arr)
+
     conn = sqlite3.connect(database)
     c = conn.cursor()
 
-    run_list = [slk_data.run_number for x in slk_data.sample_ids]
-    peak_number = [i for i, x in enumerate(slk_data.sample_ids)]
+    arr = list(zip(working_data.raw_window_medians, working_data.corr_window_medians,
+                   working_data.calculated_concentrations, working_data.quality_flag, sample_db_ids, analyte_list))
 
-    package = tuple(zip(run_list, slk_data.cup_types, slk_data.sample_ids, peak_number,
+    save_nutrient_measurements(session, arr)
+
+    run_id_list = [slk_data.run_number for x in slk_data.sample_ids]
+    package = tuple(zip(run_id_list, slk_data.cup_types, slk_data.sample_ids, peak_number,
                         working_data.raw_window_medians, working_data.corr_window_medians,
                         working_data.calculated_concentrations, slk_data.survey, slk_data.deployment,
                         slk_data.rosette_position, working_data.quality_flag, working_data.dilution_factor,
@@ -766,6 +867,18 @@ def pack_data(slk_data, working_data, database, file_path):
 
     c.executemany('INSERT OR REPLACE INTO %sData VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)' % working_data.analyte, package)
     conn.commit()
+
+    row = Models.NutrientHeader(analyte=working_data.analyte, run_number=run_id, channel=working_data.channel,
+                                gain=slk_data.gains[working_data.analyte],
+                                baseline_offset=slk_data.bases[working_data.analyte],
+                                carryover_coefficient=working_data.carryover_coefficient,
+                                cal_zero_mean_ad=working_data.calibrant_zero_mean,
+                                cal_coefficient_one=working_data.calibration_coefficients[0],
+                                cal_coefficient_two=working_data.calibration_coefficients[1])
+    try:
+        session.add(row)
+    except:
+        pass
 
     package = (working_data.analyte, working_data.run, working_data.channel,
                         slk_data.gains[working_data.analyte], slk_data.bases[working_data.analyte],
@@ -801,12 +914,12 @@ def pack_data(slk_data, working_data, database, file_path):
     c.executemany('INSERT OR REPLACE INTO nutrientDrifts VALUES (?,?,?,?,?,?)', package)
     conn.commit()
 
-    # Put file modfied time into db as nutrient file processed
+    # Put file modified time into db as nutrient file processed
     mod_time = float(os.path.getmtime(file_path))
     c.executemany('INSERT OR REPLACE INTO nutrientFilesProcessed VALUES(?,?)', ((working_data.run, mod_time),))
     conn.commit()
 
-    package = tuple(zip(run_list, slk_data.sample_ids, slk_data.cup_types, peak_number, slk_data.survey,
+    package = tuple(zip(run_id_list, slk_data.sample_ids, slk_data.cup_types, peak_number, slk_data.survey,
                         slk_data.deployment, slk_data.rosette_position, slk_data.epoch_timestamps))
     c.executemany('INSERT OR REPLACE INTO nutrientMeasurements VALUES (?,?,?,?,?,?,?,?)', package)
     conn.commit()
@@ -847,37 +960,37 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
     if 'test' in sample_id[0:4].lower():
         return 'Test', 'Test', 'Test'
 
-    if cup_type == params['nutrientprocessing']['cupnames']['null']:
+    if cup_type == params['nutrient_processing']['cup_names']['null']:
         return 'Null', 'Null', 'Null'
 
-    if ((cup_type == params['nutrientprocessing']['cupnames']['primer']) or
-        (cup_type == params['nutrientprocessing']['cupnames']['recovery']) or
-        (cup_type == params['nutrientprocessing']['cupnames']['high']) or
-        (cup_type == params['nutrientprocessing']['cupnames']['low']) or
-        (cup_type == params['nutrientprocessing']['cupnames']['end']) or
-        (cup_type == params['nutrientprocessing']['cupnames']['drift']) or
-        (cup_type == params['nutrientprocessing']['cupnames']['baseline']) or
-        (cup_type == params['nutrientprocessing']['cupnames']['calibrant']) or
-        (sample_id == params['nutrientprocessing']['qcsamplenames']['driftcheck'])):
+    if ((cup_type == params['nutrient_processing']['cup_names']['primer']) or
+        (cup_type == params['nutrient_processing']['cup_names']['recovery']) or
+        (cup_type == params['nutrient_processing']['cup_names']['high']) or
+        (cup_type == params['nutrient_processing']['cup_names']['low']) or
+        (cup_type == params['nutrient_processing']['cup_names']['end']) or
+        (cup_type == params['nutrient_processing']['cup_names']['drift']) or
+        (cup_type == params['nutrient_processing']['cup_names']['baseline']) or
+        (cup_type == params['nutrient_processing']['cup_names']['calibrant']) or
+        (sample_id == params['nutrient_processing']['qc_sample_names']['driftcheck'])):
         return 'StandardQC', 'StandardQC', 'StandardQC'
 
-    if (params['nutrientprocessing']['qcsamplenames']['rmns'] in sample_id):
+    if (params['nutrient_processing']['qc_sample_names']['rmns'] in sample_id):
         return 'RMNS', 'RMNS', 'RMNS'
-    if (params['nutrientprocessing']['qcsamplenames']['mdl'] in sample_id):
+    if (params['nutrient_processing']['qc_sample_names']['mdl'] in sample_id):
         return 'MDL', 'MDL', 'MDL'
-    if (params['nutrientprocessing']['qcsamplenames']['bqc'] in sample_id):
+    if (params['nutrient_processing']['qc_sample_names']['bqc'] in sample_id):
         return 'BQC', 'BQC', 'BQC'
-    if (params['nutrientprocessing']['qcsamplenames']['internalqc'] in sample_id):
+    if (params['nutrient_processing']['qc_sample_names']['internalqc'] in sample_id):
         return 'INTQC', 'INTQC', 'INTQC'
 
-    surveys = list(params['surveyparams'].keys())
+    surveys = list(params['survey_params'].keys())
     for surv in surveys:
-        if params['surveyparams'][surv]['seal']['activated']:
-            if params['surveyparams'][surv]['seal']['usesampleid']:
+        if params['survey_params'][surv]['seal']['activated']:
+            if params['survey_params'][surv]['seal']['use_sample_id']:
                 return 'usingID', 'usingID', 'usingID'
             else:
                 if str(sample_id).isdigit():  # CTD sample is only numbers in name
-                    if params['surveyparams'][surv]['seal']['ctdsurvey']:
+                    if params['survey_params'][surv]['seal']['ctd_survey']:
                         survey = surv
                         rosettepos = sample_id[-2:]
                         deployment = sample_id[:-2]
@@ -893,17 +1006,17 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
 
 
                 else:  # Sample id has more than just numbers in it
-                    if params['surveyparams'][surv]['seal']['decodesampleid']:  # Decode the sample ID, needs a prefisurv too
-                        surveyprefix = params['surveyparams'][surv]['seal']['surveyprefix']
-                        if len(params['surveyparams'][surv]['seal']['surveyprefix']) > 0:  # Check theres actually a prefix
-                            sampleprefix = sample_id[0:len(params['surveyparams'][surv]['seal']['surveyprefix'])]
-                            if surveyprefix == sampleprefix:
+                    if params['survey_params'][surv]['seal']['decode_sample_id']:  # Decode the sample ID, needs a prefisurv too
+                        survey_prefix = params['survey_params'][surv]['seal']['survey_prefix']
+                        if len(params['survey_params'][surv]['seal']['survey_prefix']) > 0:  # Check theres actually a prefix
+                            sampleprefix = sample_id[0:len(params['survey_params'][surv]['seal']['survey_prefix'])]
+                            if survey_prefix == sampleprefix:
                                 survey = surv
                             else:
                                 logging.error('Sample ID: ' + str(sample_id) + ' does not match existing surveys')
                                 break
-                            if params['surveyparams'][surv]['seal']['decodedepfromid']:  # Decode a dep/rp
-                                depformat = params['surveyparams'][surv]['seal']['depformat']
+                            if params['survey_params'][surv]['seal']['decode_dep_from_id']:  # Decode a dep/rp
+                                depformat = params['survey_params'][surv]['seal']['depformat']
                                 depformatlength = depformat.count('D')
                                 rpformatlength = depformat.count('B')
                                 if depformatlength > 0:
@@ -912,7 +1025,7 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
 
                                     return deployment, rosettepos, survey
                             else:
-                                rosettepos = int(sample_id[len(surveyprefix):])
+                                rosettepos = int(sample_id[len(survey_prefix):])
                                 deployment = surv
                                 survey = surv
                                 return deployment, rosettepos, survey
@@ -1036,14 +1149,14 @@ def match_lat_lons_routine(path, project, database, current_nut, parameters, wor
 
     rvi_times = generate_rvi_timestamps(epoch_date, len(rvi_lon))
 
-    print(f"Underway sample name: {parameters['nutrientprocessing']['qcsamplenames']['underway']}")
-    print(f"Cup name of a sample: {parameters['nutrientprocessing']['cupnames']['sample']}")
+    print(f"Underway sample name: {parameters['nutrient_processing']['qc_sample_names']['underway']}")
+    print(f"Cup name of a sample: {parameters['nutrient_processing']['cup_names']['sample']}")
 
     sample_times, sample_concs = extract_underway_samples(slk_data.sample_ids, slk_data.cup_types,
                                                           working_data.quality_flag, slk_data.epoch_timestamps,
                                                           working_data.calculated_concentrations,
-                                                          parameters['nutrientprocessing']['qcsamplenames']['underway'],
-                                                          parameters['nutrientprocessing']['cupnames']['sample'])
+                                                          parameters['nutrient_processing']['qc_sample_names']['underway'],
+                                                          parameters['nutrient_processing']['cup_names']['sample'])
     print(f'Underway sample times: {sample_times}')
 
     if len(sample_times) == 0:

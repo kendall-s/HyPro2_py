@@ -61,10 +61,10 @@ class rmnsPlotWindowTemplate(QMainPlotterTemplate):
             c.execute('SELECT runNumber, sampleID FROM %sData' % nutq)
             data = list(c.fetchall())
             c.close()
-            rmnsnamelength = len(self.params['nutrientprocessing']['qcsamplenames']['rmns'])
+            rmnsnamelength = len(self.params['nutrient_processing']['qc_sample_names']['rmns'])
             listofrmns = []
             for i, x in enumerate(data):
-                if x[1][:rmnsnamelength] == self.params['nutrientprocessing']['qcsamplenames']['rmns']:
+                if x[1][:rmnsnamelength] == self.params['nutrient_processing']['qc_sample_names']['rmns']:
                     listofrmns.append(x)
             rmnslots = set([x[1][rmnsnamelength:(rmnsnamelength + 3)] for x in listofrmns])
 

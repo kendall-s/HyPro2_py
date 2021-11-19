@@ -53,8 +53,8 @@ class initSampleSheet(QObject):
             with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
                 params = json.loads(file.read())
 
-            prefixlength = len(params['analysisparams']['logsheet']['filePrefix'])
-            runformatlength = len(params['analysisparams']['logsheet']['runFormat'])
+            prefixlength = len(params['analysis_params']['logsheet']['file_prefix'])
+            runformatlength = len(params['analysis_params']['logsheet']['run_format'])
             depnum = self.file[prefixlength: (prefixlength + runformatlength)]
             depnumber = []
             for i in range(len(rosetteposition)):

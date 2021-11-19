@@ -17,8 +17,6 @@ class Datatable(QTableWidget):
 
         self.add_data(data)
 
-
-
     def add_data(self, data):
         # Add the data into the table
         for row, x in enumerate(data):
@@ -61,7 +59,11 @@ class Datatable(QTableWidget):
             return True
         return super(QTableWidget, self).eventFilter(source, event)
 
-    def copy_selection(self):
+
+    def copy_selection(self, copy_headers=False, header=False):
+        """
+        Provides functionality for copying data from the table
+        """
         selection = self.selectedIndexes()
         if selection:
             rows = sorted(index.row() for index in selection)
@@ -74,5 +76,9 @@ class Datatable(QTableWidget):
                 column = index.column() - columns[0]
                 table[row][column] = index.data()
             stream = io.StringIO()
+            if copy_headers:
+                left_most_col = min(columns)
+                right_most_col = max(columns)
+                csv.writer(stream, delimiter='\t').writerow(header[left_most_col: right_most_col+1])
             csv.writer(stream, delimiter='\t').writerows(table)
             QApplication.clipboard().setText(stream.getvalue())

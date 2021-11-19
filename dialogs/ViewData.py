@@ -1,17 +1,18 @@
 # https://stackoverflow.com/questions/283645/python-list-in-sql-query-as-parameter
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QAction
 import sqlite3
 from dialogs.templates.DataTable import Datatable
-from dialogs.templates.DialogTemplate import hyproDialogTemplate
+from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from processing.algo.ComplexSQL import export_ctd_data, export_all_nuts, export_all_nuts_in_survey
 
 NUTRIENT_HEADER = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
                    'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
 HEADERS = {
-    'Salinity': ['Run Number', 'Deployment', 'Bottle Label', 'Date/Time', 'Uncorrected Ratio',
+            'Salinity': ['Run Number', 'Deployment', 'Bottle Label', 'Date/Time', 'Uncorrected Ratio',
                        'Unorrected Ratio StDev', 'Salinity', 'Salinity StDev', 'Comment', 'Flag', 'Deployment',
                        'RP', 'Survey'],
-           'Dissolved Oxygen': ['Run Number', 'Station #', 'Cast', 'RP', 'Bottle ID', 'Bottle Vol', 'Raw Titer', 'Titer',
+           'Oxygen': ['Run Number', 'Station #', 'Cast', 'RP', 'Bottle ID', 'Bottle Vol', 'Raw Titer', 'Titer',
                        'Oxygen', 'Oxygen uM', 'Thio Temp', 'Draw Temp', 'Final Volt', 'Time', 'Flag', 'Deployment',
                        'RP', 'Survey'],
            'CTD': ['Deployment', 'Temp #1', 'Temp #2', 'Conductivity #1', 'Conductivity #2', 'Oxygen #1',
@@ -35,7 +36,7 @@ HEADERS = {
 }
 
 
-class viewData(hyproDialogTemplate):
+class viewData(hyproMainWindowTemplate):
     def __init__(self, survey, analysis, view, selected, database):
         super().__init__(1450, 600, 'HyPro - View Data')
 
@@ -46,20 +47,36 @@ class viewData(hyproDialogTemplate):
         self.db = database
 
         self.data = self.get_data()
-        self.init_ui()
+        if self.data:
+            self.init_ui()
+            self.show()
 
-        self.show()
 
     def init_ui(self):
 
         self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint);
 
-        self.datatable = Datatable(self.data)
-        self.datatable.setHorizontalHeaderLabels(HEADERS[self.analysis])
+        """
+        Set up the menu bar
+        """
 
-        self.grid_layout.addWidget(self.datatable, 0, 0)
+        file_menu = self.main_menu.addMenu('File')
+        edit_menu = self.main_menu.addMenu('Edit')
 
-        self.datatable.resizeColumnsToContents()
+        copy_with_headers = QAction('Copy w/Header', self)
+        copy_with_headers.triggered.connect(self.copy_with_headers)
+        edit_menu.addAction(copy_with_headers)
+
+        copy_all = QAction('Copy All', self)
+        copy_all.triggered.connect(self.copy_all)
+        edit_menu.addAction(copy_all)
+
+        self.data_table_widget = Datatable(self.data)
+        self.data_table_widget.setHorizontalHeaderLabels(HEADERS[self.analysis])
+
+        self.grid_layout.addWidget(self.data_table_widget, 0, 0)
+
+        self.data_table_widget.resizeColumnsToContents()
 
 
     def get_data(self):
@@ -68,8 +85,11 @@ class viewData(hyproDialogTemplate):
 
         query_length_deployments = ', '.join('?' for unused in self.selected)
 
+        if self.analysis == 'Dissolved Oxygen':
+            self.analysis = 'Oxygen'
+
         """
-        If statements here follow analysis -> survey -> view structuring 
+        If statements here follow: analysis -> survey -> view structuring 
         """
         if self.analysis == 'All Available Nutrients':
             # If survey is Any, we can remove the survey filter from the query
@@ -98,7 +118,7 @@ class viewData(hyproDialogTemplate):
             elif self.view == 'File':
                 q = 'SELECT * FROM %sData WHERE deployment IN (%s)' % (lower_case_analysis, query_length_deployments)
 
-        # Everything else includes the individual nutrients, salinity and DO
+        # Everything else includes the individual nutrients, salinity and D.O
         else:
             # Again, if survey is any we remove the WHERE for survey
             if self.survey == 'Any':
@@ -130,3 +150,17 @@ class viewData(hyproDialogTemplate):
         conn.close()
 
         return data
+
+    def copy_all(self):
+        """
+        Envokes the copy selection function after forcing all cells to be selected.
+        """
+        self.data_table_widget.selectAll()
+        self.data_table_widget.copy_selection(copy_headers=True, header=HEADERS[self.analysis])
+        self.data_table_widget.clearSelection()
+
+    def copy_with_headers(self):
+        """
+        Instead of just copying data, this can be used to copy the header row as well
+        """
+        self.data_table_widget.copy_selection(copy_headers=True, header=HEADERS[self.analysis])

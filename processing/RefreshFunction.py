@@ -72,41 +72,41 @@ class refreshFunction(QObject):
 
                         if (file not in processed_file_names) or file_changed:
 
-                            if folder == 'CTD' and self.params['analysisparams']['seasave']['activated'] == True:
-                                run_format_length = -(len(self.params['analysisparams']['seasave']['runFormat']) + 4)
-                                if file[: run_format_length] == self.params['analysisparams']['seasave']['filePrefix']:
-                                    logging.info(f'Nutrient file {file} found. Not yet in database.')
+                            if folder == 'CTD' and self.params['analysis_params']['seasave']['activated'] == True:
+                                run_format_length = -(len(self.params['analysis_params']['seasave']['run_format']) + 4)
+                                if file[: run_format_length] == self.params['analysis_params']['seasave']['file_prefix']:
+                                    logging.info(f'CTD file {file} found. Not yet in database.')
                                     self.files_found['CTD'].append(file)
                                 else:
                                     logging.info(f'{file} does not match analysis settings')
 
-                            if folder == 'Nutrients' and self.params['analysisparams']['seal']['activated'] == True:
-                                run_format_length = -(len(self.params['analysisparams']['seal']['runFormat']) + 4)
-                                if file[: run_format_length] == self.params['analysisparams']['seal']['filePrefix']:
+                            if folder == 'Nutrients' and self.params['analysis_params']['seal']['activated'] == True:
+                                run_format_length = -(len(self.params['analysis_params']['seal']['run_format']) + 4)
+                                if file[: run_format_length] == self.params['analysis_params']['seal']['file_prefix']:
                                     logging.info(f'Nutrient file {file} found. Not yet in database.')
                                     self.files_found['Nutrients'].append(file)
                                 else:
                                     logging.info(f'{file} does not match analysis settings')
 
-                            if folder == 'Salinity' and self.params['analysisparams']['guildline']['activated'] == True:
-                                run_format_length = -(len(self.params['analysisparams']['guildline']['runFormat']) + 5)
-                                if file[: run_format_length] == self.params['analysisparams']['guildline']['filePrefix']:
+                            if folder == 'Salinity' and self.params['analysis_params']['guildline']['activated'] == True:
+                                run_format_length = -(len(self.params['analysis_params']['guildline']['run_format']) + 5)
+                                if file[: run_format_length] == self.params['analysis_params']['guildline']['file_prefix']:
                                     logging.info(f'Salinity file {file} found. Not yet in database.')
                                     self.files_found['Salinity'].append(file)
                                 else:
                                     logging.info(f'{file} does not match analysis settings')
 
-                            if folder == 'Oxygen' and self.params['analysisparams']['scripps']['activated'] == True:
-                                run_format_length = -(len(self.params['analysisparams']['scripps']['runFormat']) + 4)
-                                if file[: run_format_length] == self.params['analysisparams']['scripps']['filePrefix']:
+                            if folder == 'Oxygen' and self.params['analysis_params']['scripps']['activated'] == True:
+                                run_format_length = -(len(self.params['analysis_params']['scripps']['run_format']) + 4)
+                                if file[: run_format_length] == self.params['analysis_params']['scripps']['file_prefix']:
                                     logging.info(f'Oxygen file {file} found. Not yet in database.')
                                     self.files_found['Oxygen'].append(file)
                                 else:
                                     logging.info(f'{file} does not match analysis settings')
 
-                            if folder == 'Sampling' and self.params['analysisparams']['logsheet']['activated'] == True:
-                                neglen = -(len(self.params['analysisparams']['logsheet']['runFormat']) + 5)
-                                if file[: neglen] == self.params['analysisparams']['logsheet']['filePrefix']:
+                            if folder == 'Sampling' and self.params['analysis_params']['logsheet']['activated'] == True:
+                                neglen = -(len(self.params['analysis_params']['logsheet']['run_format']) + 5)
+                                if file[: neglen] == self.params['analysis_params']['logsheet']['file_prefix']:
                                     logging.info('Logsheet file - ' + file + ' found. Not yet in database.')
                                     self.files_found['Sampling'].append(file)
                                 else:

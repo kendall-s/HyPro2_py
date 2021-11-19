@@ -3,6 +3,7 @@ import sqlite3
 from dialogs.ViewData import viewData
 import traceback
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
+from PyQt5.QtCore import Qt
 
 DATABASE_NAME_CONVERTER = {'Salinity': 'salinity', 'Dissolved Oxygen': 'oxygen', 'Nitrate': 'nitrate',
                            'Silicate': 'silicate', 'Phosphate': 'phosphate', 'Nitrite': 'nitrite', 'Ammonia': 'ammonia'}
@@ -27,11 +28,15 @@ class viewDataDialog(hyproDialogTemplate):
 
 
     def init_ui(self):
+
+        # Remove modality for this dialog, not really necessary
+        self.setWindowModality(Qt.NonModal)
+
         survey_label = QLabel('Survey:')
 
         self.survey_combo = QComboBox()
         self.survey_combo.clear()
-        self.survey_combo.addItems(self.params['surveyparams'].keys())
+        self.survey_combo.addItems(self.params['survey_params'].keys())
         self.survey_combo.addItems(['Any', 'StandardQC', 'RMNS', 'Null', 'MDL', 'BQC', 'Test'])
         self.survey_combo.setEditable(True)
         self.survey_combo.setEditable(False)

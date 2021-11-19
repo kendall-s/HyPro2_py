@@ -96,6 +96,8 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
 
         self.apply_button.clicked.connect(self.draw_data)
 
+        self.run_list_label.setText('Select Deployment:')
+
         self.populate_deployment_list()
 
         self.show()

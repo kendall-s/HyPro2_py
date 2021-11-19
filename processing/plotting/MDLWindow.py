@@ -50,11 +50,11 @@ class mdlPlotWindowTemplate(QMainPlotterTemplate):
             data = list(c.fetchall())
             c.close()
 
-            mdl = self.params['nutrientprocessing']['qcsamplenames']['mdl']
+            mdl = self.params['nutrient_processing']['qc_sample_names']['mdl']
             runnums = []
             for i, x in enumerate(data):
                 if mdl in x[1]:
-                    runnums.append(x[0])
+                    runnums.append(int(x[0]))
             self.run_list.clear()
             rn = sorted(list(set(runnums)))
             for x in rn:
@@ -69,7 +69,7 @@ class mdlPlotWindowTemplate(QMainPlotterTemplate):
         selected = self.run_list.selectedItems()
         selected_runs = [item.text() for item in selected]
 
-        mdl = self.params['nutrientprocessing']['qcsamplenames']['mdl']
+        mdl = self.params['nutrient_processing']['qc_sample_names']['mdl']
 
         queryq = '?'
         queryplaceruns = ', '.join(queryq for unused in selected_runs)

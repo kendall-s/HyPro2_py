@@ -1,5 +1,10 @@
 import sqlite3
 from sqlite3 import Error
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, Session, relationship
+from sqlalchemy import Table, Column, Integer, String, Float, ForeignKey, select
+
+from processing.algo.Models import *
 
 # This is a dirty file left over from the start, all it essentially is used for is completing the setup of
 # the database and the tables within, it is kept as it is needed for new projects...
@@ -272,8 +277,12 @@ def form_tables(database):
                         time FLOAT,
                         UNIQUE(time))''')
 
+    conn.commit()
+    conn.close()
 
-    c.close()
+    engine = create_engine(f"sqlite+pysqlite:///C:/HyPro/sqlite_sqlalchemy_testing_db.db", echo=False)
+    Base.metadata.create_all(engine, checkfirst=True)
+    engine.dispose()
 
     print('Data tables created and running')
 

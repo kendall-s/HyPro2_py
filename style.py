@@ -126,12 +126,13 @@ QPushButton[sideBarButton=true]:pressed {
 }
 QPushButton[nutrientControls=true] {
     color: #222222;
-    border: 1px solid #EDEDED;
-    border-radius: 5px;
+    border: 1px solid #B9BCBF;
+    border-radius: 7px;
     font: 15px;
+    padding: 5px;
 }
 QPushButton[nutrientControls=true]:hover {
-    border: 2px solid #C7E6FF;
+    border: 1px solid #C7E6FF;
     background-color: #E0F0FF;
 }
 QPushButton[nutrientControls=true]:pressed {
@@ -341,7 +342,35 @@ QMenuBar {
 QToolTip {
     font: 15px Segoe UI;
 }
+
+
+/* --------------------------------------- QSplitterHandle ---------
+
+---------------------------------------------------------- */
+
+QSplitter:handle {
+    background-color: rgb(255, 255, 255);
+}
+
+
+/* --------------------------------------- QDockWidget ---------
+
+---------------------------------------------------------- */
+
+QDockWidget {
+    background-color: rgb(255, 255, 255);
+    border: 0px;
+    font: 16px Segoe UI;
+}
+
+QTabBar{
+    font: 14px Segoe UI;
+}
+
+
+
 """
+
 
 '''
 ****************************************************************************************************
@@ -471,7 +500,9 @@ QPushButton[msgBox=true] {
 QPushButton[nutrientControls=true] {
     border: 1px solid #858585;
     background-color: #333333;
-    border-radius: 2px;
+    border-radius: 5px;
+    padding: 5px;
+    font: 15px;
 }
 QPushButton[nutrientControls=true]:hover {
     color: #ccd5e0;
@@ -569,6 +600,10 @@ QCheckBox {
 /* --------------------------------- QTabWidget ----------
 
 ---------------------------------------------------------- */
+QTabBar{
+    font: 14px Segoe UI;
+}
+
 QTabWidget QWidget {
     font: 14px Segoe UI;
     color: white;
@@ -777,88 +812,117 @@ QToolTip {
     border-radius 2px;   
 }
 
+
+/* --------------------------------------- QSplitterHandle ---------
+
+---------------------------------------------------------- */
+
+QSplitter:handle {
+    background-color: rgb(39, 40, 34);
+}
+
+/* --------------------------------------- QDockWidget ---------
+
+---------------------------------------------------------- */
+
+QDockWidget {
+    background-color: rgb(255, 255, 255);
+    border: 0px;
+    font: 16px Segoe UI;
+}
+
 """
-              }
+}
 
 # Cheekily putting this in here for ease.
 default_params = {
-    "nutrientprocessing": {
-        "elementNames": {
-            "silicateName": "SILICATE",
-            "phosphateName": "PHOSPHATE",
-            "nitrateName": "NOx",
-            "nitriteName": "NITRITE",
-            "ammoniaName": "AMMONIA"
+    "nutrient_processing": {
+        "element_names": {
+            "silicate_name": "SILICATE",
+            "phosphate_name": "PHOSPHATE",
+            "nitrate_name": "NOx",
+            "nitrite_name": "NITRITE",
+            "ammonia_name": "AMMONIA"
         },
-        "processingpars": {
+        "processing_pars": {
             "silicate": {
-                "peakPeriod": 80,
-                "washPeriod": 40,
-                "windowSize": 37,
-                "windowStart": 36,
-                "driftCorrType": "Piecewise",
-                "baseCorrType": "Piecewise",
-                "carryoverCorr": True,
+                "peak_period": 80,
+                "wash_period": 40,
+                "window_size": 37,
+                "window_start": 36,
+                "drift_corr_type": "Piecewise",
+                "base_corr_type": "Piecewise",
+                "carryover_corr": True,
                 "calibration": "Linear",
-                "calerror": 0.2,
-                "sigdigits": 2,
-                "duplicateError": 0.2,
+                "cal_error": 0.2,
+                "sig_digits": 2,
+                "duplicate_error": 0.2,
+                "drift_error": 1,
+                "baseline_error": 1,
             },
             "phosphate": {
-                "peakPeriod": 80,
-                "washPeriod": 40,
-                "windowSize": 29,
-                "windowStart": 39,
-                "driftCorrType": "Piecewise",
-                "baseCorrType": "Piecewise",
-                "carryoverCorr": True,
+                "peak_period": 80,
+                "wash_period": 40,
+                "window_size": 29,
+                "window_start": 39,
+                "drift_corr_type": "Piecewise",
+                "base_corr_type": "Piecewise",
+                "carryover_corr": True,
                 "calibration": "Linear",
-                "calerror": 0.02,
-                "sigdigits": 3,
-                "duplicateError": 0.02,
+                "cal_error": 0.02,
+                "sig_digits": 3,
+                "duplicate_error": 0.02,
+                "drift_error": 1,
+                "baseline_error": 1,
             },
             "nitrate": {
-                "peakPeriod": 80,
-                "washPeriod": 40,
-                "windowSize": 22,
-                "windowStart": 40,
-                "driftCorrType": "Piecewise",
-                "baseCorrType": "Piecewise",
-                "carryoverCorr": True,
+                "peak_period": 80,
+                "wash_period": 40,
+                "window_size": 22,
+                "window_start": 40,
+                "drift_corr_type": "Piecewise",
+                "base_corr_type": "Piecewise",
+                "carryover_corr": True,
                 "calibration": "Linear",
-                "calerror": 0.02,
-                "sigdigits": 3,
-                "duplicateError": 0.6,
+                "cal_error": 0.02,
+                "sig_digits": 3,
+                "duplicate_error": 0.6,
+                "drift_error": 1,
+                "baseline_error": 1,
             },
             "nitrite": {
-                "peakPeriod": 80,
-                "washPeriod": 40,
-                "windowSize": 29,
-                "windowStart": 40,
-                "driftCorrType": "Piecewise",
-                "baseCorrType": "Piecewise",
-                "carryoverCorr": True,
+                "peak_period": 80,
+                "wash_period": 40,
+                "window_size": 29,
+                "window_start": 40,
+                "drift_corr_type": "Piecewise",
+                "base_corr_type": "Piecewise",
+                "carryover_corr": True,
                 "calibration": "Linear",
-                "calerror": 0.02,
-                "sigdigits": 3,
-                "duplicateError": 0.02,
+                "cal_error": 0.02,
+                "sig_digits": 3,
+                "duplicate_error": 0.02,
+                "drift_error": 1,
+                "baseline_error": 1,
             },
             "ammonia": {
-                "peakPeriod": 80,
-                "washPeriod": 40,
-                "windowSize": 28,
-                "windowStart": 45,
-                "driftCorrType": "Piecewise",
-                "baseCorrType": "Piecewise",
-                "carryoverCorr": True,
+                "peak_period": 80,
+                "wash_period": 40,
+                "window_size": 28,
+                "window_start": 45,
+                "drift_corr_type": "Piecewise",
+                "base_corr_type": "Piecewise",
+                "carryover_corr": True,
                 "calibration": "Linear",
-                "calerror": 0.02,
-                "sigdigits": 3,
-                "duplicateError": 0.02,
+                "cal_error": 0.02,
+                "sig_digits": 3,
+                "duplicate_error": 0.02,
+                "drift_error": 1,
+                "baseline_error": 1,
             }
         },
         "calibrants": {
-            "maxnumber": "7",
+            "max_number": "7",
             "cal0": "Cal 0",
             "cal1": "Cal 1",
             "cal2": "Cal 2",
@@ -867,13 +931,13 @@ default_params = {
             "cal5": "Cal 5",
             "cal6": "Cal 6"
         },
-        "slkcolumnnames": {
-            "sampleID": "Sample ID",
-            "cupNumbers": "Cup Number",
-            "cupTypes": "Cup Type",
-            "dateTime": "Date Time Stamp"
+        "slk_col_names": {
+            "sample_id": "Sample ID",
+            "cup_numbers": "Cup Number",
+            "cup_types": "Cup Type",
+            "date_time": "Date Time Stamp"
         },
-        "cupnames": {
+        "cup_names": {
             "primer": "PRIM",
             "recovery": "UNKNOWN",
             "drift": "DRIF",
@@ -885,7 +949,7 @@ default_params = {
             "end": "END",
             "sample": "SAMP"
         },
-        "qcsamplenames": {
+        "qc_sample_names": {
             "rmns": "RMNS",
             "mdl": "MDL",
             "bqc": "BQC",
@@ -893,67 +957,67 @@ default_params = {
             "driftcheck": "Drift Sample Check",
             "underway": "UWY Sample"
         },
-        "qcplotted":
+        "qc_plotted":
             [
                 {"formatname": "RMNS", "sampleid": "RMNS"},
                 {"formatname": "MDL", "sampleid": "MDL"},
             ]
 
     },
-    "analysisparams": {
+    "analysis_params": {
         "seal": {
-            "filePrefix": "",
-            "runFormat": "RRR",
+            "file_prefix": "",
+            "run_format": "RRR",
             "activated": False
         },
         "guildline": {
-            "filePrefix": "",
-            "runFormat": "RRR",
+            "file_prefix": "",
+            "run_format": "RRR",
             "activated": False
         },
         "scripps": {
-            "filePrefix": "",
-            "runFormat": "RRR",
+            "file_prefix": "",
+            "run_format": "RRR",
             "activated": False
         },
         "seasave": {
-            "filePrefix": "",
-            "runFormat": "RRR",
+            "file_prefix": "",
+            "run_format": "RRR",
             "activated": False
         },
         "logsheet": {
-            "filePrefix": "",
-            "runFormat": "RRR",
+            "file_prefix": "",
+            "run_format": "RRR",
             "activated": False
         }
     },
-    "surveyparams": {
+    "survey_params": {
         "default": {
             "guildline": {
                 "activated": False,
-                "ctdsurvey": True,
-                "decodesampleid": False,
-                "surveyprefix": "",
-                "decodedepfromid": False,
+                "ctd_survey": True,
+                "decode_sample_id": False,
+                "survey_prefix": "",
+                "decode_dep_from_id": False,
                 "depformat": None,
-                "usesampleid": False
+                "use_sample_id": False
             },
             "scripps": {
                 "activated": False,
-                "ctdsurvey": True,
-                "decodesampleid": False,
-                "surveyprefix": None,
-                "decodedepfromid": False,
-                "usesampleid": False
+                "ctd_survey": True,
+                "decode_sample_id": False,
+                "survey_prefix": None,
+                "decode_dep_from_id": False,
+                "use_sample_id": False
             },
             "seal": {
                 "activated": False,
-                "ctdsurvey": True,
-                "decodesampleid": True,
-                "surveyprefix": None,
-                "decodedepfromid": True,
+                "ctd_survey": True,
+                "decode_sample_id": True,
+                "survey_prefix": None,
+                "decode_dep_from_id": True,
                 "depformat": "DDBB",
-                "usesampleid": False
+                "use_sample_id": False
             }
         }
     },

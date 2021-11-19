@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QApplication
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
-import json
+import json, os
 
 import hyproicons, style
 
@@ -39,7 +39,10 @@ class hyproMainWindowTemplate(QMainWindow):
         self.centralWidget().setLayout(self.grid_layout)
 
         # Set stylesheet to the one selected by the user.
-        with open('C:/HyPro/hyprosettings.json', 'r') as file:
-            params = json.loads(file.read())
-        theme = params['theme']
-        self.setStyleSheet(style.stylesheet[theme])
+        if os.path.isfile('C:/HyPro/hyprosettings.json'):
+            with open('C:/HyPro/hyprosettings.json', 'r') as file:
+                params = json.loads(file.read())
+            theme = params['theme']
+            self.setStyleSheet(style.stylesheet[theme])
+        else:
+            theme = 'normal'

@@ -6,8 +6,8 @@ import traceback
 
 
 def determine_run(file, processing_parameters):
-    file_prefix_length = len(processing_parameters['analysisparams']['guildline']['filePrefix'])
-    run_fomat_length = len(processing_parameters['analysisparams']['guildline']['runFormat'])
+    file_prefix_length = len(processing_parameters['analysis_params']['guildline']['file_prefix'])
+    run_fomat_length = len(processing_parameters['analysis_params']['guildline']['run_format'])
     run_number = file[file_prefix_length : (file_prefix_length + run_fomat_length)]
 
     return run_number
@@ -20,8 +20,8 @@ def populate_salinity_survey(sample_id, bottle_id, database_path, processing_par
     
     for i, s_id in enumerate(sample_id):
         b_id = bottle_id[i]
-        print(s_id)
-        print(b_id)
+        # print(s_id)
+        # print(b_id)
         dep, rp, surv = determine_salinity_survey(s_id, b_id, database_path, processing_parameters)
         deployments.append(dep)
         rosette_positions.append(rp)
@@ -34,7 +34,7 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
     conn = sqlite3.connect(database_path)
     c = conn.cursor()
 
-    surveys = list(processing_parameters['surveyparams'].keys())
+    surveys = list(processing_parameters['survey_params'].keys())
 
     if sample_id == 'OSIL' or sample_id == '':
         deployment = 'standard'
@@ -42,38 +42,49 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
         survey = 'standard'
         return deployment, rosette_position, survey
 
+    # Check if the sample_id includes text
+    try:
+        temp = float(sample_id)
+        includes_text = False
+    except ValueError:
+        includes_text = True
+
     for surv in surveys:
-        if processing_parameters['surveyparams'][surv]['guildline']['activated']:
-            if processing_parameters['surveyparams'][surv]['guildline']['usesampleid']:
+        # If this survey is activated for use with the analyte, proceed.
+        if processing_parameters['survey_params'][surv]['guildline']['activated']:
+            # If the survey is just to use the sample id (i.e. on shore!!)
+            if processing_parameters['survey_params'][surv]['guildline']['use_sample_id']:
                 deployment = 'usingID'
                 rosette_position = 'usingID'
                 survey = 'usingID'
                 return deployment, rosette_position, survey
             else:
-                if str(int(float(sample_id))).isdigit():
-                    if processing_parameters['surveyparams'][surv]['guildline']['ctdsurvey']:
-                        deployment = int(float(sample_id))
-                        survey = surv
-                        c.execute('SELECT * from logsheetData WHERE deployment=?', [deployment, ])
-                        logsheet_data = list(c.fetchall())
-                        if logsheet_data:
-                            ros_p = [x[1] for x in logsheet_data]
-                            salt_label = [x[4] for x in logsheet_data]
-                            for m, label in enumerate(salt_label):
-                                if bottle_id.lower() == label.lower():
-                                    rosette_position = ros_p[m]
-                                    return deployment, rosette_position, survey
-                        else:
-                            logging.error('Logsheet data is not in the database for ' + str(sample_id))
-                            break
+                # Else this survey requires the sample id to be decoded
+                if not includes_text:
+                    if str(int(float(sample_id))).isdigit():
+                        if processing_parameters['survey_params'][surv]['guildline']['ctd_survey']:
+                            deployment = int(float(sample_id))
+                            survey = surv
+                            c.execute('SELECT * from logsheetData WHERE deployment=?', [deployment, ])
+                            logsheet_data = list(c.fetchall())
+                            if logsheet_data:
+                                ros_p = [x[1] for x in logsheet_data]
+                                salt_label = [x[4] for x in logsheet_data]
+                                for m, label in enumerate(salt_label):
+                                    if bottle_id.lower() == label.lower():
+                                        rosette_position = ros_p[m]
+                                        return deployment, rosette_position, survey
+                            else:
+                                logging.error('Logsheet data is not in the database for ' + str(sample_id))
+                                break
 
                 else:
-                    if processing_parameters['surveyparams'][surv]['guildline']['decodesampleid']:
-                        if processing_parameters['surveyparams'][surv]['guildline']['surveyprefix'] == sample_id[0:len(
-                        processing_parameters['surveyparams'][surv]['guildline']['surveyprefix'])]:
+                    if processing_parameters['survey_params'][surv]['guildline']['decode_sample_id']:
+                        if processing_parameters['survey_params'][surv]['guildline']['survey_prefix'] == sample_id[0:len(
+                        processing_parameters['survey_params'][surv]['guildline']['survey_prefix'])]:
                             survey = surv
-                            if processing_parameters['surveyparams'][surv]['guildline']['decodedepfromid']:
-                                dep_format = processing_parameters['surveyparams'][surv]['guildline']['depformat']
+                            if processing_parameters['survey_params'][surv]['guildline']['decode_dep_from_id']:
+                                dep_format = processing_parameters['survey_params'][surv]['guildline']['depformat']
                                 dep_format_length = dep_format.count('D')
                                 rp_format_length = dep_format.count('B')
                                 if dep_format_length > 0 and rp_format_length > 0:
@@ -91,6 +102,8 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
                                     rosette_position = 1
                                 deployment = 0
                                 return deployment, rosette_position, survey
+
+    return 'Unknown', 'Unknown', 'Unknown'
 
 def store_data(database, salinity_data, file, last_modified_time):
     try:

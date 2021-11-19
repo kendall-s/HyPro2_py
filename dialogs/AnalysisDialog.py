@@ -77,9 +77,9 @@ class analysisSettings(hyproDialogTemplate):
         with open(self.currpath +  '/' + '%sParams.json' % self.currproject, 'r') as file:
             params = json.loads(file.read())
 
-        self.prefixEdit.setText(params['analysisparams'][self.analysis]['filePrefix'])
-        self.runEdit.setText(params['analysisparams'][self.analysis]['runFormat'])
-        self.activateBox.setChecked(params['analysisparams'][self.analysis]['activated'])
+        self.prefixEdit.setText(params['analysis_params'][self.analysis]['file_prefix'])
+        self.runEdit.setText(params['analysis_params'][self.analysis]['run_format'])
+        self.activateBox.setChecked(params['analysis_params'][self.analysis]['activated'])
 
     # This saves what is written in to the dialog inputs, overwriting the info in parameters
     def save_function(self):
@@ -90,9 +90,9 @@ class analysisSettings(hyproDialogTemplate):
         with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
             params = json.loads(file.read())
 
-        params['analysisparams'][self.analysis]['filePrefix'] = prefix
-        params['analysisparams'][self.analysis]['runFormat'] = runformat
-        params['analysisparams'][self.analysis]['activated'] = active
+        params['analysis_params'][self.analysis]['file_prefix'] = prefix
+        params['analysis_params'][self.analysis]['run_format'] = runformat
+        params['analysis_params'][self.analysis]['activated'] = active
 
         with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'w') as file:
             json.dump(params, file)
