@@ -4,6 +4,7 @@ import os
 import sqlite3
 import time
 import traceback
+from PyQt5.QtCore import pyqtSignal, QObject
 
 import processing.RefreshFunction
 import processing.procdata.ProcessScrippsOxygen as pso
@@ -13,8 +14,12 @@ from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 from processing.plotting.OxygenProcessingWindow import oxygenDifferencesPlot
 
 
-class processingOxygenWindow():
+class processingOxygenWindow(QObject):
+
+    processing_completed = pyqtSignal()
+
     def __init__(self, file, database, path, project, interactive, rereading):
+        super().__init__()
         try:
             self.processing = True
 
@@ -142,4 +147,4 @@ class processingOxygenWindow():
         logging.info('Oyxgen file - ' + self.file + ' successfully processed')
 
         if not self.rereading:
-            refreshing = processing.RefreshFunction.refreshFunction(self.current_path, self.current_project, self.interactive)
+            self.processing_completed.emit()

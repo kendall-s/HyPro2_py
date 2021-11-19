@@ -171,3 +171,19 @@ def test_flag_null_sample():
 
     assert flags == [1, 1, 3, 1, 3, 1]
 
+
+def test_sample_id_dilution():
+    sample_ids = ['Test 1902', '1903', '1904', '1905 dil 5x', '1906 Dil10x']
+    dilution_factors = [1, 1, 1, 1, 1]
+
+    dilution_factors = psn.get_dilution_factor(sample_ids, dilution_factors)
+
+    assert dilution_factors == [1, 1, 1, 5, 10]
+
+def test_channel_specifier():
+    sample_ids = ['Test 1902', '1903 (1, )', '1904', '1905 dil 5x (2, )', '1906 Dil10x']
+    cup_types = ['SAMP', 'SAMP', 'SAMP', 'SAMP', 'SAMP']
+
+    spec_cup_types = psn.get_channel_specifier(sample_ids, cup_types, 1, 'NULL')
+
+    assert  spec_cup_types == ['SAMP', 'SAMP', 'SAMP', 'NULL', 'SAMP']

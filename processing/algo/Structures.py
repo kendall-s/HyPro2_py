@@ -38,6 +38,7 @@ class WorkingData:
         self.corr_window_medians = []
 
         self.adjusted_peak_starts = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
+        self.specific_cup_types = {'silicate': [], 'phosphate': [], 'nitrate': [], 'nitrite': [], 'ammonia': []}
 
         self.calculated_concentrations = []
 

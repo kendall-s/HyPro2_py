@@ -25,7 +25,7 @@ FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4: '#3CB6C9', 5: '#C927
                     91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
 '''
 
-File contains methods to produce various specific plots with the very specific nature of it
+File contains methods to produce various specific plots if you pass the Matplotlib figure, axes and data
 These are just all functions that will apply to data and changes to an axes or figure
 
 '''
@@ -63,13 +63,13 @@ def draw_drifts_baselines(fig, axes, basl_peak_st, basl_medians, drift_peak_st, 
     axes.plot(drift_peak_st, drift_medians, linewidth=1, color="#c6c600", label='drift')
 
 
-def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
+def recovery_plot(fig, axes, indexes, concentrations, ids, flags, title_append=''):
 
     del axes.lines[:]
     del axes.texts[:]
 
     # Figure out which ones are which, make a sub index number to reference the concentrations and flags
-    # The indexes parameter function references the peak index relative to the whole run just FYI
+    # The indexes parameter function references the peak number index relative to the whole run just FYI
 
     if indexes:
         # Get the subset indexes as lists, could be case where an analysis has multiple column checks
@@ -111,15 +111,17 @@ def recovery_plot(fig, axes, indexes, concentrations, ids, flags):
         axes.set_axis_off()
     fig.set_tight_layout(tight=True)
 
-def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients, r_score=1):
+def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coefficients, r_score=0, title_append=''):
     if len(axes.lines) > 0:
         del axes.lines[:]
         del axes.texts[:]
+
     else:
-        axes.set_title('Calibration Curve')
-        axes.set_xlabel('A/D Medians')
-        axes.set_ylabel('Calibrant Concentrations')
+        axes.set_xlabel('A/D Medians', fontsize=12)
+        axes.set_ylabel('Calibrant Concentrations', fontsize=12)
         axes.grid(alpha=0.3, zorder=1)
+
+    axes.set_title(f'Calibration Curve {title_append}', fontsize=14)
 
     fit = np.poly1d(cal_coefficients)
 
@@ -154,20 +156,21 @@ def calibration_curve_plot(fig, axes, cal_medians, cal_concs, flags, cal_coeffic
     axes.set_ylim((0-(max(cal_concs)*0.05)), max(cal_concs)*1.05)
     axes.set_xlim((0-(max(cal_medians)*0.05)), max(cal_medians)*1.05)
 
-    axes.annotate(f'R Squared: {round(r_score,4)}', xy=(0.8, 0.05), xycoords="axes fraction")
+    axes.annotate(f'R Squared: {round(r_score,4)}', xy=(0.76, 0.05), xycoords="axes fraction", fontsize=11)
 
     #axes.plot(cal_medians, cal_concs, marker='o', mfc='none', lw=0, ms=11)
     fig.set_tight_layout(tight=True)
 
-def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
+def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags, title_append=''):
     analyte_error = float(analyte_error)
     if len(axes.lines) > 0:
         del axes.lines[1:]
     else:
-        axes.set_title('Calibrant Error')
-        axes.set_xlabel('Calibrant Concentration')
-        axes.set_ylabel('Error from fitted concentration')
+        axes.set_xlabel('Calibrant Index', fontsize=12)
+        axes.set_ylabel('Error from fitted concentration', fontsize=12)
         axes.grid(alpha=0.3, zorder=1)
+
+    axes.set_title(f'Calibrant Error {title_append}', fontsize=14)
 
     axes.plot([0, max(cal)], [0, 0], lw=1.75, linestyle='--', alpha=0.7, zorder=2, color='#14E43E')
 
@@ -202,17 +205,21 @@ def calibration_error_plot(fig, axes, cal, cal_error, analyte_error, flags):
     handles, labels = axes.get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     axes.legend(by_label.values(), by_label.keys())
-    axes.set_xlim((0-(max(cal)*0.05)), max(cal)*1.05)
-    axes.set_ylim(min(cal_error)*0.9, max(cal_error)*1.1)
+    #axes.set_xlim((0-(max(cal)*0.05)), 0+max(cal)*1.05)
+    axes.set_xlim(min(cal)-1, max(cal)+ 1)
+
+    if max(cal_error) < analyte_error:
+        axes.set_ylim((analyte_error*1.4)*-1, (analyte_error*1.4))
+    else:
+        axes.set_ylim(0-max(cal_error)*1.4, max(cal_error)*1.4)
 
     fig.set_tight_layout(tight=True)
 
-def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medians, flags):
+def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medians, flags, title_append=''):
     if len(axes1.lines) > 0:
         del axes1.lines[:]
         del axes2.lines[:]
     else:
-        axes1.set_title('%s Peak Height' % type)
         axes1.set_xlabel('Peak Number')
         axes1.set_ylabel('Raw Peak Height (A/D)')
         axes1.grid(alpha=0.3, zorder=1)
@@ -220,6 +227,8 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
         axes2.set_xlabel('Peak Number')
         axes2.set_ylabel('Percentage of Top Cal (%)')
         axes2.grid(alpha=0.3, zorder=1)
+
+    axes1.set_title(f'{type} Peak Height {title_append}')
 
     axes1.plot(indexes, medians, mfc='none', linewidth=1.25, linestyle=':', color="#8C8C8C", alpha=0.9)
     for i, x in enumerate(flags):
@@ -245,9 +254,11 @@ def basedrift_correction_plot(fig, axes1, axes2, type, indexes, correction, medi
         axes1.set_ylim(min(medians) * 0.975, max(medians) * 1.025)
 
     axes2.plot(indexes, correction, lw=1.25, marker='s', ms=8, mfc='none', color='#6986e5')
+    axes2.relim()
     fig.set_tight_layout(tight=True)
 
-def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_flags=None, show_bad=None):
+def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_flags=None, show_bad=None,
+              title_append=''):
     nut_column = {'phosphate': 1, 'silicate': 3, 'nitrate': 5, 'nitrite': 7, 'ammonia': 9}
 
     del axes.lines[:]
@@ -283,9 +294,9 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
     axes.grid(alpha=0.2, zorder=1)
 
     for i, ind in enumerate(indexes):
-        axes.plot(ind, concentrations[i], lw=0, marker='o', ms=5, color=FLAG_COLORS[flags[i]])
+        axes.plot(ind, concentrations[i], lw=0, marker='o', ms=6, color=FLAG_COLORS[flags[i]])
 
-    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o', picker=5, mfc='None',  color='C0')
+    axes.plot(indexes, concentrations, lw=0.75, linestyle=':', marker='o', ms=10, picker=5, mfc='None',  color='C0')
 
     axes.set_ylim(min(concentrations) * 0.975, max(concentrations) * 1.025)
     axes.set_xlim(min(indexes)-1, max(indexes)+1)
@@ -295,17 +306,23 @@ def rmns_plot(fig, axes, indexes, concentrations, flags, rmns, nutrient, show_fl
         by_label = dict(zip(labels, handles))
         axes.legend(by_label.values(), by_label.keys())
 
-    axes.annotate(f'Average: {round(statistics.mean(concentrations), 3)}', [0.8, 0.05], xycoords='axes fraction')
+    axes.annotate(f'Average: {round(statistics.mean(concentrations), 3)}', [0.02, 0.96],
+                  xycoords='axes fraction', fontsize=11)
+    axes.annotate(f'St. Dev.: {round(statistics.stdev(concentrations), 3)}', [0.02, 0.92],
+                  xycoords='axes fraction', fontsize=11)
 
-def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=None, show_flags=None, show_bad=None):
+
+def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=None, show_flags=None, show_bad=None,
+             title_append=''):
 
     if len(axes.lines) > 0:
         del axes.lines[:]
-    else:
-        axes.set_title('MDL', fontsize=12)
-        axes.set_xlabel('Peak Number')
-        axes.set_ylabel('Concentration (uM)')
-        axes.grid(alpha=0.2, zorder=2)
+        del axes.texts[:]
+
+    axes.set_title(f'MDL {title_append}', fontsize=12)
+    axes.set_xlabel('Peak Number')
+    axes.set_ylabel('Concentration (uM)')
+    axes.grid(alpha=0.2, zorder=2)
 
     # Used when the across voyage plot is required - plots standard deviation per run
     if stdevs:
@@ -334,23 +351,33 @@ def mdl_plot(fig, axes, indexes, concentrations, flags, stdevs=None, run_nums=No
         axes.set_zorder(stdev_plot.get_zorder() + 1)
         axes.patch.set_visible(False)
 
-        axes.set_xlim(min(indexes)-1, max(indexes)+1)
+        #axes.set_xlim(min(indexes)-1, max(indexes)+1)
         all_lines = mean_mdl_plot + upper_mdl_plot + stdev_runs_plot
         labs = [l.get_label() for l in all_lines]
         axes.legend(all_lines, labs)
     # Normal in processing plot
     else:
         mdl = 3 * statistics.stdev(concentrations)
-        axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', label='3x SD: ' + str(round(mdl, 3)),
-                  ms=12, mfc='none', mec='#12BA66', color='C0')
+        axes.plot(indexes, concentrations, linestyle=':', lw=0.25, marker='o', mfc='None', mec='#12BA66', ms=12,
+                  picker=5, color='C0', label=f'3x St.Dev.: {round(mdl, 3)}')
         #axes.set_ylim(min(concentrations)-0.05, max(concentrations)+0.05)
-        axes.legend(fontsize=12)
+
+        axes.annotate(f'Average: {round(statistics.mean(concentrations), 3)}', [0.02, 0.96],
+                      xycoords='axes fraction', fontsize=11)
+        axes.annotate(f'3x Standard Deviation: {round(mdl, 3)}', [0.02, 0.92],
+                      xycoords='axes fraction', fontsize=11)
+
+        #axes.legend(fontsize=12)
+
+    axes.set_xlim(min(indexes) - 1, max(indexes) + 1)
 
     fig.set_tight_layout(tight=True)
 
-def bqc_plot(fig, axes, indexes, concentrations, flags):
+def bqc_plot(fig, axes, indexes, concentrations, flags, title_append=''):
     if len(axes.lines) > 0:
         del axes.lines[:]
+        del axes.texts[:]
+
     else:
         axes.set_title('BQC')
         axes.set_xlabel('Peak Number')
@@ -359,12 +386,15 @@ def bqc_plot(fig, axes, indexes, concentrations, flags):
 
     mean_bqc = statistics.mean(concentrations)
 
-    axes.plot(indexes, [mean_bqc]*4, lw=1, linestyle='--', label = 'Run Mean: ' + str(round(mean_bqc, 3)))
+    axes.plot(indexes, [mean_bqc]*len(indexes), lw=1, linestyle='--', label = f'Run Mean: {str(round(mean_bqc, 3))}')
 
     axes.plot(indexes, concentrations, lw=1, linestyle=':', marker='o', mfc='none')
     axes.set_ylim(min(concentrations)*0.99, max(concentrations)*1.01)
 
-    axes.legend()
+    #axes.legend(fontsize=12)
+    axes.annotate(f'Average: {round(mean_bqc, 3)}', [0.02, 0.96], xycoords='axes fraction', fontsize=11)
+    axes.annotate(f'Standard Deviation: {round(statistics.stdev(concentrations), 3)}', [0.02, 0.92],
+                  xycoords='axes fraction', fontsize=11)
 
     fig.set_tight_layout(tight=True)
 
@@ -381,7 +411,7 @@ def sensor_difference_plot(fig, axes, x_data, difference, max_rp, flags=None, sh
         col = '#71ce40'
 
     if show_flags:
-        if flag_ref_inds:
+        if not flag_ref_inds:
             for i, x_dat in enumerate(x_data):
                 axes.plot(x_dat, difference[i], lw=0, ms=5, marker='o', color=FLAG_COLORS[flags[i]])
         else:
@@ -389,7 +419,7 @@ def sensor_difference_plot(fig, axes, x_data, difference, max_rp, flags=None, sh
                 axes.plot(x_data[i], difference[i], lw=0, ms=5, marker='o', color=FLAG_COLORS[flags[ind]])
 
     axes.plot(x_data, difference, linewidth=0.75, linestyle=':', marker='o', markersize=13, mfc='none',
-              color=col, picker=7, gid='picking_line')
+              color=col, picker=7, gid='picking_line', label=sensor)
 
     labels = axes.get_xticks().tolist()
     new_labels = []
@@ -436,17 +466,20 @@ def sensor_profile_plot(fig, axes, pressure, bottle, flags, flag_ref_inds=None, 
             bottle_oxy_dep_subset = [bottle[x] for x in plotting_indexes]
             pressure_dep_subset = [pressure[x] for x in plotting_indexes]
 
-            axes.plot(bottle_oxy_dep_subset, pressure_dep_subset, marker='o', lw=1, mfc='None', markersize=0,
+            temp = axes.plot(bottle_oxy_dep_subset, pressure_dep_subset, marker='o', lw=1.2, mfc='None', markersize=0,
                       label=f'Deployment {dep}')
+
+            # Get the plotted bottle profile color, so that the CTD profile matches
+            current_axes_color = temp[0].get_color()
 
             if primary:
                 primary_dep_subset = [primary[x] for x in plotting_indexes]
-                axes.plot(primary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='-.', color='#2b9997',
+                axes.plot(primary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='-.', color=current_axes_color,
                           alpha=0.8, label=f'Primary Sens: Dep {dep}')
 
             if secondary:
                 secondary_dep_subset = [secondary[x] for x in plotting_indexes]
-                axes.plot(secondary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='--', color='#2b9997',
+                axes.plot(secondary_dep_subset, pressure_dep_subset, lw=0.75, linestyle='--', color=current_axes_color,
                           alpha=0.8, label=f'Secondary Sens: Dep {dep}')
 
     else:

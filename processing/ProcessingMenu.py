@@ -1,6 +1,6 @@
-import os, logging, json, sys
+import os, logging, json
 from PyQt5.QtWidgets import (QPushButton, QLabel, QFileDialog, QFrame, QAction, QCheckBox, QPlainTextEdit,
-                             QGraphicsDropShadowEffect, QApplication)
+                             QApplication)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from dialogs.ViewDataDialog import viewDataDialog
@@ -9,25 +9,33 @@ from dialogs.RereadDialog import rereadDialog
 from dialogs.ProducePlotsDialog import producePlotsDialog
 from dialogs.DeleteDialog import deleteDialog
 from dialogs.ExportDeployments import exportDeployments
-from processing.LoggerOutput import QTextEditLogger
 from dialogs.AnalysisDialog import analysisSettings
 from dialogs.SurveyDialog import surveyDialog
 from dialogs.RMNSDialog import rmnsDialog
 from dialogs.ParametersDialog import parametersDialog
+from dialogs.SamplingLogsheet import samplingLogsheet
+from processing.util.OxygenBoxFileGenerator import generateBoxFile
+from processing.LoggerOutput import QTextEditLogger
 from processing.QCStats import statsDialog
 import processing.readdata.InitialiseTables as inittabs
-import processing.plotting.QCPlots as qcp
-from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow
+from processing.algo.HyproComplexities import load_proc_settings, save_proc_settings
+
+from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow, ParamParamWindow, DuplicatesWindow
 import sqlite3
 from netCDF4 import Dataset
 import numpy as np
 import traceback
 import time
 import calendar
-import threading
+
 import hyproicons, style
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
+
+from processing.procdata.InteractiveNutrientsProcessing import processingNutrientsWindow
+from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
+from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
+from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
 
 # TODO: Make output for ODV
 # TODO: make logsheet go to Dissolved Oxygen box file
@@ -55,6 +63,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.ultra_performance_mode = False
 
         self.params_path = self.currpath + '/' + '%sParams.json' % self.currproject
+        self.make_default_params_file()
+        self.processing_parameters = load_proc_settings(self.currpath, self.currproject)
 
         inittabs.main(self.currproject, self.currpath)
 
@@ -64,8 +74,6 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
 
     def init_ui(self):
-
-        self.make_default_params_file()
 
         file_menu = self.main_menu.addMenu('File')
         export_menu = file_menu.addMenu(QIcon(':/assets/archivebox.svg'), 'Export')
@@ -88,9 +96,6 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         analysis_menu = self.main_menu.addMenu('Analyses')
         self.survey_menu = self.main_menu.addMenu('Surveys')
         view_menu = self.main_menu.addMenu('View')
-        nutrient_qc_menu = view_menu.addMenu('Nutrient QC Plots')
-        salinity_qc_menu = view_menu.addMenu('Salinity QC Plots')
-        oxygen_qc_menu = view_menu.addMenu('Oxygen QC Plots')
         help_menu = self.main_menu.addMenu('Help')
 
         add_analysis_menu = analysis_menu.addMenu(QIcon(':/assets/flask.svg'), 'Add Analysis')
@@ -99,9 +104,28 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         export_data.triggered.connect(self.export_data_window)
         export_menu.addAction(export_data)
 
+        export_odv = QAction('Export ODV', self)
+        export_menu.addAction(export_odv)
+
         exportUnderwayNutrients = QAction('Export Underway Nutrients', self)
         exportUnderwayNutrients.triggered.connect(self.exportuwynuts)
         export_menu.addAction(exportUnderwayNutrients)
+
+        file_menu.addSeparator()
+
+        enter_sampling_logsheet = QAction('Enter Sampling Logsheet', self)
+        enter_sampling_logsheet.triggered.connect(self.enter_sampling_log)
+        file_menu.addAction(enter_sampling_logsheet)
+
+        generate_box_file = QAction('Generate Box Files', self)
+        generate_box_file.triggered.connect(self.generate_box_file)
+        file_menu.addAction(generate_box_file)
+
+        cross_check_samples = QAction('Cross Check Logsheet', self)
+        cross_check_samples.triggered.connect(self.cross_check_logsheet)
+        file_menu.addAction(cross_check_samples)
+
+        file_menu.addSeparator()
 
         delete_files = QAction(QIcon(':/assets/trash2.svg'), 'Delete Files', self)
         delete_files.triggered.connect(self.delete_files_window)
@@ -167,43 +191,47 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         rmns_plots = QAction('RMNS', self)
         rmns_plots.triggered.connect(self.rmnsplots)
-        nutrient_qc_menu.addAction(rmns_plots)
+        view_menu.addAction(rmns_plots)
 
         mdl_plots = QAction('MDL', self)
         mdl_plots.triggered.connect(self.mdlplots)
-        nutrient_qc_menu.addAction(mdl_plots)
+        view_menu.addAction(mdl_plots)
 
         redfield_plots = QAction('Redfield Ratio', self)
         redfield_plots.triggered.connect(self.redfield)
-        nutrient_qc_menu.addAction(redfield_plots)
+        view_menu.addAction(redfield_plots)
 
         duplicate_plots = QAction('Duplicates', self)
         duplicate_plots.triggered.connect(self.duplicate)
-        nutrient_qc_menu.addAction(duplicate_plots)
+        view_menu.addAction(duplicate_plots)
 
         nutrient_trace = QAction('Analysis Trace', self)
         nutrient_trace.triggered.connect(self.analysis_trace)
-        nutrient_qc_menu.addAction(nutrient_trace)
-
-        salinity_error_plot = QAction('Salinity - CTD Error', self)
-        salinity_error_plot.triggered.connect(self.salinityerror)
-        salinity_qc_menu.addAction(salinity_error_plot)
+        view_menu.addAction(nutrient_trace)
+        
+        view_menu.addSeparator()
+    
+        ctd_error_plot = QAction('Bottle - CTD Error', self)
+        ctd_error_plot.triggered.connect(self.ctd_error)
+        view_menu.addAction(ctd_error_plot)
 
         salinity_standard_plot = QAction('Salinity Standards', self)
         salinity_standard_plot.triggered.connect(self.salinitystandards)
-        salinity_qc_menu.addAction(salinity_standard_plot)
-
-        oxygen_error_plot = QAction('Oxygen - CTD Error', self)
-        oxygen_error_plot.triggered.connect(self.oxygenerror)
-        oxygen_qc_menu.addAction(oxygen_error_plot)
+        view_menu.addAction(salinity_standard_plot)
 
         oxygen_standard_plot = QAction('Oxygen Standards', self)
         oxygen_standard_plot.triggered.connect(self.oxygenstandards)
-        oxygen_qc_menu.addAction(oxygen_standard_plot)
+        view_menu.addAction(oxygen_standard_plot)
+
+        view_menu.addSeparator()
+
+        param_param_plot = QAction('Param/Param Plots', self)
+        param_param_plot.triggered.connect(self.param_param_window)
+        view_menu.addAction(param_param_plot)
 
         plots_action = QAction('Create Plots', self)
         plots_action.triggered.connect(self.produce_plots_window)
-        view_menu.addAction(plots_action)
+        #view_menu.addAction(plots_action)
 
         stats_action = QAction('View QC Stats', self)
         stats_action.triggered.connect(self.produce_stats_window)
@@ -217,13 +245,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         manual_menu.triggered.connect(self.show_manual)
         help_menu.addAction(manual_menu)
 
+
         current_project_frame = QFrame(self)
         current_project_frame.setProperty('sideHeaderFrame', True)
-        # Shadow graphics parameters
-        current_project_frame_shadow = QGraphicsDropShadowEffect()
-        current_project_frame_shadow.setBlurRadius(5)
-        current_project_frame_shadow.setYOffset(1)
-        current_project_frame_shadow.setXOffset(2)
 
         current_project_label = QLabel('Current Project:')
         current_project_label.setProperty('sideBarText', True)
@@ -234,36 +258,24 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         top_h_frame = QFrame(self)
         top_h_frame.setProperty('topBarFrame', True)
-        top_h_frame_shadow = QGraphicsDropShadowEffect()
-        top_h_frame_shadow.setBlurRadius(5)
-        top_h_frame_shadow.setYOffset(2)
-        top_h_frame_shadow.setXOffset(3)
-        #topperframe.setGraphicsEffect(topperframeshadow)
 
         output_frame = QFrame(self)
         output_frame.setProperty('dashboardFrame', True)
-        output_frame_shadow = QGraphicsDropShadowEffect()
-        output_frame_shadow.setBlurRadius(5)
-        output_frame_shadow.setYOffset(2)
-        output_frame_shadow.setXOffset(3)
-        #outputboxframe.setGraphicsEffect(outputboxframeshadow)
 
-        output_label = QLabel('  Processing Output: ')
+        output_label = QLabel('Processing Output: ', self)
         output_label.setProperty('dashboardText', True)
+        output_label.setStyleSheet('font: 14px; padding: 5px; font-weight: bold;')
 
         logged_path = self.currpath + '/' +self.currproject + '.txt'
         self.output_box = QTextEditLogger(self, logged_path)
+        self.output_box.append_text.connect(self.output_box.widget.appendPlainText)
+        self.output_box.start_up()
+
         logging.getLogger().addHandler(self.output_box)
         logging.getLogger().setLevel(logging.INFO)
 
         side_bar_frame = QFrame(self)
         side_bar_frame.setProperty('sideBarFrame', True)
-        side_bar_frame_shadow = QGraphicsDropShadowEffect()
-        side_bar_frame_shadow.setBlurRadius(5)
-        #side_bar_frame_shadow.setColor(QtGui.QColor('#183666'))
-        side_bar_frame_shadow.setYOffset(1)
-        side_bar_frame_shadow.setXOffset(2)
-        # side_bar_frame.setGraphicsEffect(side_bar_frame_shadow)
 
         self.interactive_processing = QCheckBox('Interactive Processing')
         self.interactive_processing.setChecked(True)
@@ -274,22 +286,26 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
         reread_button = QPushButton('Reread File')
         reread_button.setProperty('sideBarButton', True)
+        reread_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         refresh_button = QPushButton('Refresh Files')
         refresh_button.setProperty('sideBarButton', True)
-        # refresh_button.setIcon(QIcon('roundrefresh'))
+        refresh_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         open_directory_button = QPushButton('Open Directory')
         open_directory_button.setProperty('sideBarButton', True)
+        open_directory_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         options_label = QLabel('<b>Options</b>')
         options_label.setProperty('sideBarText', True)
 
         view_data_button = QPushButton('View Data')
         view_data_button.setProperty('sideBarButton', True)
+        view_data_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         delete_data_button = QPushButton('Delete Data')
         delete_data_button.setProperty('sideBarButton', True)
+        delete_data_button.setCursor(QCursor(Qt.PointingHandCursor))
 
         self.grid_layout.addWidget(current_project_frame, 0, 0, 5, 1)
         self.grid_layout.addWidget(side_bar_frame, 4, 0, 15, 1)
@@ -321,15 +337,18 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         open_directory_button.clicked.connect(self.open_directory)
 
     def user_prompter(self):
-        with open(self.params_path, 'r') as file:
-            params = json.loads(file.read())
-        analyses = params['analysisparams'].keys()
-        anyactivated = False
-        for x in analyses:
-            if params['analysisparams'][x]['activated']:
-                anyactivated = True
+        """
+        In the case that there hasn't been any analyses setup, Hypro will show this lengthy warning in the output
 
-        if not anyactivated:
+        """
+
+        analyses = self.processing_parameters.get('analysis_params', [])
+        any_activated = False
+        for x in analyses:
+            if self.processing_parameters['analysis_params'][x]['activated']:
+                any_activated = True
+
+        if not any_activated:
             logging.info("There is not any analyses currently activated, HyPro can not recognise files that need "
                          "processing if you don't activate and assign a naming nomenclature. If this is also the first "
                          "time setting up the project it would be a good idea to check Parameters, under Edit. "
@@ -338,7 +357,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
     def reread(self):
         self.rereadDialog = rereadDialog(self.currpath, self.currproject, self.db,
-                                         self.interactive_processing.checkState())
+                                         self.interactive_processing.checkState(),
+                                         self.performance_mode, self.ultra_performance_mode)
         self.rereadDialog.show()
 
     def view_data_window(self):
@@ -350,27 +370,118 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.viewDataDialog.show()
 
     def refresh(self):
-        #self.refresh_thread = threading.Thread(target=refreshFunction, args=(self.currpath,
-        #                                                                     self.currproject,
-        #                                                                     self.interactive_processing.checkState()))
-        #self.refresh_thread.start()
-        self.thread = QThread()
 
-        self.refreshing = refreshFunction(self.currpath, self.currproject, self.interactive_processing.checkState(),
-                                          self.performance_mode, self.ultra_performance_mode)
-        #self.refreshing.moveToThread(self.thread)
-        #self.thread.started.connect(self.refreshing.refresh)
-        #self.thread.start()
-        self.refreshing.refresh()
+        self.thread = QThread()
+        self.refreshing = refreshFunction(self.currpath, self.currproject)
+        self.refreshing.moveToThread(self.thread)
+        self.thread.started.connect(self.refreshing.refresh)
+        self.thread.start()
+
+        self.refreshing.files_found_signal.connect(self.collect_found_files)
+        self.refreshing.files_found_signal.connect(self.thread.quit)
+
+    def collect_found_files(self, files):
+        self.files_to_process = files
+        self.process_files_found_routine(files)
+
+    def process_files_found_routine(self, files):
+        # Iterate through the different file types
+        for file_type in files:
+            # Check if there are any files of that given type
+            if len(files[file_type]) > 0:
+                for file_name in files[file_type]:
+                    logging.info(f'Processing {file_type} file: {file_name}')
+                    self.process_file(file_name, file_type)
+
+                    # Break because we have found a file to process, as files are processing they will be removed
+                    # from the list of files to process and this function will get called each time
+                    break
+                break
+
+    def process_file(self, file, type):
+        """
+        Process a file of a given type - i.e. process a nutrients file with the right pipeline
+        """
+        if type == 'CTD':
+            self.run_ctd_process(file)
+
+        if type == 'Sampling':
+            self.run_sampling_process(file)
+
+        if type == 'Salinity':
+            self.run_salinity_process(file)
+
+        if type == 'Oxygen':
+            self.run_oxygen_process(file)
+
+        if type == 'Nutrients':
+            self.run_nutrients_process(file)
+
+    def run_nutrients_process(self, file):
+        self.init_nutrient_data = processingNutrientsWindow(file, self.db,
+                                                          self.currpath, self.currproject,
+                                                          self.interactive_processing.checkState(), False,
+                                                          self.performance_mode,
+                                                          self.ultra_performance_mode)
+        # Once the processing is completed, remove from the list of files to process then go again on the
+        # files to process function
+        self.init_nutrient_data.processing_completed.connect(lambda: self.files_to_process['Nutrients'].remove(file))
+        self.init_nutrient_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
+
+        self.init_nutrient_data.logging_signal.connect(self.processing_thread_logger_interface)
+
+    def run_oxygen_process(self, file):
+        self.init_oxy_data = processingOxygenWindow(file, self.db, self.currpath,
+                                                  self.currproject,
+                                                  self.interactive_processing.checkState(), False)
+        self.init_oxy_data.processing_completed.connect(lambda: self.files_to_process['Oxygen'].remove(file))
+        self.init_oxy_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
+
+    def run_salinity_process(self, file):
+        self.init_salt_data = processingSalinityWindow(file,
+                                                     self.db,
+                                                     self.currpath,
+                                                     self.currproject,
+                                                     self.interactive_processing.checkState(),
+                                                     False)
+
+        self.init_salt_data.processing_completed.connect(lambda: self.files_to_process['Salinity'].remove(file))
+        self.init_salt_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
+
+        self.init_salt_data.process_routine()
+
+
+    def run_ctd_process(self, file):
+        self.init_ctd_data = InitialiseCTDData.initCTDdata(file,
+                                                         self.db,
+                                                         self.currpath,
+                                                         self.currproject,
+                                                         self.interactive_processing.checkState(),
+                                                         False)
+        self.init_ctd_data.processing_completed.connect(lambda: self.files_to_process['CTD'].remove(file))
+        self.init_ctd_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
+
+        self.init_ctd_data.loadfilein()
+
+    def run_sampling_process(self, file):
+        self.init_sample_data = InitialiseSampleSheet.initSampleSheet(file,
+                                                                    self.currproject,
+                                                                    self.db,
+                                                                    self.currpath,
+                                                                    self.interactive_processing.checkState(),
+                                                                    False)
+        self.init_sample_data.processing_completed.connect(lambda: self.files_to_process['Sampling'].remove(file))
+        self.init_sample_data.processing_completed.connect(lambda: self.process_files_found_routine(self.files_to_process))
 
     def open_directory(self):
         if os.path.isdir(self.currpath):
             os.startfile(self.currpath)
 
     def backtomenufunction(self):
-        #logging.getLogger().removeHandler(self.output_box)
-        #self.backToMain.emit()
-        pass
+        logging.getLogger().removeHandler(self.output_box)
+        self.backToMain.emit()
+        #self.close()
+        #pass
 
     def rmnsplots(self):
         self.rmns_window = RMNSWindow.rmnsPlotWindowTemplate(self.db, self.params_path)
@@ -384,12 +495,12 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.redfield_window = RedfieldWindow.redfieldPlot(self.db)
 
     def duplicate(self):
-        pass
+        self.duplcate_window = DuplicatesWindow.duplicatesPlot(self.db, self.processing_parameters)
 
     def analysis_trace(self):
         pass
 
-    def salinityerror(self):
+    def ctd_error(self):
         self.salinity_error_window = SensorDiffWindow.ctdSensorDifferencePlot(self.db, 'Salinity')
         self.salinity_error_window.show()
 
@@ -403,9 +514,24 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
     def oxygenstandards(self):
         pass
 
+    def param_param_window(self):
+        self.param_param_window = ParamParamWindow.paramPlotWindowTemplate(self.db, self.params_path)
+        self.param_param_window.show()
+
     def produce_plots_window(self):
         self.prodplots = producePlotsDialog()
         self.prodplots.show()
+
+    def cross_check_logsheet(self):
+        #TODO: add a logsheet cross check to make sure all samples are account for if they are entered!
+        pass
+
+    def enter_sampling_log(self):
+        self.sampling_logsheet = samplingLogsheet(self.db, self.currpath, self.currproject)
+
+    def generate_box_file(self):
+        self.gen_box_file = generateBoxFile(self.db, self.currpath, self.currproject)
+        self.gen_box_file.show()
 
     def delete_files_window(self):
         self.deletefilesdialog = deleteDialog(self.currpath, self.currproject, self.db)
@@ -426,10 +552,14 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.output_box.clear()
 
     def export_data_window(self):
-        self.exporter = exportDeployments(self.db)
+        self.exporter = exportDeployments(self.db, self.currproject)
         self.exporter.show()
 
     def exportuwynuts(self):
+        """
+        Please ignore - this works but needs to be pulled out into its own thing
+        It is still here because it works and just gets the job done for now
+        """
         try:
             conn = sqlite3.connect(self.db)
             c = conn.cursor()
@@ -517,7 +647,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             params = json.loads(file.read())
 
         for i in analyses:
-            if params['analysisparams'][i]['activated'] == True:
+            if params['analysis_params'][i]['activated'] == True:
                 if i == 'guildline':
                     self.add_guildline_salinity.setIcon(QIcon(':/assets/roundchecked.svg'))
                 elif i == 'scripps':
@@ -553,7 +683,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         with open(self.params_path, 'r') as file:
             params = json.loads(file.read())
 
-        surveys = list(params['surveyparams'].keys())
+        surveys = list(params['survey_params'].keys())
 
         for k in surveys:
             survey = QAction(k, self)
@@ -561,9 +691,9 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             self.survey_menu.addAction(survey)
 
     def about_information(self):
-        message_box = hyproMessageBoxTemplate('About Hypro',
-                                              'This is an experimental version of HyPro built using Python.',
-                                              'about')
+        hyproMessageBoxTemplate('About Hypro',
+                                'This is an experimental version of HyPro built using Python.',
+                                'about')
 
     def show_manual(self):
         file = 'C:/Users/she384/Documents/Tests/Manual.pdf'
@@ -582,20 +712,20 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
             pass
         else:
             default_params = style.default_params
-            default_params['surveyparams'][f'{self.currproject}'] = default_params['surveyparams'].pop('default')
+            default_params['survey_params'][f'{self.currproject}'] = default_params['survey_params'].pop('default')
 
             with open('C:/HyPro/hyprosettings.json', 'r') as f:
                 hyproprojs = json.load(f)
             if hyproprojs['projects'][self.currproject]['type'] == 'Shore':
-                default_params['surveyparams'][self.currproject]['guildline']['ctdsurvey'] = False
-                default_params['surveyparams'][self.currproject]['guildline']['decodedepfromid'] = False
-                default_params['surveyparams'][self.currproject]['guildline']['usesampleid'] = True
-                default_params['surveyparams'][self.currproject]['scripps']['ctdsurvey'] = False
-                default_params['surveyparams'][self.currproject]['scripps']['decodedepfromid'] = False
-                default_params['surveyparams'][self.currproject]['scripps']['usesampleid'] = True
-                default_params['surveyparams'][self.currproject]['seal']['ctdsurvey'] = False
-                default_params['surveyparams'][self.currproject]['seal']['decodedepfromid'] = False
-                default_params['surveyparams'][self.currproject]['seal']['usesampleid'] = True
+                default_params['survey_params'][self.currproject]['guildline']['ctd_survey'] = False
+                default_params['survey_params'][self.currproject]['guildline']['decode_dep_from_id'] = False
+                default_params['survey_params'][self.currproject]['guildline']['use_sample_id'] = True
+                default_params['survey_params'][self.currproject]['scripps']['ctd_survey'] = False
+                default_params['survey_params'][self.currproject]['scripps']['decode_dep_from_id'] = False
+                default_params['survey_params'][self.currproject]['scripps']['use_sample_id'] = True
+                default_params['survey_params'][self.currproject]['seal']['ctd_survey'] = False
+                default_params['survey_params'][self.currproject]['seal']['decode_dep_from_id'] = False
+                default_params['survey_params'][self.currproject]['seal']['use_sample_id'] = True
 
             with open(self.params_path, 'w') as file:
                 json.dump(default_params, file)
@@ -622,8 +752,17 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         else:
             self.ultra_performance_mode = True
 
+    def processing_thread_logger_interface(self, message):
+        logging.info(message)
+
+
     def closeEvent(self, event):
         # Closes everything if main processing window is closed
+
+        logging.getLogger().removeHandler(self.output_box)
+        self.output_box.widget.close()
+        logging.shutdown()
+
         app = QApplication.instance()
         app.closeAllWindows()
         # self.backToMain.emit()

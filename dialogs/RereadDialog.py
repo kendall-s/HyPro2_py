@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QMessageBox, QListWidget)
 import sqlite3, re
+import logging
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
 from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
@@ -13,13 +14,16 @@ from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 # GUI interface for reprocessing any files, the files need to already be processed and ingested through the refresh
 # function
 class rereadDialog(hyproDialogTemplate):
-    def __init__(self, path, project, database, interactive):
+    def __init__(self, path, project, database, interactive, perf_mode, ultra_perf_mode):
         super().__init__(220, 480, 'HyPro - Reread Data')
 
         self.currpath = path
         self.currproject = project
         self.db = database
         self.interactive = interactive
+
+        self.performance_mode = perf_mode
+        self.ultra_performance_mode = ultra_perf_mode
 
         self.init_ui()
 
@@ -33,20 +37,20 @@ class rereadDialog(hyproDialogTemplate):
         self.analysistype = QComboBox()
         self.analysistype.addItems(analysistypeslist)
         self.analysistype.setFixedHeight(25)
-        self.analysistype.activated.connect(self.populatefileslist)
+        self.analysistype.activated.connect(self.populate_files_list)
         self.analysistype.setCurrentText('Nutrients')
         self.analysistype.setEditable(True)
         self.analysistype.setEditable(False)
         datafileslabel = QLabel('Select data to reread: ', self)
 
-        self.itemselectedboolean = 0
+        self.item_selected_check = 0
 
         self.datafiles = QListWidget()
-        self.datafiles.itemSelectionChanged.connect(self.itemselected)
-        self.datafiles.itemDoubleClicked.connect(self.rereaddata)
+        self.datafiles.itemSelectionChanged.connect(self.item_selected)
+        self.datafiles.itemDoubleClicked.connect(self.reread_data)
 
         okbut = QPushButton('Reread Data', self)
-        okbut.clicked.connect(self.rereaddata)
+        okbut.clicked.connect(self.reread_data)
         okbut.setFixedWidth(100)
 
         cancelbut = QPushButton('Cancel', self)
@@ -68,66 +72,61 @@ class rereadDialog(hyproDialogTemplate):
             c.execute('SELECT * from nutrientFilesProcessed')
             data = list(c.fetchall())
             c.close()
-            filenames = [x[0] for x in data]
+            file_names = [x[0] for x in data]
 
-            self.datafiles.addItems(filenames)
+            self.datafiles.addItems(file_names)
         except Exception as e:
             print(e)
 
-    def populatefileslist(self):
+    def populate_files_list(self):
         # Fill the list with the files that have already been processed
-        filetype = self.analysistype.currentText()
+        file_type = self.analysistype.currentText()
+
+        db_name_folder_converter = {'CTD': 'ctd', 'Sampling': 'logsheet', 'Salinity': 'salinity', 'Oxygen': 'oxygen',
+                                    'Nutrients': 'nutrient'}
 
         self.datafiles.clear()
 
         conn = sqlite3.connect(self.db)
         c = conn.cursor()
-
-        if filetype == 'CTD':
-            c.execute('SELECT * from ctdFilesProcessed ORDER BY filename')
-        if filetype == 'Nutrients':
-            c.execute('SELECT * from nutrientFilesProcessed ORDER BY filename')
-        if filetype == 'Salinity':
-            c.execute('SELECT * from salinityFilesProcessed ORDER BY filename')
-        if filetype == 'Oxygen':
-            c.execute('SELECT * from oxygenFilesProcessed ORDER BY filename')
-        if filetype == 'Sampling':
-            c.execute('SELECT * from logsheetFilesProcessed ORDER BY filename')
+        c.execute(f'SELECT * from {db_name_folder_converter[file_type]}FilesProcessed')
 
         data = list(c.fetchall())
         c.close()
-        filenames = [x[0] for x in data]
+        file_names = [x[0] for x in data]
 
-        self.datafiles.addItems(filenames)
+        self.datafiles.addItems(file_names)
 
-    def itemselected(self):
-        self.itemselectedboolean = 1
+    def item_selected(self):
+        self.item_selected_check = 1
 
-    def rereaddata(self):
+    def reread_data(self):
 
-        filetype = self.analysistype.currentText()
+        file_type = self.analysistype.currentText()
 
-        if self.itemselectedboolean == 1:
-            selectedfile = str(self.datafiles.currentItem().text())
+        if self.item_selected_check == 1:
+            selected_file = str(self.datafiles.currentItem().text())
+            logging.info(f'Rereading file {selected_file}')
 
-            if filetype == 'CTD':
-                self.initctd = InitialiseCTDData.initCTDdata(selectedfile, self.db, self.currpath, self.currproject,
+            if file_type == 'CTD':
+                self.initctd = InitialiseCTDData.initCTDdata(selected_file, self.db, self.currpath, self.currproject,
                                                              self.interactive, True)
 
-            if filetype == 'Nutrients':
-                self.initnutrientdata = processingNutrientsWindow(selectedfile, self.db, self.currpath,
-                                                                  self.currproject, self.interactive, True)
-
-            if filetype == 'Salinity':
-                self.initsaltdata = processingSalinityWindow(selectedfile, self.db, self.currpath, self.currproject,
+            if file_type == 'Nutrients':
+                self.initnutrientdata = processingNutrientsWindow(selected_file, self.db, self.currpath,
+                                                                  self.currproject, self.interactive, rereading=True,
+                                                                  perf_mode=self.performance_mode,
+                                                                  ultra_perf_mode=self.ultra_performance_mode)
+            if file_type == 'Salinity':
+                self.initsaltdata = processingSalinityWindow(selected_file, self.db, self.currpath, self.currproject,
                                                              self.interactive, True)
 
-            if filetype == 'Oxygen':
-                self.initoxydata = processingOxygenWindow(selectedfile, self.db, self.currpath, self.currproject,
+            if file_type == 'Oxygen':
+                self.initoxydata = processingOxygenWindow(selected_file, self.db, self.currpath, self.currproject,
                                                           self.interactive, True)
 
-            if filetype == 'Sampling':
-                self.initsampledata = InitialiseSampleSheet.initSampleSheet(selectedfile, self.currproject, self.db,
+            if file_type == 'Sampling':
+                self.initsampledata = InitialiseSampleSheet.initSampleSheet(selected_file, self.currproject, self.db,
                                                                             self.currpath, self.interactive, True)
 
         else:

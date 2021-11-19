@@ -4,6 +4,7 @@ import os
 import sqlite3
 import time
 import traceback
+from PyQt5.QtCore import pyqtSignal, QObject
 
 import processing.RefreshFunction
 import processing.procdata.ProcessGuildlineSalinity as pgs
@@ -18,8 +19,12 @@ No processing needs to be done just parse, read in and pack into the project dat
 
 '''
 
-class processingSalinityWindow():
+class processingSalinityWindow(QObject):
+
+    processing_completed = pyqtSignal()
+
     def __init__(self, file, database, path, project, interactive, rereading):
+        super().__init__()
         try:
             self.file = file
             self.database = database
@@ -31,8 +36,6 @@ class processingSalinityWindow():
 
             with open(self.currpath + '/' + self.currproject + 'Params.json', 'r') as file:
                 self.params = json.loads(file.read())
-
-            self.process_routine()
 
         except Exception:
             logging.error(traceback.print_exc())
@@ -70,19 +73,20 @@ class processingSalinityWindow():
         conn.close()
         if not ctd_data:
             logging.info(
-                f'<b>The salinity file {self.file} contains CTD samples - however there is no CTD sensor data in HyPro. The file'
+                f'WARNING: The salinity file {self.file} contains CTD samples - however there is no CTD sensor data in HyPro. The file'
                 ' is processed but no error plot appears because of this error. Once CTD data is imported, '
-                'reprocess this file to see the error plot. </b>')
+                'reprocess this file to see the error plot.')
             time.sleep(0.3)
-            message_box = hyproMessageBoxTemplate('HyPro - Oxygen Processing Anomaly',
-                                                  f'CTD data matching results in the file {self.file} are not in HyPro.',
+            message_box = hyproMessageBoxTemplate('HyPro - Salinity Processing Warning',
+                                                  f'CTD data matching results in the file {self.file} is not in HyPro.',
                                                   'information',
                                                   long_text=f'The salinity file {self.file} contains CTD samples, '
                                                             f'however there is no matching CTD sensor data in HyPro. '
-                                                            f'The file is processed but no error plot appears because '
+                                                            f'The file is processed but no difference plot appears because '
                                                             f'of this error. Once CTD data is imported, reprocess '
                                                             f'this file to see the error plot.')
             time.sleep(0.2)
+            self.interactive = False
             self.proceed_processing()
 
         else:
@@ -144,4 +148,4 @@ class processingSalinityWindow():
         logging.info('Salinity file - ' + self.file + ' successfully processed')
 
         if not self.rereading:
-            refreshing = processing.RefreshFunction.refreshFunction(self.currpath, self.currproject, self.interactive)
+            self.processing_completed.emit()

@@ -1,9 +1,11 @@
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QApplication, QTabWidget, QVBoxLayout, QPushButton,
-                             QFileDialog)
+                             QFileDialog, QSizePolicy)
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QImage
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from processing.algo.HyproComplexities import find_closest, update_annotation, check_hover
 from dialogs.BottleSelectionDialog import bottleSelection
 import json
@@ -11,8 +13,13 @@ import time
 import io
 import hyproicons, style
 
+# Set the matplotlib backend to be more stable with PyQt integration
+mpl.use('Agg')
+
 flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad', 6: 'Cal Bad',
                     91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
+
+# TODO: This windows code could probably be scaled back and re-use some of the general plotting functionality, there is now some double ups i.e. flagging
 
 class hyproProcPlotWindow(QMainWindow):
     redraw = pyqtSignal()
@@ -30,6 +37,9 @@ class hyproProcPlotWindow(QMainWindow):
         self.ref_ind = ref_ind
         self.depths = depths
         self.full_data = full_data
+
+        # This index is used to reference back to the full data, with indexes pulled out the ref_ind list variable
+        self.referenced_index = 0
 
         # Set stylesheet to the one selected by the user.
         with open('C:/HyPro/hyprosettings.json', 'r') as file:
@@ -181,6 +191,8 @@ class hyproProcPlotWindow(QMainWindow):
         self.both_sensor_figure = plt.figure()
         self.both_sensor_figure.set_tight_layout(tight=True)
         self.both_sensor_canvas = FigureCanvas(self.both_sensor_figure)
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         self.both_sensor_canvas.setParent(self)
 
         self.both_sensor_tab.layout.addWidget(self.both_sensor_canvas)
@@ -215,7 +227,10 @@ class hyproProcPlotWindow(QMainWindow):
         self.profile_canvas.mpl_connect('pick_event', self.on_pick)
         self.profile_canvas.mpl_connect('motion_notify_event', self.on_hover)
 
+        self.profile_toolbar = NavigationToolbar(self.profile_canvas, self)
+
         self.profile_tab.layout.addWidget(self.profile_canvas)
+        self.profile_tab.layout.addWidget(self.profile_toolbar)
         self.profile_tab.setLayout(self.profile_tab.layout)
 
         self.profile_plot = self.profile_figure.add_subplot(111)
@@ -240,6 +255,7 @@ class hyproProcPlotWindow(QMainWindow):
 
     def proceed_proc(self):
         time.sleep(0.2)
+        plt.close('all')
         self.close()
 
     def export_sensor_one_plot(self):
@@ -273,27 +289,28 @@ class hyproProcPlotWindow(QMainWindow):
 
     def on_pick(self, event):
         plotted_data_index = event.ind[0]
-        referenced_index = self.ref_ind[plotted_data_index]
+        self.referenced_index = self.ref_ind[plotted_data_index]
 
         if self.type == 'Oxygen':
-            concentration = round(self.full_data.oxygen_mols[referenced_index], 3)
+            concentration = round(self.full_data.oxygen_mols[self.referenced_index], 3)
+            analyte = 'oxygen'
         elif self.type == 'Salinity':
-            concentration = self.full_data.salinity[referenced_index]
+            concentration = round(self.full_data.salinity[self.referenced_index], 4)
+            analyte = 'salinity'
 
-        self.bottle_sel = bottleSelection(self.full_data.file, self.full_data.deployment[referenced_index],
-                                          self.full_data.rosette_position[referenced_index],
-                                          self.full_data.bottle_id[referenced_index],
-                                          concentration, self.full_data.quality_flag[referenced_index])
+        self.picked_bottle_dialog = bottleSelection(self.full_data.file, self.full_data.deployment[self.referenced_index],
+                                          self.full_data.rosette_position[self.referenced_index],
+                                          self.full_data.bottle_id[self.referenced_index],
+                                          concentration, self.full_data.quality_flag[self.referenced_index], analyte)
 
-        self.bottle_sel.saveSig.connect(lambda: self.update_flag(referenced_index))
+        self.picked_bottle_dialog.saveSig.connect(self.update_flag)
 
-    def update_flag(self, index):
+    def update_flag(self, update_inputs):
         rev_flag_converter = {x: y for y, x in flag_converter.items()}
-        numeric_flag = rev_flag_converter[self.bottle_sel.flag_box.currentText()]
-        self.working_quality_flags[index] = numeric_flag
+        numeric_flag = rev_flag_converter[update_inputs[0]]
+        self.working_quality_flags[self.referenced_index] = numeric_flag
 
         self.initial_figure_save = True
-
         self.redraw.emit()
 
     def on_hover(self, event):

@@ -10,7 +10,7 @@ from processing.plotting.QCPlots import rmns_plot
 
 class rmnsPlotWindowTemplate(QMainPlotterTemplate):
     def __init__(self, database, params_path):
-        super().__init__()
+        super().__init__(database)
 
         self. database = database
         with open(params_path, 'r') as file:
@@ -61,10 +61,10 @@ class rmnsPlotWindowTemplate(QMainPlotterTemplate):
             c.execute('SELECT runNumber, sampleID FROM %sData' % nutq)
             data = list(c.fetchall())
             c.close()
-            rmnsnamelength = len(self.params['nutrientprocessing']['qcsamplenames']['rmns'])
+            rmnsnamelength = len(self.params['nutrient_processing']['qc_sample_names']['rmns'])
             listofrmns = []
             for i, x in enumerate(data):
-                if x[1][:rmnsnamelength] == self.params['nutrientprocessing']['qcsamplenames']['rmns']:
+                if x[1][:rmnsnamelength] == self.params['nutrient_processing']['qc_sample_names']['rmns']:
                     listofrmns.append(x)
             rmnslots = set([x[1][rmnsnamelength:(rmnsnamelength + 3)] for x in listofrmns])
 
@@ -153,4 +153,4 @@ class rmnsPlotWindowTemplate(QMainPlotterTemplate):
             print(traceback.print_exc())
 
     def on_pick(self, event):
-        self.base_on_pick(event, self.database, self.runs, self.peak_nums, nutrient=self.nutq)
+        self.base_on_pick(event, self.runs, self.peak_nums, nutrient=self.nutq)

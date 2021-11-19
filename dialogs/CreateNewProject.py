@@ -1,4 +1,5 @@
 # https://pythonspot.com/pyqt5-file-dialog/
+# https://pythonspot.com/pyqt5-file-dialog/
 # http://www.qtcentre.org/threads/20895-PyQt4-Want-to-connect-a-window-s-close-button
 # https://pythonprogramminglanguage.com/pyqt5-window-flags/
 # https://stackoverflow.com/questions/23617112/how-to-process-only-new-unprocessed-files-in-linux
@@ -78,19 +79,19 @@ class createNewProject(hyproDialogTemplate):
                     with open('C:/HyPro/hyprosettings.json', 'r') as f:
                         self.params = json.load(f)
 
-                    continuecreateproj = True
+                    continue_create_proj = True
                     for x in self.params['projects'].keys():
                         if self.project_prefix_str == x:
                             messagebox = hyproMessageBoxTemplate('Error',
                                                                  'There is already a project with that name, please '
                                                                  'choose a different name for the project.', 'error')
-                            continuecreateproj = False
+                            continue_create_proj = False
 
-                    if continuecreateproj:
+                    if continue_create_proj:
 
-                        newproj = {'%s' % self.project_prefix_str: {'path': project_directorystr, 'type': self.project_type_str}}
+                        new_proj = {'%s' % self.project_prefix_str: {'path': project_directorystr, 'type': self.project_type_str}}
 
-                        self.params['projects'].update(newproj)
+                        self.params['projects'].update(new_proj)
 
                         #self.params['activeproject'] = project_prefixstr
 

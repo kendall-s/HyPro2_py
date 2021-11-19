@@ -4,7 +4,7 @@ import csv, os, json, logging, traceback
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
-
+import time
 # GUI and functionality for importing an existing project into Hypro, ie copying a project from the ship pc to your
 # pc and now opening it up and continuing processing data with it
 
@@ -72,7 +72,7 @@ class importProject(hyproDialogTemplate):
             messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
             messagebox.exec_()
 
-            self.sleep(0.5)
+            time.sleep(0.5)
 
             self.close()
 

@@ -1,29 +1,28 @@
 import os, statistics, time, logging, traceback
 import sqlite3
-import processing.RefreshFunction
+import bisect
+from PyQt5.QtCore import pyqtSignal, QObject
 
 # Reads in the .ros file from Seasave for getting bottle data...
 # Not very complicated, no GUI, just pure function to take the .ros and parse it to the database file
 
 
-class initCTDdata():
-    def __init__(self, file, database, path, project, interactive, rereading):
+class initCTDdata(QObject):
 
+    processing_completed = pyqtSignal()
+
+    def __init__(self, file, database, path, project, interactive, rereading):
+        super().__init__()
         self.file = file
 
         self.database = database
-
         self.currpath = path
-
         self.currproject = project
-
         self.interactive = interactive
 
         self.rereading = rereading
 
         self.filepath = self.currpath + '/' + 'CTD' + '/' + self.file
-
-        self.loadfilein()
 
     def loadfilein(self):
         # Open file
@@ -83,7 +82,7 @@ class initCTDdata():
             salt2 = [float(x[salt2index[0]]) for x in self.datalist]
 
             bottlesfiredindex = self.substringindex(self.sensorlist, 'nbf')
-            bottlesfired = [float(x[bottlesfiredindex[0]]) for x in self.datalist]
+            bottlesfired = [int(x[bottlesfiredindex[0]]) for x in self.datalist]
 
             bottlepositionindex = self.substringindex(self.sensorlist, 'bpos')
             bottleposition = [float(x[bottlepositionindex[0]]) for x in self.datalist]
@@ -99,10 +98,10 @@ class initCTDdata():
 
             timelapsedindex = self.substringindex(self.sensorlist, 'timeS')
             if timelapsedindex:
-                timelapsed = [float(x[timelapsedindex[0]]) for x in self.datalist]
+                time_elapsed = [float(x[timelapsedindex[0]]) for x in self.datalist]
             else:
                 scansindex = self.substringindex(self.sensorlist, 'scan')
-                timelapsed = [0.04 * float(x[scansindex[0]]) for x in self.datalist]
+                time_elapsed = [0.04 * float(x[scansindex[0]]) for x in self.datalist]
 
             starttimeindex = self.substringindex(headerlist, 'NMEA UTC')
             starttimerow = headerlist[starttimeindex[0]]
@@ -115,96 +114,103 @@ class initCTDdata():
             bottlescans = headerlist[bottlescansindex[0]]
 
             bottlescansnum = [int(x) for x in bottlescans.split() if x.isdigit()]
-            maxnumbottles = [bottlesfired[-1]]
+            max_num_bottles = int([bottlesfired[-1]][0])
 
-            temp1binned = []
-            temp2binned = []
-            conduct1binned = []
-            conduct2binned = []
-            oxygen1binned = []
-            oxygen2binned = []
-            pressurebinned = []
-            salt1binned = []
-            salt2binned = []
-            bottlesfiredbinned = []
-            bottlepositionbinned = []
-            longitudebinned = []
-            latitudebinned = []
-            fluorobinned = []
-            timebinned = []
+            temp1_binned = []
+            temp2_binned = []
+            conduct1_binned = []
+            conduct2_binned = []
+            oxygen1_binned = []
+            oxygen2_binned = []
+            pressure_binned = []
+            salt1_binned = []
+            salt2_binned = []
+            bottles_fired_binned = []
+            bottle_position_binned = []
+            longitude_binned = []
+            latitude_binned = []
+            fluoro_binned = []
+            time_binned = []
 
-            for i in range(int(maxnumbottles[0])):
+            # Let's find out what rows correspond to what bottles fired
+            bottle_firing_indexes = []
+            for bottle_number in range(max_num_bottles):
+                index = bisect.bisect_left(bottlesfired, bottle_number+1) # Bottle num+1 as range ind starts at 0
+                bottle_firing_indexes.append(index)
+            bottle_firing_indexes.append(len(bottlesfired))
+
+            for i in range(max_num_bottles):
                 stationbinned.append(station)
 
                 variables = ['temp1', 'temp2', 'conduct1', 'conduct2', 'oxygen1', 'oxygen2', 'pressure', 'salt1',
                              'salt2', 'bottlesfired', 'bottleposition', 'time', 'longitude', 'latitude', 'fluoro']
 
-                temp1hold = temp1[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                temp1average = statistics.median(temp1hold)
-                temp1binned.append(temp1average)
+                temp1_temporary = temp1[(bottle_firing_indexes[i]): bottle_firing_indexes[i+1]]
+                temp1_median = statistics.median(temp1_temporary)
+                temp1_binned.append(temp1_median)
 
-                temp2hold = temp2[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                temp2average = statistics.median(temp2hold)
-                temp2binned.append(temp2average)
+                temp2_temporary = temp2[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                temp2_median = statistics.median(temp2_temporary)
+                temp2_binned.append(temp1_median)
 
-                conduct1hold = conduct1[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                conduct1average = statistics.median(conduct1hold)
-                conduct1binned.append(conduct1average)
+                conduct1_temporary = conduct1[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                conduct1_median = statistics.median(conduct1_temporary)
+                conduct1_binned.append(conduct1_median)
 
-                conduct2hold = conduct2[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                conduct2average = statistics.median(conduct2hold)
-                conduct2binned.append(conduct2average)
+                conduct2_temporary = conduct2[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                conduct2_median = statistics.median(conduct2_temporary)
+                conduct2_binned.append(conduct2_median)
 
-                oxygen1hold = oxygen1[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                oxygen1average = statistics.median(oxygen1hold)
-                oxygen1binned.append(oxygen1average)
+                oxygen1_temporary = oxygen1[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                oxygen1_median = statistics.median(oxygen1_temporary)
+                oxygen1_binned.append(oxygen1_median)
 
-                oxygen2hold = oxygen2[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                oxygen2average = statistics.median(oxygen2hold)
-                oxygen2binned.append(oxygen2average)
+                oxygen2_temporary = oxygen2[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                oxygen2_median = statistics.median(oxygen2_temporary)
+                oxygen2_binned.append(oxygen2_median)
 
-                pressurehold = pressure[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                pressureaverage = statistics.median(pressurehold)
-                pressurebinned.append(pressureaverage)
+                pressure_temporary = pressure[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                pressure_median = statistics.median(pressure_temporary)
+                pressure_binned.append(pressure_median)
 
-                salt1hold = salt1[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                salt1average = statistics.median(salt1hold)
-                salt1binned.append(salt1average)
+                salt1_temporary = salt1[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                salt1_median = statistics.median(salt1_temporary)
+                salt1_binned.append(salt1_median)
 
-                salt2hold = salt2[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                salt2average = statistics.median(salt2hold)
-                salt2binned.append(salt2average)
+                salt2_temporary = salt2[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                salt2_median = statistics.median(salt2_temporary)
+                salt2_binned.append(salt2_median)
 
-                bottlesfiredhold = bottlesfired[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                bottlesfiredaverage = statistics.median(bottlesfiredhold)
-                bottlesfiredbinned.append(bottlesfiredaverage)
+                bottles_fired_temporary = bottlesfired[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                bottles_fired_median = statistics.median(bottles_fired_temporary)
+                bottles_fired_binned.append(bottles_fired_median)
 
-                bottlepositionhold = bottleposition[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                bottlepositionaverage = statistics.median(bottlepositionhold)
-                bottlepositionbinned.append(bottlepositionaverage)
+                bottle_position_temporary = bottleposition[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                bottle_position_median = statistics.median(bottle_position_temporary)
+                bottle_position_binned.append(bottle_position_median)
 
-                longitudehold = longitude[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                longitiudeaverage = statistics.median(longitudehold)
-                longitudebinned.append(longitiudeaverage)
+                longitude_temporary = longitude[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                longitude_median = statistics.median(longitude_temporary)
+                longitude_binned.append(longitude_median)
 
-                latitudehold = latitude[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                latitudeaverage = statistics.median(latitudehold)
-                latitudebinned.append(latitudeaverage)
+                latitude_temporary = latitude[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                latitude_median = statistics.median(latitude_temporary)
+                latitude_binned.append(latitude_median)
 
-                fluorohold = fluoro[(i * bottlescansnum[0]): ((i + 1) * bottlescansnum[0])]
-                fluoroaverage = statistics.median(fluorohold)
-                fluorobinned.append(fluoroaverage)
+                fluoro_temporary = fluoro[(bottle_firing_indexes[i]): bottle_firing_indexes[i + 1]]
+                fluoro_median = statistics.median(fluoro_temporary)
+                fluoro_binned.append(fluoro_median)
 
-                timehold = (timelapsed[i * bottlescansnum[0]]) + startepochtime
-                timeingmt = time.localtime(timehold)
-                timetoprint = time.strftime('%Y %m %d %H:%M:%S', timeingmt)
-                timebinned.append(timetoprint)
+                time_temporary = time_elapsed[i] + startepochtime
+                time_in_gmt = time.localtime(time_temporary)
+                time_to_print = time.strftime('%Y %m %d %H:%M:%S', time_in_gmt)
+                time_binned.append(time_to_print)
 
             # Pack the data up together and insert into db file
-            ctddata = tuple(zip(stationbinned, temp1binned, temp2binned, conduct1binned, conduct2binned,
-                                oxygen1binned, oxygen2binned, pressurebinned, salt1binned, salt2binned,
-                                bottlesfiredbinned, bottlepositionbinned, timebinned, longitudebinned, latitudebinned,
-                                fluorobinned))
+            ctddata = tuple(zip(stationbinned, temp1_binned, temp2_binned, conduct1_binned, conduct2_binned,
+                                oxygen1_binned, oxygen2_binned, pressure_binned, salt1_binned, salt2_binned,
+                                bottles_fired_binned, bottle_position_binned, time_binned, longitude_binned,
+                                latitude_binned,fluoro_binned))
 
             conn = sqlite3.connect(self.database)
             c = conn.cursor()
@@ -223,8 +229,8 @@ class initCTDdata():
 
             logging.info('CTD file ' + str(self.file) + ' processed')
 
-            if not self.rereading:
-                self.refreshing = processing.RefreshFunction.refreshFunction(self.currpath, self.currproject, self.interactive)
+            #if not self.rereading:
+            self.processing_completed.emit()
 
         except Exception:
             logging.error(traceback.print_exc())

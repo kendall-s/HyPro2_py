@@ -1,6 +1,8 @@
 import csv, time, calendar, logging, traceback, os
 from processing.algo.Structures import SLKData, CHDData
 import processing.procdata.ProcessSealNutrients as psn
+from PyQt5.QtCore import QObject, pyqtSignal
+
 NUTRIENTS = ['nitrate', 'phosphate', 'silicate', 'nitrite', 'ammonia']
 
 def get_data_routine(file_path, w_d, processing_parameters, database):
@@ -13,12 +15,15 @@ def get_data_routine(file_path, w_d, processing_parameters, database):
     # Extract data from the .SLK file - loads into slk data object
     slk_data = extract_slk_data(file_path, processing_parameters)
 
-    # Extract data from the .CHD file - laods into chd data object
-    chd_data = extract_chd_data(file_path[:-3]+'CHD', slk_data)
-
     # Determine our first active (was present in the file) nutrient and assign
     # Fill out dilutions and flags with 1s as this point
-    current_nutrient = slk_data.active_nutrients[0]
+    if slk_data:
+        current_nutrient = slk_data.active_nutrients[0]
+    else:
+        return None
+
+    # Extract data from the .CHD file - laods into chd data object
+    chd_data = extract_chd_data(file_path[:-3] + 'CHD', slk_data)
 
     w_d.analyte = current_nutrient
     w_d.quality_flag = [1 for x in range(len(slk_data.sample_ids))]
@@ -99,7 +104,9 @@ def parse_slk(slk_path):
 
             data_hold[row][column] = x[-1][1:]
         except Exception as e:
-            print('slk cell length: ' + str(len(x)))
+            # This is to debug. A SLK cell may not be the full thing, indicating it is blank or something suss
+            # print('SLK cell length: ' + str(len(x)))
+            pass
 
     return data_hold
 
@@ -131,6 +138,7 @@ def extract_slk_data(slk_path, processing_parameters):
 
     slk_data = SLKData('unknown')
     # By finding where certain headers are the associated data can be found
+    # Please note the additional quotes, this is a result of the SLK file
     findx, findy = getIndex(data_hold, '"TIME"')
     slk_data.time = data_hold[findx][findy + 1][1:-1]
 
@@ -140,40 +148,68 @@ def extract_slk_data(slk_path, processing_parameters):
     findx, findy = getIndex(data_hold, '"OPER"')
     slk_data.operator = data_hold[findx][findy + 1][1:-1]
 
-    findx, findy = getIndex(data_hold, '"METH"')
+    # We need to locate the what row the gains and baseline offsets are located
+    baseline_x, gain_y = getIndex(data_hold, '"Base"')
+    gain_x, gain_y = getIndex(data_hold, '"Gain"')
+
+    # To make sure we know where the Calibrant and Peak Start Columns are, we will find them...
+    # Find the sample ID cell which is the first entry in the row
+    sample_id_string = '"' + processing_parameters['nutrient_processing']['slk_col_names']['sample_id'] + '"'
+    sampleid_x, sampleid_y = getIndex(data_hold, sample_id_string)
+    table_header_row = data_hold[sampleid_x][:]
+
     # This was added a little later on, aftr realising that channel number in SLK does not
     # correspond with the A/D data in the CHD, if say only channel 2 is missing, leaving channels 1,3,4,5
+    findx, findy = getIndex(data_hold, '"METH"')
     channel_orders = data_hold[findx][:]
+    channel_orders_cleaned = [x for x in channel_orders[1:] if x != ""]
+
     channel_temp = 1
-    for x in channel_orders:
+    for x in channel_orders_cleaned:
         # Check that the method name matches an expected channel
         cleaned_x = x.replace('"', '')
-        if cleaned_x in processing_parameters['nutrientprocessing']['elementNames'].values():
-            for name, channel_name in processing_parameters['nutrientprocessing']['elementNames'].items():
+        print(cleaned_x)
+        if cleaned_x in processing_parameters['nutrient_processing']['element_names'].values():
+            for name, channel_name in processing_parameters['nutrient_processing']['element_names'].items():
                 if cleaned_x == channel_name:
-                    name_cleaned = name.replace('Name', '')
+                    name_cleaned = name.replace('_name', '')
 
                     slk_data.chd_channel[name_cleaned] = channel_temp
                     channel_temp += 1
                     # Break because there is only going to be ONE match
                     break
+        else:
+            # Still increment the CHD channel, because even though it isn't recognised, it fills a spot in the CHD
+            channel_temp += 1
 
-    # Iterate through the potential nutrients
+
+    # TODO: turn this into a reactive loop based on the potential nutrients, not hardcoded
     for nut in NUTRIENTS:
         # Try to locate the heading in the SLK file for each nutrient
-        findnut, findy = getIndex(data_hold, '"' + processing_parameters['nutrientprocessing']['elementNames']['%sName' % nut] + '"')
+        findnut, findy = getIndex(data_hold, '"' + processing_parameters['nutrient_processing']['element_names']['%s_name' % nut] + '"')
         # If we've located a match, collect the relevant data
         if findnut != 'no':
-
             slk_data.active_nutrients.append(nut)
             slk_data.channel[nut] = data_hold[findnut - 1][findy]
-            slk_data.gains[nut] = data_hold[findnut + 3][findy]
-            slk_data.bases[nut] = data_hold[findnut + 2][findy]
-            slk_data.calibrants[nut] = [row[findy - 1] for row in data_hold[findnut + 6:]]
-            slk_data.peak_starts[nut] = [row[findy + 2].replace('"', '') for row in data_hold[findnut + 6:]]
-            # Clean peak starts will just make some operations much quicker
-            slk_data.clean_peak_starts[nut] = [int(str(nut).replace("#", "")) for nut in slk_data.peak_starts[nut]]
-            print(slk_data.peak_starts[nut])
+
+            slk_data.gains[nut] = data_hold[gain_x][findy]
+            slk_data.bases[nut] = data_hold[baseline_x][findy]
+
+            # Lets just make sure we know what row the table data starts at. We will look for the "Results" string
+            # under the nutrient label, if we get the index of that we can determine how far down it is
+
+            column = [row[findy] for row in data_hold[findnut:]]
+            # Find what index Results is, that will be our offset from the Nutrient name to the table data
+            # Add one to it so that we go to the row below :)
+            results_index = [idx for idx, s in enumerate(column) if 'Results' in s][0] + 1
+
+            # Calibrants column should always be the first column to the left of the nutrient label
+            slk_data.calibrants[nut] = [row[findy-1] for row in data_hold[findnut + results_index:]]
+            # OK logic here is that the peak starts column is always to the right of the Nutrient label
+            # using the index function of a list returns the first index where it finds the value
+            print(slk_data.calibrants[nut])
+            next_peak_starts_index = table_header_row[findy:].index('"Peak Start"')
+            slk_data.peak_starts[nut] = [row[findy+next_peak_starts_index].replace('"', '') for row in data_hold[findnut + results_index:]]
 
             if 'peak' in str(slk_data.peak_starts[nut][0]).lower():
                 logging.error('Too many rows between analyte header and start of tray protocol.')
@@ -185,21 +221,28 @@ def extract_slk_data(slk_path, processing_parameters):
                               f'empty peak start: {rows_empty}')
                 raise TypeError
 
+            # After doing those cursory checks, lets make clean peak starts which make some operations much quicker
+            slk_data.clean_peak_starts[nut] = [int(str(nut).replace("#", "")) for nut in slk_data.peak_starts[nut]]
+
+    # Return early if we didnt find any nutrients, kill the process
+    if len(slk_data.active_nutrients) == 0:
+        return None
+
     findx, findy = getIndex(data_hold,
-                            '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['sampleID'] + '"')
+                            '"' + processing_parameters['nutrient_processing']['slk_col_names']['sample_id'] + '"')
     # Removes double quotes out of the sample ID name
     slk_data.sample_ids = [row[findy].replace('"', '') for row in data_hold[findx + 1:]]
 
     findx, findy = getIndex(data_hold,
-                            '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupNumbers'] + '"')
+                            '"' + processing_parameters['nutrient_processing']['slk_col_names']['cup_numbers'] + '"')
     slk_data.cup_numbers = [row[findy][:] for row in data_hold[findx + 1:]]
 
     findx, findy = getIndex(data_hold,
-                            '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['cupTypes'] + '"')
+                            '"' + processing_parameters['nutrient_processing']['slk_col_names']['cup_types'] + '"')
     slk_data.cup_types = [row[findy][1:-1] for row in data_hold[findx + 1:]]
 
     findx, findy = getIndex(data_hold,
-                            '"' + processing_parameters['nutrientprocessing']['slkcolumnnames']['dateTime'] + '"')
+                            '"' + processing_parameters['nutrient_processing']['slk_col_names']['date_time'] + '"')
     slk_data.raw_timestamps = [row[findy][1:-1] for row in data_hold[findx + 1:]]
     format = '%d/%m/%Y %I:%M:%S %p'
     struct_time = [time.strptime(x, format) for x in slk_data.raw_timestamps]

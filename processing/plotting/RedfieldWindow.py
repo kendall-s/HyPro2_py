@@ -6,7 +6,7 @@ from processing.plotting.PlottingWindow import QMainPlotterTemplate
 
 class redfieldPlot(QMainPlotterTemplate):
     def __init__(self, database):
-        super().__init__()
+        super().__init__(database)
         self. database = database
 
         self.peak_numbers = []
@@ -91,4 +91,4 @@ class redfieldPlot(QMainPlotterTemplate):
             self.canvas.draw()
 
     def on_pick(self, event):
-        self.base_on_pick(event, self.database, self.runs, self.peak_nums, 'nitrate')
+        self.base_on_pick(event, self.runs, self.peak_nums, 'nitrate')

@@ -61,11 +61,11 @@ def determine_oxygen_survey(station, cast, rp, bottle_id, database_path, process
 
     conn = sqlite3.connect(database_path)
     c = conn.cursor()
-    surveys = list(processing_parameters['surveyparams'].keys())
+    surveys = list(processing_parameters['survey_params'].keys())
 
     for surv in surveys:
         if station < 900:
-            if processing_parameters['surveyparams'][surv]['scripps']['ctdsurvey']:
+            if processing_parameters['survey_params'][surv]['scripps']['ctd_survey']:
                 deployment = station
                 rosette_position = rp
                 c.execute('SELECT oxygen from logsheetData WHERE deployment=? AND rosettePosition=?', [deployment, rosette_position])
@@ -80,11 +80,11 @@ def determine_oxygen_survey(station, cast, rp, bottle_id, database_path, process
                     return None
 
         else:
-            if processing_parameters['surveyparams'][surv]['scripps']['decodesampleid']:
-                survey_prefix = processing_parameters['surveyparams'][surv]['scripps']['surveyprefix']
+            if processing_parameters['survey_params'][surv]['scripps']['decode_sample_id']:
+                survey_prefix = processing_parameters['survey_params'][surv]['scripps']['survey_prefix']
                 if station == int(survey_prefix):
                     survey = surv
-                    if processing_parameters['surveyparams'][surv]['scripps']['decodedepfromid']:
+                    if processing_parameters['survey_params'][surv]['scripps']['decode_dep_from_id']:
                         deployment = cast
                         rosette_position = rp
                         return deployment, rosette_position, survey

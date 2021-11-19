@@ -8,7 +8,7 @@ from processing.plotting.QCPlots import mdl_plot
 
 class mdlPlotWindowTemplate(QMainPlotterTemplate):
     def __init__(self, database, params_path):
-        super().__init__()
+        super().__init__(database)
         self. database = database
         with open(params_path, 'r') as file:
             self.params = json.loads(file.read())
@@ -50,11 +50,11 @@ class mdlPlotWindowTemplate(QMainPlotterTemplate):
             data = list(c.fetchall())
             c.close()
 
-            mdl = self.params['nutrientprocessing']['qcsamplenames']['mdl']
+            mdl = self.params['nutrient_processing']['qc_sample_names']['mdl']
             runnums = []
             for i, x in enumerate(data):
                 if mdl in x[1]:
-                    runnums.append(x[0])
+                    runnums.append(int(x[0]))
             self.run_list.clear()
             rn = sorted(list(set(runnums)))
             for x in rn:
@@ -69,7 +69,7 @@ class mdlPlotWindowTemplate(QMainPlotterTemplate):
         selected = self.run_list.selectedItems()
         selected_runs = [item.text() for item in selected]
 
-        mdl = self.params['nutrientprocessing']['qcsamplenames']['mdl']
+        mdl = self.params['nutrient_processing']['qc_sample_names']['mdl']
 
         queryq = '?'
         queryplaceruns = ', '.join(queryq for unused in selected_runs)
@@ -94,21 +94,21 @@ class mdlPlotWindowTemplate(QMainPlotterTemplate):
                 self.conctoplot.append(x[3])
                 self.flagtoplot.append(x[4])
 
-        runpeaknumhold = []
+        run_peaknum_temp = []
         self.runpeaknumtoplot = []
         runs = sorted(set(self.runs))
 
         stdevs = []
         for x in runs:
-            conchold = []
+            conc_temp = []
             for i, y in enumerate(self.runs):
                 if x == y:
-                    conchold.append(self.conctoplot[i])
-            stdevs.append(statistics.stdev(conchold))
+                    conc_temp.append(self.conctoplot[i])
+            stdevs.append(statistics.stdev(conc_temp))
 
-            runpeaknumhold.append(self.runs.count(x))
+            run_peaknum_temp.append(self.runs.count(x))
 
-        for i, x in enumerate(runpeaknumhold):
+        for i, x in enumerate(run_peaknum_temp):
             for y in range(x):
                 if y > 0:
                     self.runpeaknumtoplot.append(runs[i] + (y / ((x - 1) * 1.6)))
@@ -119,5 +119,5 @@ class mdlPlotWindowTemplate(QMainPlotterTemplate):
         self.canvas.draw()
 
     def on_pick(self, event):
-        self.base_on_pick(event, self.database, self.runs, self.peak_nums, nutrient=self.nutq)
+        self.base_on_pick(event, self.runs, self.peak_nums, nutrient=self.nutq)
 

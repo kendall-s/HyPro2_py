@@ -1,5 +1,10 @@
 import sqlite3
 from sqlite3 import Error
+from sqlalchemy import create_engine
+from sqlalchemy.orm import declarative_base, Session, relationship
+from sqlalchemy import Table, Column, Integer, String, Float, ForeignKey, select
+
+from processing.algo.Models import *
 
 # This is a dirty file left over from the start, all it essentially is used for is completing the setup of
 # the database and the tables within, it is kept as it is needed for new projects...
@@ -198,11 +203,11 @@ def form_tables(database):
                         salt1 FLOAT,
                         salt2 FLOAT,
                         bottlesfired INTEGER,
-                        bottleposition INTEGER,
+                        rosettePosition INTEGER,
                         time FLOAT,
                         longitude FLOAT,
                         latitude FLOAT,
-                        fluoro FLOAT, UNIQUE(deployment, bottleposition))''')
+                        fluoro FLOAT, UNIQUE(deployment, rosettePosition))''')
 
     c.execute('''CREATE TABLE IF NOT EXISTS logsheetData
                         (deployment INTEGER, 
@@ -261,8 +266,23 @@ def form_tables(database):
                         driftMedians FLOAT,
                         driftFlags INTEGER, UNIQUE(nutrient, runNumber, driftIndexes))''')
 
+    c.execute(''' CREATE TABLE IF NOT EXISTS nutrientMeasurements
+                        (runNumber INTEGER,
+                        sampleID TEXT,
+                        cupType TEXT,
+                        peakNumber INTEGER,
+                        survey TEXT,
+                        deployment TEXT,
+                        rosettePosition TEXT,
+                        time FLOAT,
+                        UNIQUE(time))''')
 
-    c.close()
+    conn.commit()
+    conn.close()
+
+    engine = create_engine(f"sqlite+pysqlite:///C:/HyPro/sqlite_sqlalchemy_testing_db.db", echo=False)
+    Base.metadata.create_all(engine, checkfirst=True)
+    engine.dispose()
 
     print('Data tables created and running')
 

@@ -49,9 +49,9 @@ class surveyDialog(hyproDialogTemplate):
             self.ctdactive = False
 
             tabnotadded = True
-            for i, analysis in enumerate(params['analysisparams'].keys()):
+            for i, analysis in enumerate(params['analysis_params'].keys()):
                 print(analysis)
-                if params['analysisparams'][analysis]['activated'] == True or self.survey == 'new':
+                if params['analysis_params'][analysis]['activated'] == True or self.survey == 'new':
                     if analysis == 'seal':
                         self.nutrient_tab = QWidget()
                         self.tabs.addTab(self.nutrient_tab, 'Nutrients')
@@ -117,7 +117,7 @@ class surveyDialog(hyproDialogTemplate):
 
                 self.survey_number_station_label = QLabel('Survey prefix on sample ID: ')
 
-                self.survey_number_station = QLineEdit(self)
+                self.survey_prefix_salt = QLineEdit(self)
 
                 self.decode_salt_deployment = QCheckBox('Decode deployment and RP from oxygen file')
                 self.decode_salt_deployment_label = QLabel(
@@ -160,7 +160,7 @@ class surveyDialog(hyproDialogTemplate):
                 salt_grid.addWidget(self.decode_salt, 6, 1, 1, 4)
                 salt_grid.addWidget(self.decode_salt_label, 7, 1, 1, 2)
                 salt_grid.addWidget(self.survey_number_station_label, 8, 1, 1, 4)
-                salt_grid.addWidget(self.survey_number_station, 8, 3)
+                salt_grid.addWidget(self.survey_prefix_salt, 8, 3)
 
                 salt_grid.addWidget(saltlinesep3, 9, 1, 1, 4)
 
@@ -332,35 +332,35 @@ class surveyDialog(hyproDialogTemplate):
     def populatefields(self):
         with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
             params = json.loads(file.read())
-        surveys = list(params['surveyparams'].keys())
+        surveys = list(params['survey_params'].keys())
         for k in surveys:
             if k == self.survey:
                 try:
                     if self.salt_active:
-                        self.activate_salt.setChecked(params['surveyparams'][k]['guildline']['activated'])
-                        self.ctd_survey_salt.setChecked(params['surveyparams'][k]['guildline']['ctdsurvey'])
-                        self.decode_salt.setChecked(params['surveyparams'][k]['guildline']['decodesampleid'])
-                        self.survey_number_station.setText(params['surveyparams'][k]['guildline']['surveyprefix'])
-                        self.decode_salt_deployment.setChecked(params['surveyparams'][k]['guildline']['decodedepfromid'])
-                        self.sample_salt_id.setChecked(params['surveyparams'][k]['guildline']['usesampleid'])
-                        self.dep_rp_format_salt.setText(params['surveyparams'][k]['guildline']['depformat'])
+                        self.activate_salt.setChecked(params['survey_params'][k]['guildline']['activated'])
+                        self.ctd_survey_salt.setChecked(params['survey_params'][k]['guildline']['ctd_survey'])
+                        self.decode_salt.setChecked(params['survey_params'][k]['guildline']['decode_sample_id'])
+                        self.survey_prefix_salt.setText(params['survey_params'][k]['guildline']['survey_prefix'])
+                        self.decode_salt_deployment.setChecked(params['survey_params'][k]['guildline']['decode_dep_from_id'])
+                        self.sample_salt_id.setChecked(params['survey_params'][k]['guildline']['use_sample_id'])
+                        self.dep_rp_format_salt.setText(params['survey_params'][k]['guildline']['depformat'])
                         
                     if self.oxy_active:
-                        self.activate_oxygen.setChecked(params['surveyparams'][k]['scripps']['activated'])
-                        self.ctd_survey_oxygen.setChecked(params['surveyparams'][k]['scripps']['ctdsurvey'])
-                        self.decode_oxygen.setChecked(params['surveyparams'][k]['scripps']['decodesampleid'])
-                        self.survey_number_station.setText(params['surveyparams'][k]['scripps']['surveyprefix'])
-                        self.decode_oxygen_deployment.setChecked(params['surveyparams'][k]['scripps']['decodedepfromid'])
-                        self.sample_oxygen_id.setChecked(params['surveyparams'][k]['scripps']['usesampleid'])
+                        self.activate_oxygen.setChecked(params['survey_params'][k]['scripps']['activated'])
+                        self.ctd_survey_oxygen.setChecked(params['survey_params'][k]['scripps']['ctd_survey'])
+                        self.decode_oxygen.setChecked(params['survey_params'][k]['scripps']['decode_sample_id'])
+                        self.survey_number_station.setText(params['survey_params'][k]['scripps']['survey_prefix'])
+                        self.decode_oxygen_deployment.setChecked(params['survey_params'][k]['scripps']['decode_dep_from_id'])
+                        self.sample_oxygen_id.setChecked(params['survey_params'][k]['scripps']['use_sample_id'])
     
                     if self.nuts_active:
-                        self.activate_nutrient.setChecked(params['surveyparams'][k]['seal']['activated'])
-                        self.ctd_survey_nutrient.setChecked(params['surveyparams'][k]['seal']['ctdsurvey'])
-                        self.decode_nutrient.setChecked(params['surveyparams'][k]['seal']['decodesampleid'])
-                        self.survey_prefix_nutrient.setText(params['surveyparams'][k]['seal']['surveyprefix'])
-                        self.decode_deployment_nutrient.setChecked(params['surveyparams'][k]['seal']['decodedepfromid'])
-                        self.dep_rp_format_nutrient.setText(params['surveyparams'][k]['seal']['depformat'])
-                        self.sample_id_nutrient.setChecked(params['surveyparams'][k]['seal']['usesampleid'])
+                        self.activate_nutrient.setChecked(params['survey_params'][k]['seal']['activated'])
+                        self.ctd_survey_nutrient.setChecked(params['survey_params'][k]['seal']['ctd_survey'])
+                        self.decode_nutrient.setChecked(params['survey_params'][k]['seal']['decode_sample_id'])
+                        self.survey_prefix_nutrient.setText(params['survey_params'][k]['seal']['survey_prefix'])
+                        self.decode_deployment_nutrient.setChecked(params['survey_params'][k]['seal']['decode_dep_from_id'])
+                        self.dep_rp_format_nutrient.setText(params['survey_params'][k]['seal']['depformat'])
+                        self.sample_id_nutrient.setChecked(params['survey_params'][k]['seal']['use_sample_id'])
                 except KeyError:
                     print('Missing key from parameters file')
                     pass
@@ -374,29 +374,29 @@ class surveyDialog(hyproDialogTemplate):
             newsurvey = {'%s' % surveyname: {}}
             if self.nuts_active:
                 newsurvey[surveyname]['seal'] = {'activated': self.activate_nutrient.isChecked(),
-                                                      'ctdsurvey': self.ctd_survey_nutrient.isChecked(),
-                                                      'usesampleid': self.sample_id_nutrient.isChecked(),
-                                                      'surveyprefix': self.survey_prefix_nutrient.text(),
-                                                      'decodedepfromid': self.decode_deployment_nutrient.isChecked(),
+                                                      'ctd_survey': self.ctd_survey_nutrient.isChecked(),
+                                                      'use_sample_id': self.sample_id_nutrient.isChecked(),
+                                                      'survey_prefix': self.survey_prefix_nutrient.text(),
+                                                      'decode_dep_from_id': self.decode_deployment_nutrient.isChecked(),
                                                       'depformat': self.dep_rp_format_nutrient.text(),
-                                                      'decodesampleid': self.decode_nutrient.isChecked()}
+                                                      'decode_sample_id': self.decode_nutrient.isChecked()}
             if self.salt_active:
                 newsurvey[surveyname]['guildline'] = {'activated': self.activate_salt.isChecked(),
-                                                         'ctdsurvey': self.ctd_survey_salt.isChecked(),
-                                                         'decodesampleid': self.decode_salt.isChecked(),
-                                                         'surveyprefix': self.survey_number_station.text(),
-                                                         'decodedepfromid': self.decode_salt_deployment.isChecked(),
-                                                         'usesampleid': self.sample_salt_id.isChecked(),
+                                                         'ctd_survey': self.ctd_survey_salt.isChecked(),
+                                                         'decode_sample_id': self.decode_salt.isChecked(),
+                                                         'survey_prefix': self.survey_prefix_salt.text(),
+                                                         'decode_dep_from_id': self.decode_salt_deployment.isChecked(),
+                                                         'use_sample_id': self.sample_salt_id.isChecked(),
                                                           'depformat': self.dep_rp_format_salt.text()}
             if self.oxy_active:
                 newsurvey[surveyname]['scripps'] = {'activated': self.activate_oxygen.isChecked(),
-                                                         'ctdsurvey': self.ctd_survey_oxygen.isChecked(),
-                                                         'decodesampleid': self.decode_oxygen.isChecked(),
-                                                         'surveyprefix': self.survey_number_station.text(),
-                                                         'decodedepfromid': self.decode_oxygen_deployment.isChecked(),
-                                                         'usesampleid': self.sample_oxygen_id.isChecked()}
+                                                         'ctd_survey': self.ctd_survey_oxygen.isChecked(),
+                                                         'decode_sample_id': self.decode_oxygen.isChecked(),
+                                                         'survey_prefix': self.survey_number_station.text(),
+                                                         'decode_dep_from_id': self.decode_oxygen_deployment.isChecked(),
+                                                         'use_sample_id': self.sample_oxygen_id.isChecked()}
 
-            params['surveyparams'].update(newsurvey)
+            params['survey_params'].update(newsurvey)
 
             with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'w') as file:
                 json.dump(params, file)

@@ -1,161 +1,166 @@
 # https://stackoverflow.com/questions/283645/python-list-in-sql-query-as-parameter
-
-from PyQt5.QtWidgets import (QTableWidget, QApplication)
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QAction
 import sqlite3
-import csv, io
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import QEvent
-from dialogs.templates.DialogTemplate import hyproDialogTemplate
+from dialogs.templates.DataTable import Datatable
+from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
+from processing.algo.ComplexSQL import export_ctd_data, export_all_nuts, export_all_nuts_in_survey
 
-class viewData(hyproDialogTemplate):
-    def __init__(self, analysis, view, selected, database):
+NUTRIENT_HEADER = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
+                   'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
+HEADERS = {
+            'Salinity': ['Run Number', 'Deployment', 'Bottle Label', 'Date/Time', 'Uncorrected Ratio',
+                       'Unorrected Ratio StDev', 'Salinity', 'Salinity StDev', 'Comment', 'Flag', 'Deployment',
+                       'RP', 'Survey'],
+           'Oxygen': ['Run Number', 'Station #', 'Cast', 'RP', 'Bottle ID', 'Bottle Vol', 'Raw Titer', 'Titer',
+                       'Oxygen', 'Oxygen uM', 'Thio Temp', 'Draw Temp', 'Final Volt', 'Time', 'Flag', 'Deployment',
+                       'RP', 'Survey'],
+           'CTD': ['Deployment', 'Temp #1', 'Temp #2', 'Conductivity #1', 'Conductivity #2', 'Oxygen #1',
+                       'Oxygen #2', 'Pressure', 'Salinity #1', 'Salinity #2', 'Bottle Fired', 'RP', 'Time', 'Longitude',
+                       'Latitiude', 'Fluorescence'],
+           'Logsheet': ['Deployment', 'RP', 'Oxygen', 'Oxygen Draw Temp', 'Salinity', 'Nutrient'],
+           'Silicate': NUTRIENT_HEADER,
+           'Nitrate': NUTRIENT_HEADER,
+           'Nitrite': NUTRIENT_HEADER,
+           'Phosphate': NUTRIENT_HEADER,
+           'Ammonia': NUTRIENT_HEADER,
+           'All Available Nutrients': ['Run Number', 'Sample ID', 'Cup Type', 'Peak Number', 'Survey', 'Deployment',
+                                       'RP', 'Ammonium Conc', 'Ammonium Flag', 'Nitrate Conc', 'Nitrate Flag',
+                                       'Nitrite Conc', 'Nitrite Flag', 'Phosphate Conc', 'Phosphate Flag',
+                                       'Silicate Conc', 'Silicate Flag'],
+           'As CTD Results': ['Deployment', 'RP', 'Pressure(db)', 'CTD Temp 1', 'CTD Temp 2', 'CTD Salinity 1',
+                       'CTD Salinity 2', 'CTD Oxygen 1', 'CTD Oxygen 2', 'CTD Fluoro', 'Time', 'Lon', 'Lat',
+                       'Nut Label', 'Ammonium Conc', 'Ammonium Flag', 'Nitrate Conc', 'Nitrate Flag', 'Nitrite Conc',
+                       'Nitrite Flag', 'Phosphate Conc', 'Phosphate Flag', 'Silicate Conc', 'Silicate Flag', 'Salinity',
+                       'Salinity Flag', 'Oxygen (ml/l)', 'Oxygen (uM)', 'Oxygen Flag']
+}
+
+
+class viewData(hyproMainWindowTemplate):
+    def __init__(self, survey, analysis, view, selected, database):
         super().__init__(1450, 600, 'HyPro - View Data')
 
+        self.survey = survey
         self.analysis = analysis
         self.view = view
         self.selected = selected
         self.db = database
 
-        self.init_ui()
+        self.data = self.get_data()
+        if self.data:
+            self.init_ui()
+            self.show()
 
-        self.show()
 
     def init_ui(self):
 
-        self.datatable = QTableWidget(self)
-        self.datatable.installEventFilter(self)
+        self.setWindowFlags(Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint);
 
+        """
+        Set up the menu bar
+        """
+
+        file_menu = self.main_menu.addMenu('File')
+        edit_menu = self.main_menu.addMenu('Edit')
+
+        copy_with_headers = QAction('Copy w/Header', self)
+        copy_with_headers.triggered.connect(self.copy_with_headers)
+        edit_menu.addAction(copy_with_headers)
+
+        copy_all = QAction('Copy All', self)
+        copy_all.triggered.connect(self.copy_all)
+        edit_menu.addAction(copy_all)
+
+        self.data_table_widget = Datatable(self.data)
+        self.data_table_widget.setHorizontalHeaderLabels(HEADERS[self.analysis])
+
+        self.grid_layout.addWidget(self.data_table_widget, 0, 0)
+
+        self.data_table_widget.resizeColumnsToContents()
+
+
+    def get_data(self):
         conn = sqlite3.connect(self.db)
-        self.c = conn.cursor()
+        c = conn.cursor()
 
-        queryq = '?'
-        queryplace = ', '.join(queryq for unused in self.selected)
+        query_length_deployments = ', '.join('?' for unused in self.selected)
 
-        if self.analysis == 'Salinity':
-            headers = ['Run Number', 'Deployment', 'Bottle Label', 'Date/Time', 'Uncorrected Ratio',
-                       'Unorrected Ratio StDev', 'Salinity', 'Salinity StDev', 'Comment', 'Flag', 'RP', 'Survey']
+        if self.analysis == 'Dissolved Oxygen':
+            self.analysis = 'Oxygen'
+
+        """
+        If statements here follow: analysis -> survey -> view structuring 
+        """
+        if self.analysis == 'All Available Nutrients':
+            # If survey is Any, we can remove the survey filter from the query
+            if self.survey == 'Any':
+                if self.view == 'File':
+                    q = export_all_nuts % ('runNumber', query_length_deployments)
+
+            else: # Otherwise standard filtering with the survey
+                if self.view == 'Deployment':
+                    q = export_all_nuts_in_survey % ('deployment', query_length_deployments)
+
+                elif self.view == 'File':
+                    q = export_all_nuts_in_survey % ('runNumber', query_length_deployments)
+
+
+        elif self.analysis == 'As CTD Results':
+            q = export_ctd_data % query_length_deployments
+
+        # CTD and logsheet grouped together because FILE always equals DEPLOYMENT
+        elif self.analysis == 'CTD' or self.analysis == 'Logsheet':
+
+            lower_case_analysis = self.analysis.lower()
+
             if self.view == 'Deployment':
-                q = 'SELECT * FROM salinityData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+                q = 'SELECT * FROM %sData WHERE deployment IN (%s)' % (lower_case_analysis, query_length_deployments)
             elif self.view == 'File':
-                q = 'SELECT * FROM salinityData WHERE runNumber IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+                q = 'SELECT * FROM %sData WHERE deployment IN (%s)' % (lower_case_analysis, query_length_deployments)
 
-        elif self.analysis == 'Dissolved Oxygen':
-            headers = ['Run Number', 'Deployment', 'Cast', 'RP', 'Bottle ID', 'Bottle Vol', 'Raw Titer', 'Titer',
-                       'Oxygen', 'Oxygen uM', 'Thio Temp', 'Draw Temp', 'Final Volt', 'Time', 'Flag']
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM oxygenData WHERE stationNumber IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-            elif self.view == 'File':
-                q = 'SELECT * FROM oxygenData WHERE runNumber IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+        # Everything else includes the individual nutrients, salinity and D.O
+        else:
+            # Again, if survey is any we remove the WHERE for survey
+            if self.survey == 'Any':
+                if self.view == 'Deployment':
+                    q = 'SELECT * FROM %sData WHERE deployment IN (%s)' % \
+                        (self.analysis, query_length_deployments)
+                elif self.view == 'File':
+                    q = 'SELECT * FROM %sData WHERE runNumber IN (%s)' % \
+                        (self.analysis, query_length_deployments)
 
-        elif self.analysis == 'CTD':
-            headers = ['Deployment', 'Temp #1', 'Temp #2', 'Conductivity #1', 'Conductivity #2', 'Oxygen #1',
-                       'Oxygen #2', 'Pressure', 'Salinity #1', 'Salinity #2', 'Bottle Fired', 'RP', 'Time', 'Longitude',
-                       'Latitiude', 'Fluorescence']
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM ctdData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-            elif self.view == 'File':
-                q = 'SELECT * FROM ctdData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+            else: # We've picked a specific survey here
+                if self.view == 'Deployment':
+                    q = 'SELECT * FROM %sData WHERE deployment IN (%s) AND survey=?' % \
+                        (self.analysis, query_length_deployments)
+                elif self.view == 'File':
+                    q = 'SELECT * FROM %sData WHERE runNumber IN (%s) AND survey=?' % \
+                        (self.analysis, query_length_deployments)
 
-        elif self.analysis == 'Logsheet':
-            headers = ['Deployment', 'RP', 'Oxygen', 'Oxygen Draw Temp', 'Salinity', 'Nutrient']
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM logsheetData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-            elif self.view == 'File':
-                q = 'SELECT * FROM logsheetData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+        # Add the survey to the query input if anything other than logsheet, CTD results and CTD
+        # And also no need to append it to the query if the survey selection is any
+        if self.survey != 'Any':
+            if not self.analysis in ['Logsheet', 'As CTD Results', 'CTD']:
+                self.selected.append(self.survey)
 
-        elif self.analysis == 'Silicate':
-            headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Flag', 'Dilution', 'EpochTime']
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM silicateData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-            elif self.view == 'File':
-                q = 'SELECT * FROM silicateData WHERE runNumber IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+        c.execute(q, self.selected)
+        data = list(c.fetchall())
+        print(data)
 
-        elif self.analysis == 'Nitrate':
-            headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM  nitrateData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-            elif self.view == 'File':
-                q = 'SELECT * FROM nitrateData WHERE runNumber IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+        conn.close()
 
-        elif self.analysis == 'Phosphate':
-            headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM phosphateData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-            elif self.view == 'File':
-                q = 'SELECT * FROM phosphateData WHERE runNumber IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+        return data
 
-        elif self.analysis == 'Nitrite':
-            headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM nitriteData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-            elif self.view == 'File':
-                q = 'SELECT * FROM nitriteData WHERE runNumber IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
+    def copy_all(self):
+        """
+        Envokes the copy selection function after forcing all cells to be selected.
+        """
+        self.data_table_widget.selectAll()
+        self.data_table_widget.copy_selection(copy_headers=True, header=HEADERS[self.analysis])
+        self.data_table_widget.clearSelection()
 
-        elif self.analysis == 'Ammonia':
-            headers = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
-                       'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
-            if self.view == 'Deployment':
-                q = 'SELECT * FROM ammoniaData WHERE deployment IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-            elif self.view == 'File':
-                q = 'SELECT * FROM ammoniaData WHERE runNumber IN (%s)' % queryplace
-                self.c.execute(q, self.selected)
-
-        data = list(self.c.fetchall())
-
-        self.c.close()
-
-        self.datatable.setRowCount(len(data))
-        self.datatable.setColumnCount(len(data[0]))
-
-        for row, x in enumerate(data):
-            for col, item in enumerate(x):
-                self.datatable.setItem(row, col, QtWidgets.QTableWidgetItem(str(item)))
-
-        self.datatable.setHorizontalHeaderLabels(headers)
-        self.datatable.resizeColumnsToContents()
-        self.grid_layout.addWidget(self.datatable, 0, 0)
-
-    def eventFilter(self, source, event):
-        if (event.type() == QEvent.KeyPress and
-                event.matches(QKeySequence.Copy)):
-            self.copySelection()
-            return True
-        return super(hyproDialogTemplate, self).eventFilter(source, event)
-
-    def copySelection(self):
-        selection = self.datatable.selectedIndexes()
-        if selection:
-            rows = sorted(index.row() for index in selection)
-            columns = sorted(index.column() for index in selection)
-            rowcount = rows[-1] - rows[0] + 1
-            colcount = columns[-1] - columns[0] + 1
-            table = [[''] * colcount for _ in range(rowcount)]
-            for index in selection:
-                row = index.row() - rows[0]
-                column = index.column() - columns[0]
-                table[row][column] = index.data()
-            stream = io.StringIO()
-            csv.writer(stream).writerows(table)
-            QApplication.clipboard().setText(stream.getvalue())
+    def copy_with_headers(self):
+        """
+        Instead of just copying data, this can be used to copy the header row as well
+        """
+        self.data_table_widget.copy_selection(copy_headers=True, header=HEADERS[self.analysis])

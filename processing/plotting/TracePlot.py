@@ -6,8 +6,8 @@ from PyQt5.QtCore import QPointF, QRectF
 class TracePlotter(pg.GraphicsObject):
     """
     This is a pyqtgraph implementation of the trace plot for nutrient data. This was built to replace
-    the matplotlib version, which is not very performant. The pyqt version is much more performant and
-    been tested with 8000 peak windows
+    the matplotlib version, which is not very performant.
+    The pyqt version is much more performant and been tested with 10000 peak windows
     """
 
     def __init__(self, time_values, ad_values, flag_values):

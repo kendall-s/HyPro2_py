@@ -8,13 +8,13 @@ Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Pea
 """
 
 flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad', 6: 'Cal Bad',
-                               91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
+                   91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
 
 class bottleSelection(hyproDialogTemplate):
-    saveSig = pyqtSignal()
+    saveSig = pyqtSignal(tuple)
 
-    def __init__(self, file, deployment, rosette, bottle_id, concentration, flag):
-        super().__init__(470, 215, 'HyPro - Peak:')
+    def __init__(self, file, deployment, rosette, bottle_id, concentration, flag, analyte):
+        super().__init__(470, 215, 'HyPro - Bottle:')
 
         self.file = file
         self.deployment = deployment
@@ -22,6 +22,8 @@ class bottleSelection(hyproDialogTemplate):
         self.bottle_id = bottle_id
         self.concentration = concentration
         self.flag = flag
+
+        self.analyte = analyte
 
         self.init_ui()
 
@@ -85,8 +87,8 @@ class bottleSelection(hyproDialogTemplate):
 
     def save(self):
         if self.any_change:
-            self.saveSig.emit()
-
+            self.saveSig.emit((self.flag_box.currentText(), self.file, self.deployment, self.rosette,
+                               self.bottle_id, self.analyte))
         self.close()
 
     def any_change(self):
