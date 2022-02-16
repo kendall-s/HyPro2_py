@@ -229,7 +229,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             replay_processing.triggered.connect(self.replay_processing)
             replay_processing.setEnabled(False)
 
-            if os.path.exists(f'{self.path}/Nutrients/processing/{self.file}_procfile.json'):
+            if os.path.exists(f'{self.path}/Nutrients/processing/{self.file}_{self.current_nutrient}_procfile.json'):
                 reset_inital_windows.setEnabled(True)
                 replay_processing.setEnabled(True)
 
@@ -502,7 +502,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             if not os.path.exists(f'{self.path}/Nutrients/processing'):
                 os.mkdir(f'{self.path}/Nutrients/processing')
 
-            with open(f'{self.path}/Nutrients/processing/{self.file}_procfile.json', 'w+') as out_file:
+            with open(f'{self.path}/Nutrients/processing/{self.file}_{self.current_nutrient}_procfile.json', 'w+') as out_file:
                 json.dump(self.actions_list, out_file)
 
             if not os.path.exists(f'{self.path}/Nutrients/plot/{self.file}'):
@@ -533,13 +533,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.actions_list[self.current_nutrient] = []
             self.history_list.clear()
 
-            self.nutrient_processing_controller.set_current_nutrient(self.current_nutrient)
-
             self.plot_title_appender = f' - {self.current_nutrient.capitalize()} | {self.file}'
 
             self.graph_widget.removeItem(self.window_lines)
 
             self.reset_cursor()
+            
+            self.nutrient_processing_controller.set_current_nutrient(self.current_nutrient)
             self.nutrient_processing_controller.re_process()
 
         except IndexError:
@@ -1074,7 +1074,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         """
 
-        with open(f'{self.path}/Nutrients/processing/{self.file}_procfile.json') as json_file:
+        with open(f'{self.path}/Nutrients/processing/{self.file}_{self.current_nutrient}_procfile.json') as json_file:
             procfile_data = json.load(json_file)
 
         actions  = procfile_data[self.current_nutrient]
