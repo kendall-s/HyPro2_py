@@ -67,6 +67,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         self.interactive = interactive
         self.rereading = rereading
 
+        self.standard_plots = {}
+        self.custom_plots = {}
+
         self.perf_mode = perf_mode
         self.ultra_perf_mode = ultra_perf_mode
 
@@ -466,6 +469,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         psn.pack_data(self.view_slk_data, self.view_w_d, self.database, self.file_path)
 
     def proceed(self):
+
+        """
+        This is the function which runs when the user presses proceed. Here we store the data as processed
+        then iterate to the next nutrient, if there is one.
+        """
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
         # TODO: switch data storage to the controller
@@ -898,20 +906,28 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         if self.view_w_d.analyte == 'nitrate':
             standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'recovery': 'NOx Recovery',
                              'baseline': 'Baseline Corr', 'drift': 'Drift Corr'}
-
         for qc in standard_tabs:
-            setattr(self, "{}".format(qc + str('_tab')), QWidget())
-            self.qctabs.addTab(getattr(self, "{}".format(qc + str('_tab'))), str(standard_tabs[qc]))
-            setattr(self, "{}".format(qc + str('_lout')), QVBoxLayout())
-            getattr(self, "{}".format(qc + str('_tab'))).setLayout(getattr(self, "{}".format(qc + str('_lout'))))
-            setattr(self, "{}".format(qc + str('_fig')), plt.figure())
-            setattr(self, "{}".format(qc + str('_canvas')), FigureCanvas(getattr(self, "{}".format(qc + str('_fig')))))
+            
+            # Logic here is we dynamically create the plot tabs and store them in the dict
+            # Structure being {'baseline': {'tab': tab, 'layout': layout, 'fig': fig, 'canvas': canvas}}
+
+            self.standard_plots[qc] = {}
+
+            self.standard_plots[qc]['tab'] = QWidget()
+            self.qctabs.addTab(self.standard_plots[qc]['tab'], standard_tabs[qc])
+
+            self.standard_plots[qc]['layout'] = QVBoxLayout()
+            self.standard_plots[qc]['tab'].setLayout(self.standard_plots[qc]['layout'])
+            self.standard_plots[qc]['fig'] = plt.figure()
+            self.standard_plots[qc]['canvas'] = FigureCanvas(self.standard_plots[qc]['fig'])
+
             if qc == 'baseline' or qc == 'drift':
-                setattr(self, "{}".format(qc + str('_plot')),getattr(self, "{}".format(qc + str('_fig'))).add_subplot(211))
-                setattr(self, "{}".format(qc + str('_plot2')),getattr(self, "{}".format(qc + str('_fig'))).add_subplot(212))
+                self.standard_plots[qc]['plot'] = self.standard_plots[qc]['fig'].add_subplot(211)
+                self.standard_plots[qc]['plot2'] = self.standard_plots[qc]['fig'].add_subplot(212)
             else:
-                setattr(self, "{}".format(qc + str('_plot')), getattr(self, "{}".format(qc + str('_fig'))).add_subplot(111))
-            getattr(self, "{}".format(qc + str('_lout'))).addWidget(getattr(self, "{}".format(qc + str('_canvas'))))
+                self.standard_plots[qc]['plot'] = self.standard_plots[qc]['fig'].add_subplot(111)
+
+            self.standard_plots[qc]['layout'].addWidget(self.standard_plots[qc]['canvas'])
 
     def create_custom_qc_tabs(self, sample_ids, qc_samps):
         """
@@ -939,26 +955,28 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             else:
                 check_sample_id_list = [(qc_samps[qc] in s_id) for s_id in sample_ids_set]
                 if any(check_sample_id_list):
+
                     # If the QC sample was in the sample ID set then create its plot tab
                     qc_name = ''.join(i for i in qc_samps[qc].replace(" ", "") if not i.isdigit())
-                    setattr(self, "{}".format(qc_name + '_tab'), QWidget())
-
-                    self.qctabs.addTab(getattr(self, "{}".format(qc_name + '_tab')), str(qc_samps[qc]))
-                    setattr(self, "{}".format(qc_name + '_lout'), QVBoxLayout())
-                    getattr(self, "{}".format(qc_name + '_tab')).setLayout(getattr(self, "{}".format(qc_name + '_lout')))
-                    setattr(self, "{}".format(qc_name + '_fig'), plt.figure())
-                    setattr(self, "{}".format(qc_name + '_canvas'), FigureCanvas(getattr(self, "{}".format(qc_name + '_fig'))))
+                    self.custom_plots[qc_name] = {}
+                    self.custom_plots[qc_name]['tab'] = QWidget()
+                    self.qctabs.addTab(self.custom_plots[qc_name]['tab'], qc_name)
+                    self.custom_plots[qc_name]['layout'] = QVBoxLayout()
+                    self.custom_plots[qc_name]['tab'].setLayout(self.custom_plots[qc_name]['layout'])
+                    self.custom_plots[qc_name]['fig'] = plt.figure()
+                    self.custom_plots[qc_name]['canvas'] = FigureCanvas(self.custom_plots[qc_name]['fig'])
 
                     # Slightly different for RMNS - got to create multiple subplots if there are more than 1 lot in the analysis
                     if qc == 'rmns':
                         rmns_list = [x for x in sample_ids_set if qc_samps[qc] in x and x[0:4].lower() != 'test']
                         for i, rmns in enumerate(rmns_list):
                             rmns_name = ''.join(i for i in rmns.replace(" ", "") if not i.isdigit())
-                            setattr(self, (rmns_name+'_plot'), getattr(self, "{}".format(qc_name+'_fig')).add_subplot(len(rmns_list), 1, i+1))
+                            self.custom_plots[qc_name]['plot'+rmns_name] = self.custom_plots[qc_name]['fig'].add_subplot(len(rmns_list), 1, i+1)
                             self.rmns_plots.append(rmns_name)
                     else:
-                        setattr(self, "{}".format(qc_name + str('_plot')), getattr(self, "{}".format(qc_name + '_fig')).add_subplot(111))
-                    getattr(self, "{}".format(qc_name + str('_lout'))).addWidget(getattr(self, "{}".format(qc_name + str('_canvas'))))
+                        self.custom_plots[qc_name]['plot'] = self.custom_plots[qc_name]['fig'].add_subplot(111)
+
+                    self.custom_plots[qc_name]['layout'].addWidget(self.custom_plots[qc_name]['canvas'])
                     self.qc_tabs_in_existence.append(qc_name)
 
     def plot_standard_data(self):
@@ -966,37 +984,38 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         Small function that houses all the calls to the plotting of the standard QC tab plots
         :return:
         """
-        qcp.calibration_curve_plot(self.cal_curve_fig, self.cal_curve_plot,
-                                   self.view_w_d.calibrant_medians, self.view_w_d.calibrant_concs,
-                                   self.view_w_d.calibrant_flags, self.view_w_d.calibration_coefficients,
-                                   self.view_w_d.calibration_r_score, title_append=self.plot_title_appender)
-        self.cal_curve_canvas.draw()
+        qcp.calibration_curve_plot(self.standard_plots['cal_curve']['fig'], self.standard_plots['cal_curve']['plot'],
+                                    self.view_w_d.calibrant_medians, self.view_w_d.calibrant_concs,
+                                    self.view_w_d.calibrant_flags, self.view_w_d.calibration_coefficients,
+                                    self.view_w_d.calibration_r_score, title_append=self.plot_title_appender)
+        self.standard_plots['cal_curve']['canvas'].draw()
 
         analyte_error = self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['cal_error']
-        qcp.calibration_error_plot(self.cal_error_fig, self.cal_error_plot,
+        qcp.calibration_error_plot(self.standard_plots['cal_error']['fig'], self.standard_plots['cal_error']['plot'],
                                    self.view_w_d.calibrant_indexes, self.view_w_d.calibrant_residuals, analyte_error,
                                     self.view_w_d.calibrant_flags, title_append=self.plot_title_appender)
-        self.cal_error_canvas.draw()
+        self.standard_plots['cal_error']['canvas'].draw()
 
-        qcp.basedrift_correction_plot(self.baseline_fig, self.baseline_plot,
-                                      self.baseline_plot2, 'Baseline', self.view_w_d.baseline_indexes,
+        qcp.basedrift_correction_plot(self.standard_plots['baseline']['fig'], self.standard_plots['baseline']['plot'],
+                                      self.standard_plots['baseline']['plot2'], 'Baseline', self.view_w_d.baseline_indexes,
                                       self.view_w_d.baseline_corr_percent, self.view_w_d.baseline_medians,
                                       self.view_w_d.baseline_flags, title_append=self.plot_title_appender)
-        self.baseline_canvas.draw()
+        self.standard_plots['baseline']['canvas'].draw()
 
-        qcp.basedrift_correction_plot(self.drift_fig, self.drift_plot,
-                                      self.drift_plot2, 'Drift', self.view_w_d.drift_indexes,
+        qcp.basedrift_correction_plot(self.standard_plots['drift']['fig'], self.standard_plots['drift']['plot'],
+                                      self.standard_plots['drift']['plot2'], 'Drift', self.view_w_d.drift_indexes,
                                       self.view_w_d.drift_corr_percent, self.view_w_d.drift_medians, self.view_w_d.drift_flags,
                                       title_append=self.plot_title_appender)
-        self.drift_canvas.draw()
+        self.standard_plots['drift']['canvas'].draw()
 
 
         if self.view_w_d.analyte == 'nitrate':
-            qcp.recovery_plot(self.recovery_fig, self.recovery_plot, self.view_w_d.recovery_indexes,
-                              self.view_w_d.recovery_concentrations, self.view_w_d.recovery_ids,
-                              self.view_w_d.recovery_flags, title_append=self.plot_title_appender)
+            qcp.recovery_plot(self.standard_plots['recovery']['fig'], self.standard_plots['recovery']['plot'], 
+                                self.view_w_d.recovery_indexes, self.view_w_d.recovery_concentrations, 
+                                self.view_w_d.recovery_ids, self.view_w_d.recovery_flags, 
+                                title_append=self.plot_title_appender)
 
-            self.recovery_canvas.draw()
+            self.standard_plots['recovery']['canvas'].draw()
 
     def plot_custom_data(self):
         """
@@ -1007,23 +1026,27 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         for qc in self.qc_tabs_in_existence:
             if qc.lower() == 'rmns':
                 for rmns in self.rmns_plots:
-                    plot = getattr(self, "{}".format(rmns + '_plot'))
+                    fig = self.custom_plots['rmns']['fig']
+                    plot = self.custom_plots['rmns']['plot'+rmns]
                     concs = getattr(self.view_w_d, "{}".format(rmns + '_concentrations'))
                     indexes = getattr(self.view_w_d, "{}".format(rmns + '_indexes'))
                     flags = getattr(self.view_w_d, "{}".format(rmns + '_flags'))
 
-                    qcp.rmns_plot(self.RMNS_fig, plot, indexes, concs, flags, rmns, self.current_nutrient)
-                getattr(self, "{}".format(qc + '_fig')).set_tight_layout(tight=True)
-                getattr(self, "{}".format(qc + '_canvas')).draw()
+                    qcp.rmns_plot(fig, plot, indexes, concs, flags, rmns, self.current_nutrient)
+
+                fig.set_tight_layout(tight=True)
+                self.custom_plots['rmns']['canvas'].draw()
 
             else:
                 if qc.lower() == 'mdl':
-                    qcp.mdl_plot(self.MDL_fig, self.MDL_plot, self.view_w_d.MDL_indexes, self.view_w_d.MDL_concentrations,
-                                 self.view_w_d.MDL_flags)
+                    qcp.mdl_plot(self.custom_plots['MDL']['fig'], self.custom_plots['MDL']['plot'],
+                                self.view_w_d.MDL_indexes, self.view_w_d.MDL_concentrations,
+                                self.view_w_d.MDL_flags)
 
                 elif qc.lower() == 'bqc':
-                    qcp.bqc_plot(self.BQC_fig, self.BQC_plot, self.view_w_d.BQC_indexes, self.view_w_d.BQC_concentrations,
-                                 self.view_w_d.BQC_flags)
+                    qcp.bqc_plot(self.custom_plots['BQC']['fig'], self.custom_plots['BQC']['plot'],
+                                self.view_w_d.BQC_indexes, self.view_w_d.BQC_concentrations,
+                                self.view_w_d.BQC_flags)
 
                 # elif qc.lower() == 'intqc':
                 #     qcp.intqc_plot(self.IntQC_fig, self.IntQC_plot, self.view_w_d.)
