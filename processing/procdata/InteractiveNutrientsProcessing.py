@@ -1026,8 +1026,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         for qc in self.qc_tabs_in_existence:
             if qc.lower() == 'rmns':
                 for rmns in self.rmns_plots:
-                    fig = self.custom_plots['rmns']['fig']
-                    plot = self.custom_plots['rmns']['plot'+rmns]
+                    fig = self.custom_plots['RMNS']['fig']
+                    plot = self.custom_plots['RMNS']['plot'+rmns]
                     concs = getattr(self.view_w_d, "{}".format(rmns + '_concentrations'))
                     indexes = getattr(self.view_w_d, "{}".format(rmns + '_indexes'))
                     flags = getattr(self.view_w_d, "{}".format(rmns + '_flags'))
@@ -1035,7 +1035,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     qcp.rmns_plot(fig, plot, indexes, concs, flags, rmns, self.current_nutrient)
 
                 fig.set_tight_layout(tight=True)
-                self.custom_plots['rmns']['canvas'].draw()
+                self.custom_plots['RMNS']['canvas'].draw()
 
             else:
                 if qc.lower() == 'mdl':
