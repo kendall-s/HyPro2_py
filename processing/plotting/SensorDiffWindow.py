@@ -65,12 +65,15 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
 
         c.execute('SELECT DISTINCT deployment from %sData' % sensor.lower())
 
-        available_deployments = sorted(list(c.fetchall()))
+        # Drop any rows that aren't an integer value, those won't be deployments anyway
+        data = list(c.fetchall())
+        available_deployments = sorted([x[0] for x in data if str(x[0]).isdigit()])
 
         conn.close()
 
         for dep in available_deployments:
-            self.run_list.addItem(str(dep[0]))
+            # Have to cast as string to add as item
+            self.run_list.addItem(str(dep))
 
     def draw_data(self):
 
@@ -93,7 +96,7 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
             bottle_data_df = pd.read_sql_query(f'SELECT * FROM %sData WHERE deployment IN ({query_placeholder})'
                                        %sensor.lower(), conn, params=selected_deps)
 
-            ctd_data_df = pd.read_sql_query(f'SELECT deployment, bottleposition, salt1, salt2, oxygen1, oxygen2 '
+            ctd_data_df = pd.read_sql_query(f'SELECT deployment, rosettePosition, salt1, salt2, oxygen1, oxygen2 '
                                             f'FROM ctdData '
                                             f'WHERE deployment IN ({query_placeholder})', conn, params=selected_deps)
 
@@ -105,7 +108,7 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
             matched_ctd_data = pd.DataFrame()
             for i, dep in enumerate(self.bottle_deps):
                 rp = self.bottle_rps[i]
-                matched = ctd_data_df.loc[(ctd_data_df['deployment'] == dep) & (ctd_data_df['bottleposition'] == rp)]
+                matched = ctd_data_df.loc[(ctd_data_df['deployment'] == dep) & (ctd_data_df['rosettePosition'] == rp)]
                 matched_ctd_data = matched_ctd_data.append(matched, ignore_index=True)
 
             bottle_data = np.asarray(bottle_data_df[analyte_db_converter[sensor]])

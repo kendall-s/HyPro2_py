@@ -78,6 +78,10 @@ class exportDeployments(hyproDialogTemplate):
                 queryq = '?'
                 queryplace = ', '.join(queryq for unused in deployments)
 
+
+                """
+                CTD data selects
+                """
                 self.c.execute('SELECT time from ctdData where deployment in (%s)' % queryplace, deployments)
                 rows = list(self.c.fetchall())
                 self.time = [x[0] for x in rows]
@@ -106,6 +110,9 @@ class exportDeployments(hyproDialogTemplate):
                 rows = list(self.c.fetchall())
                 self.temp = [x[0] for x in rows]
 
+                """
+                Salinity data selects
+                """
                 self.c.execute('SELECT salinity from salinityData where deployment in (%s)' % queryplace, deployments)
                 rows = list(self.c.fetchall())
                 self.salts = [x[0] for x in rows]
@@ -120,6 +127,9 @@ class exportDeployments(hyproDialogTemplate):
                 rows = list(self.c.fetchall())
                 self.saltrp = [x[0] for x in rows]
 
+                """
+                Oxygen data selects
+                """
                 self.c.execute('SELECT oxygenMoles from oxygenData where deployment in (%s)' % queryplace,
                                deployments)
                 rows = list(self.c.fetchall())
@@ -135,6 +145,49 @@ class exportDeployments(hyproDialogTemplate):
                                deployments)
                 rows = list(self.c.fetchall())
                 self.oxygenrp = [x[0] for x in rows]
+
+                """
+                Nutrient data selects
+                """
+                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from nitrateData where deployment in (%s)' % queryplace,
+                               deployments)
+                rows = list(self.c.fetchall())
+                self.nitrate_concs = [x[0] for x in rows]
+                self.nitrate_flags = [x[1] for x in rows]
+                self.nitrate_deps = [x[2] for x in rows]
+                self.nitrate_rps = [x[3] for x in rows]
+
+                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from phosphateData where deployment in (%s)' % queryplace,
+                               deployments)
+                rows = list(self.c.fetchall())
+                self.phosphate_concs = [x[0] for x in rows]
+                self.phosphate_flags = [x[1] for x in rows]
+                self.phosphate_deps = [x[2] for x in rows]
+                self.phosphate_rps = [x[3] for x in rows]
+
+                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from nitriteData where deployment in (%s)' % queryplace,
+                               deployments)
+                rows = list(self.c.fetchall())
+                self.nitrite_concs = [x[0] for x in rows]
+                self.nitrite_flags = [x[1] for x in rows]
+                self.nitrite_deps = [x[2] for x in rows]
+                self.nitrite_rps = [x[3] for x in rows]
+
+                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from silicateData where deployment in (%s)' % queryplace,
+                               deployments)
+                rows = list(self.c.fetchall())
+                self.silicate_concs = [x[0] for x in rows]
+                self.silicate_flags = [x[1] for x in rows]
+                self.silicate_deps = [x[2] for x in rows]
+                self.silicate_rps = [x[3] for x in rows]
+
+                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from ammoniaData where deployment in (%s)' % queryplace,
+                               deployments)
+                rows = list(self.c.fetchall())
+                self.ammonia_concs = [x[0] for x in rows]
+                self.ammonia_flags = [x[1] for x in rows]
+                self.ammonia_deps = [x[2] for x in rows]
+                self.ammonia_rps = [x[3] for x in rows]
 
                 self.c.close()
 
@@ -161,13 +214,27 @@ class exportDeployments(hyproDialogTemplate):
             filebuffer = open(filepath, 'w', newline='')
             writer = csv.writer(filebuffer, delimiter=',')
             writer.writerow(['Voyage', 'Deployment', 'RP', 'Time (UTC)', 'Latitiude', 'Longitude', 'Pressure', 'Temperature',
-                             'Salinity (PSU)', 'Salinity Flag', 'Oxygen (uM)', 'Oxygen Flag'])
+                             'Salinity (PSU)', 'Salinity Flag', 'Oxygen (uM)', 'Oxygen Flag', 'Nitrate (uM)',
+                             'Nitrate Flag', 'Phosphate (uM)', 'Phosphate Flag', 'Silicate (uM)', 'Silicate Flag',
+                             'Nitrite (uM)', 'Nitrite Flag', 'Ammonia (uM)', 'Ammonia Flag'
+                             ])
 
             for i, dep in enumerate(self.deployment):
                 oxy = ''
                 oxyflag = ''
                 salt = ''
                 saltflag = ''
+                nitrate = ''
+                nitrate_flag = ''
+                phosphate = ''
+                phosphate_flag = ''
+                silicate = ''
+                silicate_flag = ''
+                nitrite = ''
+                nitrite_flag = ''
+                ammonia = ''
+                ammonia_flag = ''
+                
                 for x, rospos in enumerate(self.oxygenrp):
                     if rospos == self.rp[i] and self.oxygendeps[x] == dep:
                         oxy = self.oxygen[x]
@@ -177,9 +244,37 @@ class exportDeployments(hyproDialogTemplate):
                         salt = self.salts[y]
                         saltflag = self.saltflags[y]
 
+                for nitrate_ind, rp in enumerate(self.nitrate_rps):
+                    if rp == self.rp[i] and self.nitrate_deps[nitrate_ind] == dep:
+                        nitrate = self.nitrate_concs[nitrate_ind]
+                        nitrate_flag = self.nitrate_flags[nitrate_ind]
+
+                for phosphate_ind, rp in enumerate(self.phosphate_rps):
+                    if rp == self.rp[i] and self.phosphate_deps[phosphate_ind] == dep:
+                        phosphate = self.phosphate_concs[phosphate_ind]
+                        phosphate_flag = self.phosphate_flags[phosphate_ind]
+
+                for silicate_ind, rp in enumerate(self.silicate_rps):
+                    if rp == self.rp[i] and self.silicate_deps[silicate_ind] == dep:
+                        silicate = self.silicate_concs[silicate_ind]
+                        silicate_flag = self.silicate_flags[silicate_ind]
+
+                for nitrite_ind, rp in enumerate(self.nitrite_rps):
+                    if rp == self.rp[i] and self.nitrite_deps[nitrite_ind] == dep:
+                        nitrite = self.nitrite_concs[nitrite_ind]
+                        nitrite_flag = self.nitrite_flags[nitrite_ind]
+
+                for ammonia_ind, rp in enumerate(self.ammonia_rps):
+                    if rp == self.rp[i] and self.ammonia_deps[ammonia_ind] == dep:
+                        ammonia = self.ammonia_concs[ammonia_ind]
+                        ammonia_flag = self.ammonia_flags[ammonia_ind]
+
                 writer.writerow(
                     [self.current_project, dep, self.rp[i], self.time[i], self.lat[i], self.lon[i],
-                     self.pressure[i], self.temp[i], salt, saltflag, oxy, oxyflag])
+                     self.pressure[i], self.temp[i], salt, saltflag, oxy, oxyflag, nitrate, nitrate_flag,
+                     phosphate, phosphate_flag, silicate, silicate_flag, nitrite, nitrite_flag, ammonia,
+                     ammonia_flag
+                     ])
 
             filebuffer.close()
 

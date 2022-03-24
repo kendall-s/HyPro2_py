@@ -493,7 +493,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         try:
             if self.current_nutrient == 'nitrate':
-                recovery_tab_index = self.qctabs.indexOf(self.recovery_tab)
+                recovery_tab_index = self.qctabs.indexOf(self.standard_plots['recovery']['tab'])
                 self.qctabs.removeTab(recovery_tab_index)
 
             if not os.path.exists(f'{self.path}/Nutrients/plot'):
@@ -508,16 +508,16 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             if not os.path.exists(f'{self.path}/Nutrients/plot/{self.file}'):
                 os.mkdir(f'{self.path}/Nutrients/plot/{self.file}')
 
-            self.drift_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_drift_plot.png',
+            self.standard_plots['drift']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_drift_plot.png',
                                    dpi=300)
-            self.baseline_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_baseline_plot.png',
+            self.standard_plots['baseline']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_baseline_plot.png',
                                       dpi=300)
-            self.cal_curve_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_curve_plot.png',
+            self.standard_plots['cal_curve']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_curve_plot.png',
                                       dpi=300)
-            self.cal_error_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_error_plot.png',
+            self.standard_plots['cal_error']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_error_plot.png',
                                       dpi=300)
-            if hasattr(self, 'RMNS_fig'):
-                self.RMNS_fig.savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_rmns_plot.png',
+            if len(self.rmns_plots) > 0:
+                self.custom_plots['RMNS']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_rmns_plot.png',
                                         dpi=300)
 
             # Resave the processing settings to disk

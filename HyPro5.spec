@@ -5,7 +5,7 @@ block_cipher = None
 
 a = Analysis(['MainMenu.py'],
              pathex=['C:\\Users\\she384\\AppData\\Local\\Programs\\Python\\Python36\\Lib\\site-packages\\scipy\\extra-dll', 'C:\\Users\\she384\\Documents\\Tests', 'C:\\Users\\she384\\AppData\\Local\\Programs\\Python\\Python36\\Lib\\site-packages\\scipy',
-			 'C:\\Users\\she384\\Documents\\HyPro2'],
+			 'C:\\Development\\Dev\\Python\HyPro2_py\\'],
              binaries=[],
              datas=[],
              hiddenimports=['numpy.random', 'pyqtgraph', 'sqlalchemy', 'sqlalchemy.sql.default_comparator'],
