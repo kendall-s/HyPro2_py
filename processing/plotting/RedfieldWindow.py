@@ -59,6 +59,7 @@ class redfieldPlot(QMainPlotterTemplate):
     def draw_data(self):
 
         del self.main_plot.collections[:]
+        del self.main_plot.texts[:]
 
         selected = self.run_list.selectedItems()
         selected_runs = [int(item.text()) for item in selected]
@@ -87,6 +88,9 @@ class redfieldPlot(QMainPlotterTemplate):
 
             self.main_plot.scatter(nox_plottable, phos_plottable, marker='o', facecolors='#FFB186', edgecolors='#EF8A68',
                                    alpha=0.75, picker=5)
+
+            self.main_plot.annotate(f'Ratio: {round(sum(nox_plottable) / sum(phos_plottable), 2)}', [0.02, 0.96],
+                          xycoords='axes fraction', fontsize=11)
 
             self.canvas.draw()
 

@@ -22,11 +22,16 @@ COMBO_BOX_CONVERTER = {'Pressure': {'db': 'ctd', 'col': 'pressure', 'plot_name':
                        'Phosphate': {'db': 'phosphate', 'col': 'concentration', 'plot_name': 'Phosphate (uM)'},
                        'Silicate': {'db': 'silicate', 'col': 'concentration', 'plot_name': 'Silicate (uM)'},
                        'Ammonia': {'db': 'ammonia', 'col': 'concentration', 'plot_name': 'Ammonia (uM)'},
-                       'Nitrite': {'db': 'nitrite', 'col': 'concentration', 'plot_name': 'Nitrite (uM'}}
+                       'Nitrite': {'db': 'nitrite', 'col': 'concentration', 'plot_name': 'Nitrite (uM'},
+                       'Bottle Salinity': {'db': 'salinity', 'col': 'salinity', 'plot_name': 'Salinity (psu)'},
+                       'Bottle Oxygen': {'db': 'oxygen', 'col': 'oxygenMoles', 'plot_name': 'Oxygen (uM)'}
+                       }
+
+COLOR_CONVERTER = {'Auto': None, 'Blue': '#5975a4', 'Green': '#5f9e6e', 'Orange': '#cc8963',  'Red': '#b55d60'}
 
 COMBO_ITEMS =['Pressure', 'CTD Salinity #1', 'CTD Salinity #2', 'CTD Oxygen #1', 'CTD Oxygen #2',
                 'CTD Fluorometer', 'Rosette Position', 'NOx', 'Phosphate', 'Silicate',
-                'Ammonia', 'Nitrite']
+                'Ammonia', 'Nitrite', 'Bottle Salinity', 'Bottle Oxygen']
 
 class paramPlotWindowTemplate(QMainPlotterTemplate):
     def __init__(self, database, params_path):
@@ -69,7 +74,7 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
         self.x_axis_1_combo.addItems(COMBO_ITEMS)
 
         self.x_axis_1_color = QComboBox(self)
-        self.x_axis_1_color.addItems(['Blue', 'Orange', 'Green', 'Red'])
+        self.x_axis_1_color.addItems(COLOR_CONVERTER.keys())
 
         x_axis_2_combo_label = QLabel('X Axis #2 (⬜)', self)
         self.x_axis_2_combo = QComboBox(self)
@@ -77,7 +82,7 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
         self.x_axis_2_combo.addItems(COMBO_ITEMS)
 
         self.x_axis_2_color = QComboBox(self)
-        self.x_axis_2_color.addItems(['Orange', 'Blue', 'Green', 'Red'])
+        self.x_axis_2_color.addItems(COLOR_CONVERTER.keys())
 
         self.qvbox_layout.insertWidget(0, y_axis_combo_label)
         self.qvbox_layout.insertWidget(1, self.y_axis_combo)
@@ -213,11 +218,16 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
             x = [x[2] for x in data if x[2] != None]
             df = pd.DataFrame({'deployment': deployment, 'y': y, 'x': x})
 
+            # Sort our data by deployment
             for dep in sorted(set(deployment)):
                 subset = df.loc[df['deployment'] == dep]
+                # Plot each deployment separately, label accordingly
                 self.main_plot.plot(subset['x'], subset['y'],
-                                    marker='o', mfc='None', ms=10, ls=':', label=f'X1 Dep #{dep}')
+                                    marker='o', mfc='None', ms=10, ls=':', label=f'X1 Dep #{dep}',
+                                    color=COLOR_CONVERTER[self.x_axis_1_color.currentText()]
+                                    )
 
+            # Do the same for the secondary axis, if there is a selection for it
             if x_axis_two_selection != 'N/A':
                 self.secondary_plot.plot([], [])
                 deployment = [x[0] for x in data if x[3] != None]
@@ -228,11 +238,15 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
                 for dep in sorted(set(deployment)):
                     subset = df.loc[df['deployment'] == dep]
                     self.secondary_plot.plot(subset['x'], subset['y'],
-                                    lw=0.5, marker='s', mfc='None', ms=10, ls='-.', label=f'X2 Dep #{dep}')
+                                             lw=0.5, marker='s', mfc='None', ms=10, ls='-.', label=f'X2 Dep #{dep}',
+                                             color=COLOR_CONVERTER[self.x_axis_2_color.currentText()]
+                                             )
 
+            # Decide whether a legend is necessary
             if len(set(deployment)) > 1 or x_axis_two_selection !='N/A':
                 self.main_plot.legend()
 
+            # Invert the y axis based on the check box
             if self.invert_y_axis_check.isChecked() and self.already_inverted == False:
                 self.main_plot.invert_yaxis()
                 self.already_inverted = True

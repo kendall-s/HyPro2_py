@@ -66,8 +66,12 @@ class QMainPlotterTemplate(QMainWindow):
         self.edit_menu = self.main_menu.addMenu('Edit')
 
         export = QAction(QIcon(':/assets/archivebox.svg'), 'Export Plot', self)
-        export.triggered.connect(self.export_plot)
+        export.triggered.connect(self.export_plot_png)
         self.file_menu.addAction(export)
+
+        export_svg = QAction('Export Plot SVG', self)
+        export_svg.triggered.connect(self.export_plot_svg)
+        self.file_menu.addAction(export_svg)
 
         copy = QAction(QIcon(':/assets/newdoc.svg'), 'Copy', self)
         copy.triggered.connect(self.copy_plot)
@@ -115,10 +119,15 @@ class QMainPlotterTemplate(QMainWindow):
     def closeEvent(self, event):
         plt.close('all')
 
-    def export_plot(self):
+    def export_plot_png(self):
         filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.png')
         if filedialog[0]:
             self.figure.savefig(filedialog[0] + filedialog[1], dpi=300)
+
+    def export_plot_svg(self):
+        filedialog = QFileDialog.getSaveFileName(None, 'Save Plot', '', '.svg')
+        if filedialog[0]:
+            self.figure.savefig(filedialog[0] + filedialog[1], dpi=300, format='svg')
 
     def copy_plot(self):
         buffer = io.BytesIO()
