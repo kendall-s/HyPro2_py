@@ -109,24 +109,25 @@ class rereadDialog(hyproDialogTemplate):
             logging.info(f'Rereading file {selected_file}')
 
             if file_type == 'CTD':
-                self.initctd = InitialiseCTDData.initCTDdata(selected_file, self.db, self.currpath, self.currproject,
+                self.init_ctd = InitialiseCTDData.initCTDdata(selected_file, self.db, self.currpath, self.currproject,
                                                              self.interactive, True)
 
             if file_type == 'Nutrients':
-                self.initnutrientdata = processingNutrientsWindow(selected_file, self.db, self.currpath,
+                self.init_nutrient_data = processingNutrientsWindow(selected_file, self.db, self.currpath,
                                                                   self.currproject, self.interactive, rereading=True,
                                                                   perf_mode=self.performance_mode,
                                                                   ultra_perf_mode=self.ultra_performance_mode)
             if file_type == 'Salinity':
-                self.initsaltdata = processingSalinityWindow(selected_file, self.db, self.currpath, self.currproject,
+                self.init_salt_data = processingSalinityWindow(selected_file, self.db, self.currpath, self.currproject,
                                                              self.interactive, True)
+                self.init_salt_data.process_routine()
 
             if file_type == 'Oxygen':
-                self.initoxydata = processingOxygenWindow(selected_file, self.db, self.currpath, self.currproject,
+                self.init_oxy_data = processingOxygenWindow(selected_file, self.db, self.currpath, self.currproject,
                                                           self.interactive, True)
 
             if file_type == 'Sampling':
-                self.initsampledata = InitialiseSampleSheet.initSampleSheet(selected_file, self.currproject, self.db,
+                self.init_sample_data = InitialiseSampleSheet.initSampleSheet(selected_file, self.currproject, self.db,
                                                                             self.currpath, self.interactive, True)
 
         else:

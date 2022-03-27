@@ -9,6 +9,7 @@ import sys, logging, traceback, os
 import json
 import style
 import processing.procdata.ProcessSealNutrients as psn
+import processing.util.NutrientProcessUtilities as npu
 from processing.util.NutrientProcessUtilities import save_proc_settings, load_proc_settings, match_click_to_peak, match_hover_to_peak
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.data.Structures import WorkingData, SLKData, CHDData
@@ -789,7 +790,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         X axis range. Also will dynamically zoom to the tallest peak if the Auto Zoom checkbox is ticked
         :return:
         """
-        result = HyproComplexities.move_camera_calc(self.graph_widget)
+        result = npu.move_camera_calc(self.graph_widget)
         if result:
             new_x_min, new_x_max = result
             self.graph_widget.setXRange(new_x_min, new_x_max)
@@ -803,7 +804,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         ad_max = len(self.view_chd_data.ad_data[self.current_nutrient])
-        result = HyproComplexities.move_camera_calc(self.graph_widget, right=True, ad_max=ad_max)
+        result = npu.move_camera_calc(self.graph_widget, right=True, ad_max=ad_max)
         if result:
             new_x_min, new_x_max = result
             print(new_x_min)
@@ -820,7 +821,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         ad_min = min(self.view_chd_data.ad_data[self.current_nutrient])
-        res = HyproComplexities.zoom(self.graph_widget, ad_min=ad_min)
+        res = npu.zoom(self.graph_widget, ad_min=ad_min)
         if res:
             new_x_min, new_x_max, new_y_min, new_y_max = res
 
@@ -837,7 +838,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         """
         ad_max = max(self.view_chd_data.ad_data[self.current_nutrient])
 
-        res = HyproComplexities.zoom(self.graph_widget, ad_max=ad_max, out=True)
+        res = npu.zoom(self.graph_widget, ad_max=ad_max, out=True)
         if res:
             new_x_min, new_x_max, new_y_min, new_y_max = res
             if new_y_min < 0:
