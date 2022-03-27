@@ -3,6 +3,14 @@ from sqlalchemy import Column, Integer, String, Float, ForeignKey, select, Uniqu
 
 Base = declarative_base()
 
+"""
+These models are not yet implemented into HyPro. If they are implemented, they probably want to be changed slightly, 
+such that there is less relational modelling. Keeping de-normalised data within the SQLite db is beneficial to the 
+project, as it lets more layman users manaully edit data when necessary. 
+SQlite is more than performant enough and storage space is not an issue for this amount of data. 
+
+Table simplicity is >>> than a best practices relational db table structure
+"""
 
 class NutrientRun(Base):
     __tablename__ = 'nutrientRun'

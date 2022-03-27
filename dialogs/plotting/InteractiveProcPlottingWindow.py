@@ -6,12 +6,12 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from processing.algo.HyproComplexities import find_closest, update_annotation, check_hover
+from processing.util.NutrientProcessUtilities import find_closest, update_annotation, check_hover
 from dialogs.BottleSelectionDialog import bottleSelection
 import json
 import time
 import io
-import hyproicons, style
+import style
 
 # Set the matplotlib backend to be more stable with PyQt integration
 mpl.use('Agg')

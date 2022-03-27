@@ -1,5 +1,5 @@
 import csv, time, calendar, logging, traceback, os
-from processing.algo.Structures import SLKData, CHDData
+from processing.data.Structures import SLKData, CHDData
 import processing.procdata.ProcessSealNutrients as psn
 from PyQt5.QtCore import QObject, pyqtSignal
 

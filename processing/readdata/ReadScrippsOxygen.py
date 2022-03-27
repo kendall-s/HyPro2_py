@@ -1,7 +1,7 @@
 import logging
 import csv
 import json
-from processing.algo.Structures import OxygenData
+from processing.data.Structures import OxygenData
 
 def parse_lst(lst_path, current_path, current_project, file_name):
     try:

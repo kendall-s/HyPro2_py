@@ -9,10 +9,9 @@ import sys, logging, traceback, os
 import json
 import style
 import processing.procdata.ProcessSealNutrients as psn
-from processing.algo.HyproComplexities import save_proc_settings, load_proc_settings, match_click_to_peak, match_hover_to_peak
-from processing.algo import HyproComplexities
+from processing.util.NutrientProcessUtilities import save_proc_settings, load_proc_settings, match_click_to_peak, match_hover_to_peak
 from dialogs.TraceSelectionDialog import traceSelection
-from processing.algo.Structures import WorkingData, SLKData, CHDData
+from processing.data.Structures import WorkingData, SLKData, CHDData
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from dialogs.plotting.TracePlot import TracePlotter
 import pyqtgraph as pg

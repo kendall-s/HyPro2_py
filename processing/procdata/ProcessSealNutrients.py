@@ -22,7 +22,7 @@ from pylab import polyfit
 from sqlalchemy import create_engine, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from processing.algo import Models
+from processing.data import Models
 
 # TODO: need small sub routine for resetting values on a RE-process
 # TODO: There may be a double up on functions that find flags and medians between drift/baseline and calibrants

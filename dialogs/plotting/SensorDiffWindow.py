@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QLabel, QComboBox)
-from processing.algo.HyproComplexities import get_max_rp
+from processing.util.NutrientProcessUtilities import get_max_rp
 from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 from dialogs.plotting.QCPlots import sensor_difference_plot
 

@@ -1,11 +1,11 @@
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox, QTableWidgetItem, QFrame, QCheckBox)
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox, QTableWidgetItem, QCheckBox)
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtCore import Qt
 from dialogs.templates.DataTable import Datatable
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 import sqlite3
-from processing.algo.HyproComplexities import load_proc_settings, save_proc_settings
+from processing.util.NutrientProcessUtilities import load_proc_settings, save_proc_settings
 
 # Small GUI dialog that provides information and functionality when a peak is clicked on the trace of
 # nutrient processing

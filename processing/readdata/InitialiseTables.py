@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, Session, relationship
 from sqlalchemy import Table, Column, Integer, String, Float, ForeignKey, select
 
-from processing.algo.Models import *
+from processing.data.Models import *
 
 # This is a dirty file left over from the start, all it essentially is used for is completing the setup of
 # the database and the tables within, it is kept as it is needed for new projects...

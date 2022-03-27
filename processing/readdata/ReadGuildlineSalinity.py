@@ -1,7 +1,7 @@
 import xlrd
 import sqlite3
 import pandas as pd
-from processing.algo.Structures import SalinityData
+from processing.data.Structures import SalinityData
 
 def parse_guildline_excel(excel_path):
 

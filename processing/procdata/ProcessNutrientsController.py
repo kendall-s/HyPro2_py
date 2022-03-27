@@ -1,5 +1,5 @@
 from PyQt5.QtCore import Qt, QSize, pyqtSignal, QObject, QThread
-from processing.algo.Structures import WorkingData, SLKData, CHDData
+from processing.data.Structures import WorkingData, SLKData, CHDData
 import processing.procdata.ProcessSealNutrients as psn
 import processing.readdata.ReadSealNutrients as rsn
 

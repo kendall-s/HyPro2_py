@@ -8,6 +8,12 @@ import traceback
 import statistics
 import hyproicons
 
+"""
+Implemented from a long standing QC stat generator originally written for the Matlab HyPro
+
+Isn't fully working anymore for this version of HyPro...
+"""
+
 
 class statsDialog(QWidget):
     def __init__(self, project, database):

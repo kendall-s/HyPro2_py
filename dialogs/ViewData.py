@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QAction
 import sqlite3
 from dialogs.templates.DataTable import Datatable
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
-from processing.algo.ComplexSQL import export_ctd_data, export_all_nuts, export_all_nuts_in_survey
+from processing.data.ComplexSQL import export_ctd_data, export_all_nuts, export_all_nuts_in_survey
 
 NUTRIENT_HEADER = ['Run Number', 'Cup Type', 'Sample ID', 'Peak Number', 'Raw AD', 'Corrected AD',
                    'Concentration', 'Survey', 'Deployment', 'Rosette Pos', 'Flag', 'Dilution', 'EpochTime']
