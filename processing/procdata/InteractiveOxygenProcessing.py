@@ -6,12 +6,11 @@ import time
 import traceback
 from PyQt5.QtCore import pyqtSignal, QObject
 
-import processing.RefreshFunction
 import processing.procdata.ProcessScrippsOxygen as pso
 import processing.readdata.ReadScrippsOxygen as rso
 from processing.algo.HyproComplexities import get_max_rp
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-from processing.plotting.OxygenProcessingWindow import oxygenDifferencesPlot
+from dialogs.plotting.OxygenProcessingWindow import oxygenDifferencesPlot
 
 
 class processingOxygenWindow(QObject):

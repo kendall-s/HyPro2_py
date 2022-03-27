@@ -18,9 +18,10 @@ from processing.util.OxygenBoxFileGenerator import generateBoxFile
 from processing.LoggerOutput import QTextEditLogger
 from processing.QCStats import statsDialog
 import processing.readdata.InitialiseTables as inittabs
-from processing.algo.HyproComplexities import load_proc_settings, save_proc_settings
+from processing.algo.HyproComplexities import load_proc_settings
 
-from processing.plotting import RedfieldWindow, RMNSWindow, MDLWindow, SensorDiffWindow, ParamParamWindow, DuplicatesWindow
+from dialogs.plotting import MDLWindow, SensorDiffWindow, ParamParamWindow, DuplicatesWindow
+from dialogs.plotting import RMNSWindow, RedfieldWindow
 import sqlite3
 from netCDF4 import Dataset
 import numpy as np
@@ -28,7 +29,7 @@ import traceback
 import time
 import calendar
 
-import hyproicons, style
+import style
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 

@@ -2,7 +2,7 @@ import sqlite3
 import pandas as pd
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QLabel, QComboBox)
-from processing.plotting.PlottingWindow import QMainPlotterTemplate
+from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 
 class redfieldPlot(QMainPlotterTemplate):
     def __init__(self, database):

@@ -6,11 +6,10 @@ import time
 import traceback
 from PyQt5.QtCore import pyqtSignal, QObject
 
-import processing.RefreshFunction
 import processing.procdata.ProcessGuildlineSalinity as pgs
 import processing.readdata.ReadGuildlineSalinity as rgs
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-from processing.plotting.SalinityProcessingWindow import salinityDifferencesPlot
+from dialogs.plotting.SalinityProcessingWindow import salinityDifferencesPlot
 
 '''
 

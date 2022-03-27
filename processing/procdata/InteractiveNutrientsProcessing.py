@@ -2,13 +2,11 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QDockWidget, QListWid
                              QDesktopWidget, QApplication, QLineEdit, QHBoxLayout, QSplitter, QAction)
 from PyQt5.QtGui import *
 from PyQt5.QtCore import Qt, QSize, pyqtSignal, QThread
-import matplotlib as mpl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pylab import *
-import processing.plotting.QCPlots as qcp
+import dialogs.plotting.QCPlots as qcp
 import sys, logging, traceback, os
 import json
-import hyproicons
 import style
 import processing.procdata.ProcessSealNutrients as psn
 from processing.algo.HyproComplexities import save_proc_settings, load_proc_settings, match_click_to_peak, match_hover_to_peak
@@ -16,11 +14,10 @@ from processing.algo import HyproComplexities
 from dialogs.TraceSelectionDialog import traceSelection
 from processing.algo.Structures import WorkingData, SLKData, CHDData
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
-from processing.plotting.TracePlot import TracePlotter
+from dialogs.plotting.TracePlot import TracePlotter
 import pyqtgraph as pg
 from processing.procdata.ProcessNutrientsController import processNutrientsController
 
-import cProfile
 #background-color: #ededed;
 
 mpl.use('Agg')

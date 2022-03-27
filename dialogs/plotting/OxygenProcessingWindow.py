@@ -1,10 +1,10 @@
-from processing.plotting.InteractiveProcPlottingWindow import hyproProcPlotWindow
-from processing.plotting.QCPlots import sensor_difference_plot, sensor_difference_pressure_plot, sensor_profile_plot
+from dialogs.plotting.InteractiveProcPlottingWindow import hyproProcPlotWindow
+from dialogs.plotting.QCPlots import sensor_difference_plot, sensor_difference_pressure_plot, sensor_profile_plot
 
 
-class salinityDifferencesPlot(hyproProcPlotWindow):
+class oxygenDifferencesPlot(hyproProcPlotWindow):
     def __init__(self, deployment, x_data, bottle, primary, secondary, depths, max_rp, ref_ind, full_data):
-        super().__init__(600, 870, 'HyPro - CTD/Bottle Salinity Error', 'Salinity', ref_ind, depths, full_data)
+        super().__init__(600, 870, 'HyPro - CTD/Bottle Oxygen Error', 'Oxygen', ref_ind, depths, full_data)
 
         self.deployment = deployment
         self.x_data = x_data
@@ -32,7 +32,7 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
         sensor_difference_pressure_plot(self.sensor_one_figure, self.sensor_one_depth_plot, primary_difference,
                                         self.depths, deployments=self.deployment)
 
-
+        self.sensor_one_canvas.draw()
         """
         ** Secondary sensor comparison plot **
         """
@@ -43,6 +43,7 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
         sensor_difference_pressure_plot(self.sensor_two_figure, self.sensor_two_depth_plot, secondary_difference,
                                         self.depths, deployments=self.deployment)
 
+        self.sensor_two_canvas.draw()
         """
         ** Both sensors comparison plot **
         """
@@ -52,6 +53,7 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
         sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, secondary_difference,
                                self.max_rp, sensor='Secondary', clear_plot=False)
         #self.both_sensor_plot.legend()
+        self.both_sensor_canvas.draw()
 
         """
         ** Profile plot **
@@ -60,7 +62,9 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
         sensor_profile_plot(self.profile_figure, self.profile_plot, self.depths, self.bottle,
                             self.full_data.quality_flag, flag_ref_inds=self.ref_ind, primary=self.primary,
                             secondary=self.secondary, deployments=self.deployment)
-        self.profile_plot.set_xlabel('Salinity (PSU)')
+        self.profile_plot.set_xlabel('Oxygen Concentration (uM)')
+
+        self.profile_canvas.draw()
 
         self.redraw.connect(self.redraw_on_update)
 
@@ -73,8 +77,3 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
         self.full_data.quality_flag = self.working_quality_flags
 
         self.plot()
-        self.sensor_one_canvas.draw()
-        self.sensor_two_canvas.draw()
-        self.both_sensor_canvas.draw()
-        self.profile_canvas.draw()
-

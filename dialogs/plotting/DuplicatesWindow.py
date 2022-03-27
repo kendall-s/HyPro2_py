@@ -1,14 +1,11 @@
 import sqlite3
 import statistics
-import pandas as pd
-from collections import defaultdict
 
-from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QLabel, QComboBox
 from matplotlib.ticker import MaxNLocator
 
-from processing.plotting.PlottingWindow import QMainPlotterTemplate
-from processing.procdata.ProcessSealNutrients import find_duplicate_indexes, find_duplicate_samples
+from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
+
 
 class duplicatesPlot(QMainPlotterTemplate):
     def __init__(self, database, processing_parameters):

@@ -1,11 +1,9 @@
 import json
 import sqlite3
 import traceback
-import pandas as pd
-from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QLabel, QComboBox)
-from processing.plotting.PlottingWindow import QMainPlotterTemplate
-from processing.plotting.QCPlots import rmns_plot
+from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
+from dialogs.plotting.QCPlots import rmns_plot
 
 
 class rmnsPlotWindowTemplate(QMainPlotterTemplate):

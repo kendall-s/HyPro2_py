@@ -4,6 +4,8 @@ import csv, os, json, logging, traceback
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
+
 import time
 # GUI and functionality for importing an existing project into Hypro, ie copying a project from the ship pc to your
 # pc and now opening it up and continuing processing data with it
@@ -52,30 +54,33 @@ class importProject(hyproDialogTemplate):
         try:
             with open('C:/HyPro/hyprosettings.json', 'r') as f:
                 self.params = json.load(f)
-            # Update the parameters projects file to include project
-            # if any(projprefixstr == x[0] for x in projects) == False:
-            prefix = str(projprefixstr[0])
-            type = str(self.filelist[1][0])
-            path = str(self.filelist[2][0])
 
-            newproj = {'%s' % prefix: {'path': path}, 'type': type}
-            self.params['projects'].update(newproj)
-            # Save back to disk
-            with open('C:/HyPro/hyprosettings.json', 'w') as file:
-                json.dump(self.params, file)
+            # First check if the project already exists in the list
+            if projprefixstr[0] not in self.params['projects']:
 
-            messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Success',
-                                     "An existing project was successfully imported.",
-                                     buttons=QtWidgets.QMessageBox.Ok, parent=self)
-            messagebox.setIconPixmap(QPixmap(':/assets/success.svg'))
-            messagebox.setFont(QFont('Segoe UI'))
-            messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-            messagebox.exec_()
+                # Update the parameters projects file to include project
+                # if any(projprefixstr == x[0] for x in projects) == False:
+                prefix = str(projprefixstr[0])
+                type = str(self.filelist[1][0])
+                path = str(self.filelist[2][0])
 
-            time.sleep(0.5)
+                newproj = {'%s' % prefix: {'path': path, 'type': type}}
+                self.params['projects'].update(newproj)
+                # Save back to disk
+                with open('C:/HyPro/hyprosettings.json', 'w') as file:
+                    json.dump(self.params, file)
 
-            self.close()
+                messagebox = hyproMessageBoxTemplate('Success',
+                                                     'An existing project was successfully imported.',
+                                                     'success')
 
+                time.sleep(0.5)
+
+                self.close()
+            else:
+                messagebox = hyproMessageBoxTemplate('Error',
+                                                     'A project with that name already exists in the known project list.',
+                                                     'error')
         except Exception:
             logging.error(traceback.print_exc())
 

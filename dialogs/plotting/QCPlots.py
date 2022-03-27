@@ -1,22 +1,8 @@
-import json
 import sqlite3
 import statistics
-import traceback
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import (QLabel, QComboBox)
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.collections import LineCollection
-from matplotlib.ticker import MaxNLocator
 from pylab import *
-import pandas as pd
 import numpy as np
-import style
-import hyproicons
-from processing.algo.HyproComplexities import get_max_rp
-from processing.plotting.InteractiveProcPlottingWindow import hyproProcPlotWindow
-from dialogs.TraceSelectionDialog import traceSelection
-from processing.plotting.PlottingWindow import QMainPlotterTemplate
 
 theme_color_converter = {'normal': '#191919', 'dark': '#F5F5F5'}
 

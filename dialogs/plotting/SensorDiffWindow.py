@@ -4,8 +4,8 @@ import pandas as pd
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QLabel, QComboBox)
 from processing.algo.HyproComplexities import get_max_rp
-from processing.plotting.PlottingWindow import QMainPlotterTemplate
-from processing.plotting.QCPlots import sensor_difference_plot
+from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
+from dialogs.plotting.QCPlots import sensor_difference_plot
 
 class ctdSensorDifferencePlot(QMainPlotterTemplate):
     def __init__(self, database, type):

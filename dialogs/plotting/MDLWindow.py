@@ -3,8 +3,8 @@ import sqlite3
 import traceback
 import statistics
 from PyQt5.QtWidgets import (QLabel, QComboBox)
-from processing.plotting.PlottingWindow import QMainPlotterTemplate
-from processing.plotting.QCPlots import mdl_plot
+from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
+from dialogs.plotting.QCPlots import mdl_plot
 
 class mdlPlotWindowTemplate(QMainPlotterTemplate):
     def __init__(self, database, params_path):

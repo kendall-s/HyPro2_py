@@ -2,12 +2,9 @@ import json
 import sqlite3
 import traceback
 import pandas as pd
-from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QLabel, QComboBox, QCheckBox)
-from processing.plotting.PlottingWindow import QMainPlotterTemplate
+from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-
-from processing.plotting.QCPlots import rmns_plot
 
 COMBO_BOX_CONVERTER = {'Pressure': {'db': 'ctd', 'col': 'pressure', 'plot_name': 'Pressure (db)'},
                        'CTD Salinity #1': {'db': 'ctd', 'col': 'salt1', 'plot_name': 'Primary CTD Salinity (psu)'},
