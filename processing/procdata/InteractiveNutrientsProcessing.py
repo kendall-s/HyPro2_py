@@ -16,6 +16,7 @@ import dialogs.plotting.QCPlots as qcp
 import processing.procdata.ProcessSealNutrients as psn
 import processing.util.NutrientProcessUtilities as npu
 import style
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 from dialogs.TraceSelectionDialog import traceSelection
 from dialogs.plotting.TracePlot import TracePlotter
 from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
@@ -30,7 +31,7 @@ mpl.use('Agg')
 """
 Serves as the window for interactively processing nutrients
 
-I've tried to be delibrate in only including functions here that interact with what is shown on screen. Everything for
+I've tried to be deliberate in only including functions here that interact with what is shown on screen. Everything for
 processing the data in the background should live either within the process nutrients controller class or as a function
 in process seal nutrients.
 
@@ -252,6 +253,25 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             undo_action = QAction('Undo', self)
             editMenu.addAction(undo_action)
             undo_action.triggered.connect(self.undo_action)
+
+            helpMenu = mainMenu.addMenu('Help')
+            keyboard_shortcuts = QAction('Keyboard Shortcuts', self)
+            helpMenu.addAction(keyboard_shortcuts)
+
+            keyboard_shortcuts.triggered.connect(
+                lambda: hyproMessageBoxTemplate(
+                    'Keyboard Shortcuts',
+                    'To speed up processing and navigating the trace, there are some keyboard shortcuts.',
+                    'information',
+                    long_text="""
+                    W: zoom in, X: zoom out, S: scale zoom to tallest peak \n 
+                    A: move trace left, D: move trace right \n
+                    Z: shift peak window left, C: shift peak window right \n
+                    N: next QC plot
+                    """
+                )
+            )
+
 
             """
             Widgets for UI
