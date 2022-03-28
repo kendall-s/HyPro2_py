@@ -1,14 +1,18 @@
+import json
+import logging
+import time
+
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtGui import *
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QMessageBox, QFrame,
                              QCheckBox, QTabWidget, QGridLayout, QComboBox)
-from PyQt5 import QtGui, QtWidgets, QtCore
-from PyQt5.QtGui import *
-import json, time, logging
-import hyproicons, style
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
+"""
+This dialog provides the ability for a user to change all of the settings and parameters related to processing data. 
+"""
 
-# File that provides the GUI for editing all of the parameters used in processing, these parameters
-# live in the project paramters json file
 
 class parametersDialog(hyproDialogTemplate):
     def __init__(self, project, path):
@@ -18,7 +22,6 @@ class parametersDialog(hyproDialogTemplate):
         self.currpath = path
 
         self.init_ui()
-
 
     def init_ui(self):
         try:
@@ -66,7 +69,6 @@ class parametersDialog(hyproDialogTemplate):
             self.grid_layout.addWidget(cancel, 10, 2)
 
             self.setLayout(self.grid_layout)
-
 
             self.generaltab.layout = QGridLayout()
 
@@ -166,7 +168,7 @@ class parametersDialog(hyproDialogTemplate):
             self.generaltab.layout.addWidget(rmnslabel, 20, 0)
             self.generaltab.layout.addWidget(self.rmns, 20, 1)
             self.generaltab.layout.addWidget(mdllabel, 21, 0)
-            self.generaltab.layout.addWidget(self.mdl, 21 ,1)
+            self.generaltab.layout.addWidget(self.mdl, 21, 1)
             self.generaltab.layout.addWidget(bqclabel, 22, 0)
             self.generaltab.layout.addWidget(self.bqc, 22, 1)
             self.generaltab.layout.addWidget(intqclabel, 23, 0)
@@ -302,7 +304,6 @@ class parametersDialog(hyproDialogTemplate):
 
             self.ammoniatab.layout = QGridLayout()
 
-
             ammonianamelabel = QLabel('Name:', self)
             self.ammonianame = QLineEdit(self)
             ammoniawindowsizelabel = QLabel('Window Size: ', self)
@@ -413,45 +414,65 @@ class parametersDialog(hyproDialogTemplate):
 
         self.nitratename.setText(params['nutrient_processing']['element_names']['nitrate_name'])
         self.nitratewindowsize.setText(str(params['nutrient_processing']['processing_pars']['nitrate']['window_size']))
-        self.nitratewindowstart.setText(str(params['nutrient_processing']['processing_pars']['nitrate']['window_start']))
-        self.nitratedrifttype.setCurrentText(params['nutrient_processing']['processing_pars']['nitrate']['drift_corr_type'])
-        self.nitratebasetype.setCurrentText(params['nutrient_processing']['processing_pars']['nitrate']['base_corr_type'])
+        self.nitratewindowstart.setText(
+            str(params['nutrient_processing']['processing_pars']['nitrate']['window_start']))
+        self.nitratedrifttype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['nitrate']['drift_corr_type'])
+        self.nitratebasetype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['nitrate']['base_corr_type'])
         self.nitratecarryover.setChecked(params['nutrient_processing']['processing_pars']['nitrate']['carryover_corr'])
         self.nitratecaltype.setCurrentText(params['nutrient_processing']['processing_pars']['nitrate']['calibration'])
         self.nitratecalerror.setText(str(params['nutrient_processing']['processing_pars']['nitrate']['cal_error']))
 
         self.phosphatename.setText(params['nutrient_processing']['element_names']['phosphate_name'])
-        self.phosphatewindowsize.setText(str(params['nutrient_processing']['processing_pars']['phosphate']['window_size']))
-        self.phosphatewindowstart.setText(str(params['nutrient_processing']['processing_pars']['phosphate']['window_start']))
-        self.phosphatedrifttype.setCurrentText(params['nutrient_processing']['processing_pars']['phosphate']['drift_corr_type'])
-        self.phosphatebasetype.setCurrentText(params['nutrient_processing']['processing_pars']['phosphate']['base_corr_type'])
-        self.phosphatecarryover.setChecked(params['nutrient_processing']['processing_pars']['phosphate']['carryover_corr'])
-        self.phosphatecaltype.setCurrentText(params['nutrient_processing']['processing_pars']['phosphate']['calibration'])
+        self.phosphatewindowsize.setText(
+            str(params['nutrient_processing']['processing_pars']['phosphate']['window_size']))
+        self.phosphatewindowstart.setText(
+            str(params['nutrient_processing']['processing_pars']['phosphate']['window_start']))
+        self.phosphatedrifttype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['phosphate']['drift_corr_type'])
+        self.phosphatebasetype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['phosphate']['base_corr_type'])
+        self.phosphatecarryover.setChecked(
+            params['nutrient_processing']['processing_pars']['phosphate']['carryover_corr'])
+        self.phosphatecaltype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['phosphate']['calibration'])
         self.phosphatecalerror.setText(str(params['nutrient_processing']['processing_pars']['phosphate']['cal_error']))
 
         self.silicatename.setText(params['nutrient_processing']['element_names']['silicate_name'])
-        self.silicatewindowsize.setText(str(params['nutrient_processing']['processing_pars']['silicate']['window_size']))
-        self.silicatewindowstart.setText(str(params['nutrient_processing']['processing_pars']['silicate']['window_start']))
-        self.silicatedrifttype.setCurrentText(params['nutrient_processing']['processing_pars']['silicate']['drift_corr_type'])
-        self.silicatebasetype.setCurrentText(params['nutrient_processing']['processing_pars']['silicate']['base_corr_type'])
-        self.silicatecarryover.setChecked(params['nutrient_processing']['processing_pars']['silicate']['carryover_corr'])
+        self.silicatewindowsize.setText(
+            str(params['nutrient_processing']['processing_pars']['silicate']['window_size']))
+        self.silicatewindowstart.setText(
+            str(params['nutrient_processing']['processing_pars']['silicate']['window_start']))
+        self.silicatedrifttype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['silicate']['drift_corr_type'])
+        self.silicatebasetype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['silicate']['base_corr_type'])
+        self.silicatecarryover.setChecked(
+            params['nutrient_processing']['processing_pars']['silicate']['carryover_corr'])
         self.silicatecaltype.setCurrentText(params['nutrient_processing']['processing_pars']['silicate']['calibration'])
         self.silicatecalerror.setText(str(params['nutrient_processing']['processing_pars']['silicate']['cal_error']))
 
         self.nitritename.setText(params['nutrient_processing']['element_names']['nitrite_name'])
         self.nitritewindowsize.setText(str(params['nutrient_processing']['processing_pars']['nitrite']['window_size']))
-        self.nitritewindowstart.setText(str(params['nutrient_processing']['processing_pars']['nitrite']['window_start']))
-        self.nitritedrifttype.setCurrentText(params['nutrient_processing']['processing_pars']['nitrite']['drift_corr_type'])
-        self.nitritebasetype.setCurrentText(params['nutrient_processing']['processing_pars']['nitrite']['base_corr_type'])
+        self.nitritewindowstart.setText(
+            str(params['nutrient_processing']['processing_pars']['nitrite']['window_start']))
+        self.nitritedrifttype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['nitrite']['drift_corr_type'])
+        self.nitritebasetype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['nitrite']['base_corr_type'])
         self.nitritecarryover.setChecked(params['nutrient_processing']['processing_pars']['nitrite']['carryover_corr'])
         self.nitritecaltype.setCurrentText(params['nutrient_processing']['processing_pars']['nitrite']['calibration'])
         self.nitritecalerror.setText(str(params['nutrient_processing']['processing_pars']['nitrite']['cal_error']))
 
         self.ammonianame.setText(params['nutrient_processing']['element_names']['ammonia_name'])
         self.ammoniawindowsize.setText(str(params['nutrient_processing']['processing_pars']['ammonia']['window_size']))
-        self.ammoniawindowstart.setText(str(params['nutrient_processing']['processing_pars']['ammonia']['window_start']))
-        self.ammoniadrifttype.setCurrentText(params['nutrient_processing']['processing_pars']['ammonia']['drift_corr_type'])
-        self.ammoniabasetype.setCurrentText(params['nutrient_processing']['processing_pars']['ammonia']['base_corr_type'])
+        self.ammoniawindowstart.setText(
+            str(params['nutrient_processing']['processing_pars']['ammonia']['window_start']))
+        self.ammoniadrifttype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['ammonia']['drift_corr_type'])
+        self.ammoniabasetype.setCurrentText(
+            params['nutrient_processing']['processing_pars']['ammonia']['base_corr_type'])
         self.ammoniacarryover.setChecked(params['nutrient_processing']['processing_pars']['ammonia']['carryover_corr'])
         self.ammoniacaltype.setCurrentText(params['nutrient_processing']['processing_pars']['ammonia']['calibration'])
         self.ammoniacalerror.setText(str(params['nutrient_processing']['processing_pars']['ammonia']['cal_error']))
@@ -490,46 +511,69 @@ class parametersDialog(hyproDialogTemplate):
             params['nutrient_processing']['element_names']['nitrate_name'] = self.nitratename.text()
             params['nutrient_processing']['processing_pars']['nitrate']['window_size'] = self.nitratewindowsize.text()
             params['nutrient_processing']['processing_pars']['nitrate']['window_start'] = self.nitratewindowstart.text()
-            params['nutrient_processing']['processing_pars']['nitrate']['drift_corr_type'] = self.nitratedrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['nitrate']['base_corr_type'] = self.nitratebasetype.currentText()
-            params['nutrient_processing']['processing_pars']['nitrate']['carryover_corr'] = self.nitratecarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['nitrate']['calibration'] = self.nitratecaltype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrate'][
+                'drift_corr_type'] = self.nitratedrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrate'][
+                'base_corr_type'] = self.nitratebasetype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrate'][
+                'carryover_corr'] = self.nitratecarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['nitrate'][
+                'calibration'] = self.nitratecaltype.currentText()
             params['nutrient_processing']['processing_pars']['nitrate']['cal_error'] = self.nitratecalerror.text()
 
             params['nutrient_processing']['element_names']['phosphate_name'] = self.phosphatename.text()
-            params['nutrient_processing']['processing_pars']['phosphate']['window_size'] = self.phosphatewindowsize.text()
-            params['nutrient_processing']['processing_pars']['phosphate']['window_start'] = self.phosphatewindowstart.text()
-            params['nutrient_processing']['processing_pars']['phosphate']['drift_corr_type'] = self.phosphatedrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['phosphate']['base_corr_type'] = self.phosphatebasetype.currentText()
-            params['nutrient_processing']['processing_pars']['phosphate']['carryover_corr'] = self.phosphatecarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['phosphate']['calibration'] = self.phosphatecaltype.currentText()
+            params['nutrient_processing']['processing_pars']['phosphate'][
+                'window_size'] = self.phosphatewindowsize.text()
+            params['nutrient_processing']['processing_pars']['phosphate'][
+                'window_start'] = self.phosphatewindowstart.text()
+            params['nutrient_processing']['processing_pars']['phosphate'][
+                'drift_corr_type'] = self.phosphatedrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['phosphate'][
+                'base_corr_type'] = self.phosphatebasetype.currentText()
+            params['nutrient_processing']['processing_pars']['phosphate'][
+                'carryover_corr'] = self.phosphatecarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['phosphate'][
+                'calibration'] = self.phosphatecaltype.currentText()
             params['nutrient_processing']['processing_pars']['phosphate']['cal_error'] = self.phosphatecalerror.text()
 
             params['nutrient_processing']['element_names']['silicate_name'] = self.silicatename.text()
             params['nutrient_processing']['processing_pars']['silicate']['window_size'] = self.silicatewindowsize.text()
-            params['nutrient_processing']['processing_pars']['silicate']['window_start'] = self.silicatewindowstart.text()
-            params['nutrient_processing']['processing_pars']['silicate']['drift_corr_type'] = self.silicatedrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['silicate']['base_corr_type'] = self.silicatebasetype.currentText()
-            params['nutrient_processing']['processing_pars']['silicate']['carryover_corr'] = self.silicatecarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['silicate']['calibration'] = self.silicatecaltype.currentText()
+            params['nutrient_processing']['processing_pars']['silicate'][
+                'window_start'] = self.silicatewindowstart.text()
+            params['nutrient_processing']['processing_pars']['silicate'][
+                'drift_corr_type'] = self.silicatedrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['silicate'][
+                'base_corr_type'] = self.silicatebasetype.currentText()
+            params['nutrient_processing']['processing_pars']['silicate'][
+                'carryover_corr'] = self.silicatecarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['silicate'][
+                'calibration'] = self.silicatecaltype.currentText()
             params['nutrient_processing']['processing_pars']['silicate']['cal_error'] = self.silicatecalerror.text()
-            
+
             params['nutrient_processing']['element_names']['nitrite_name'] = self.nitritename.text()
             params['nutrient_processing']['processing_pars']['nitrite']['window_size'] = self.nitritewindowsize.text()
             params['nutrient_processing']['processing_pars']['nitrite']['window_start'] = self.nitritewindowstart.text()
-            params['nutrient_processing']['processing_pars']['nitrite']['drift_corr_type'] = self.nitritedrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['nitrite']['base_corr_type'] = self.nitritebasetype.currentText()
-            params['nutrient_processing']['processing_pars']['nitrite']['carryover_corr'] = self.nitritecarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['nitrite']['calibration'] = self.nitritecaltype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrite'][
+                'drift_corr_type'] = self.nitritedrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrite'][
+                'base_corr_type'] = self.nitritebasetype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrite'][
+                'carryover_corr'] = self.nitritecarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['nitrite'][
+                'calibration'] = self.nitritecaltype.currentText()
             params['nutrient_processing']['processing_pars']['nitrite']['cal_error'] = self.nitritecalerror.text()
 
             params['nutrient_processing']['element_names']['ammonia_name'] = self.ammonianame.text()
             params['nutrient_processing']['processing_pars']['ammonia']['window_size'] = self.ammoniawindowsize.text()
             params['nutrient_processing']['processing_pars']['ammonia']['window_start'] = self.ammoniawindowstart.text()
-            params['nutrient_processing']['processing_pars']['ammonia']['drift_corr_type'] = self.ammoniadrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['ammonia']['base_corr_type'] = self.ammoniabasetype.currentText()
-            params['nutrient_processing']['processing_pars']['ammonia']['carryover_corr'] = self.ammoniacarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['ammonia']['calibration'] = self.ammoniacaltype.currentText()
+            params['nutrient_processing']['processing_pars']['ammonia'][
+                'drift_corr_type'] = self.ammoniadrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['ammonia'][
+                'base_corr_type'] = self.ammoniabasetype.currentText()
+            params['nutrient_processing']['processing_pars']['ammonia'][
+                'carryover_corr'] = self.ammoniacarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['ammonia'][
+                'calibration'] = self.ammoniacaltype.currentText()
             params['nutrient_processing']['processing_pars']['ammonia']['cal_error'] = self.ammoniacalerror.text()
 
             with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'w') as file:

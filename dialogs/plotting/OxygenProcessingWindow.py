@@ -1,6 +1,10 @@
 from dialogs.plotting.InteractiveProcPlottingWindow import hyproProcPlotWindow
 from dialogs.plotting.QCPlots import sensor_difference_plot, sensor_difference_pressure_plot, sensor_profile_plot
 
+"""
+This window is used to process the oxygen data and shows comparisons between the CTD sensor data and the measured
+"""
+
 
 class oxygenDifferencesPlot(hyproProcPlotWindow):
     def __init__(self, deployment, x_data, bottle, primary, secondary, depths, max_rp, ref_ind, full_data):
@@ -19,7 +23,6 @@ class oxygenDifferencesPlot(hyproProcPlotWindow):
         self.plot()
 
     def plot(self):
-
         """
         ** Primary sensor comparison plot **
         """
@@ -52,7 +55,7 @@ class oxygenDifferencesPlot(hyproProcPlotWindow):
                                self.max_rp, sensor='Primary')
         sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, secondary_difference,
                                self.max_rp, sensor='Secondary', clear_plot=False)
-        #self.both_sensor_plot.legend()
+        # self.both_sensor_plot.legend()
         self.both_sensor_canvas.draw()
 
         """

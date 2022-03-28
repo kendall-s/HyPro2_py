@@ -1,6 +1,11 @@
 from dialogs.plotting.InteractiveProcPlottingWindow import hyproProcPlotWindow
 from dialogs.plotting.QCPlots import sensor_difference_plot, sensor_difference_pressure_plot, sensor_profile_plot
 
+"""
+This is the interactive processing window for salinity, providing the user with the ability to compare bottle data 
+to the sensor and flag measurements as necessary
+"""
+
 
 class salinityDifferencesPlot(hyproProcPlotWindow):
     def __init__(self, deployment, x_data, bottle, primary, secondary, depths, max_rp, ref_ind, full_data):
@@ -19,7 +24,6 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
         self.plot()
 
     def plot(self):
-
         """
         ** Primary sensor comparison plot **
         """
@@ -31,7 +35,6 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
                                self.max_rp, sensor='Primary')
         sensor_difference_pressure_plot(self.sensor_one_figure, self.sensor_one_depth_plot, primary_difference,
                                         self.depths, deployments=self.deployment)
-
 
         """
         ** Secondary sensor comparison plot **
@@ -51,7 +54,7 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
                                self.max_rp, sensor='Primary')
         sensor_difference_plot(self.both_sensor_figure, self.both_sensor_plot, self.x_data, secondary_difference,
                                self.max_rp, sensor='Secondary', clear_plot=False)
-        #self.both_sensor_plot.legend()
+        # self.both_sensor_plot.legend()
 
         """
         ** Profile plot **
@@ -77,4 +80,3 @@ class salinityDifferencesPlot(hyproProcPlotWindow):
         self.sensor_two_canvas.draw()
         self.both_sensor_canvas.draw()
         self.profile_canvas.draw()
-

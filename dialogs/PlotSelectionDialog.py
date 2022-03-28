@@ -1,9 +1,13 @@
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox)
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
-# Provides functionality for clicking in QC plots after the nutrient processing stage, ie after the fact manually
-# produced plots
+"""
+Is the dialog which appears for the nutrient QC plots AFTER interactive processing. This dialog mimics functionality 
+implemented by the TraceSelectionDialog, but is different because it is used by the plotting windows accessed from 
+the processing menu.
+"""
 
 
 class plotSelection(hyproDialogTemplate):
@@ -24,7 +28,6 @@ class plotSelection(hyproDialogTemplate):
         self.init_ui()
 
         self.show()
-
 
     def init_ui(self):
         peakselectedlabel = QLabel('Peak Selected: ')
@@ -99,4 +102,3 @@ class plotSelection(hyproDialogTemplate):
 
     def cancel(self):
         self.close()
-

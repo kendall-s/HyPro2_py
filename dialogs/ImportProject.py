@@ -1,14 +1,19 @@
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QMessageBox,
-                             QFileDialog, )
-import csv, os, json, logging, traceback
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import *
+import csv
+import json
+import logging
+import os
+import time
+import traceback
+
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QFileDialog)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
-import time
-# GUI and functionality for importing an existing project into Hypro, ie copying a project from the ship pc to your
-# pc and now opening it up and continuing processing data with it
+"""
+Allows a user to import the .hypro project file which then adds that project path and name to the known projects on
+a users computer
+"""
 
 
 class importProject(hyproDialogTemplate):

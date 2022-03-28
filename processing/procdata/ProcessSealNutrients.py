@@ -27,6 +27,19 @@ from processing.data import Models
 # TODO: need small sub routine for resetting values on a RE-process
 # TODO: There may be a double up on functions that find flags and medians between drift/baseline and calibrants
 
+"""
+This file contains all of the functions for generating processed nutrient data. All of the required processing steps
+get actioned from within processing_routine, which is why it is so long. As you will see there is quite a bit that 
+needs to be read, calculated and applied to the data, however hopefully following this function proecdurally can make it
+a bit easier to understand.
+
+I have tried to add comments in the processing routine that split up the larger chunks/steps so that it is easier to 
+understand.
+
+All data is kept within the working data class structure
+"""
+
+
 def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_nutrient):
     """
     Function that runs through all the steps of processing a nutrient run, it is broken up as much as possible
@@ -47,18 +60,22 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     null_cup_type = processing_parameters['nutrient_processing']['cup_names']['null']
     baseline_cup_type = processing_parameters['nutrient_processing']['cup_names']['baseline']
-    baseline_corr_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['base_corr_type']
+    baseline_corr_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient][
+        'base_corr_type']
     high_cup_type = processing_parameters['nutrient_processing']['cup_names']['high']
     low_cup_type = processing_parameters['nutrient_processing']['cup_names']['low']
     drift_cup_type = processing_parameters['nutrient_processing']['cup_names']['drift']
     recovery_cup_type = processing_parameters['nutrient_processing']['cup_names']['recovery']
-    drift_corr_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['drift_corr_type']
+    drift_corr_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient][
+        'drift_corr_type']
     calibrant_cup_type = processing_parameters['nutrient_processing']['cup_names']['calibrant']
 
     cal_zero_label = processing_parameters['nutrient_processing']['calibrants']['cal0']
     cal_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['calibration']
-    cal_error_limit = float(processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['cal_error'])
-    dupe_error_limit = float(processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['duplicate_error'])
+    cal_error_limit = float(
+        processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['cal_error'])
+    dupe_error_limit = float(
+        processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['duplicate_error'])
 
     mdl_cup = processing_parameters['nutrient_processing']['qc_sample_names']['mdl']
     sample_cup_type = processing_parameters['nutrient_processing']['cup_names']['sample']
@@ -70,18 +87,19 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     # Match the SLK peak start data to the CHD A/D data
     # for subsequent processing runs, check if we use
 
-    w_d.window_values, w_d.time_values, w_d.adjusted_peak_starts[current_nutrient] = get_peak_values(slk_data.clean_peak_starts[current_nutrient],
-                                                                                    chd_data.ad_data[current_nutrient],
-                                                                                    window_size, window_start)
+    w_d.window_values, w_d.time_values, w_d.adjusted_peak_starts[current_nutrient] = get_peak_values(
+        slk_data.clean_peak_starts[current_nutrient],
+        chd_data.ad_data[current_nutrient],
+        window_size, window_start)
 
     w_d.quality_flag = flag_null_samples(slk_data.cup_types, null_cup_type, w_d.quality_flag)
     w_d.quality_flag = flag_hashed_samples(slk_data.peak_starts[current_nutrient], w_d.quality_flag)
 
     # Get channel specifiers finds Sample IDs where round brackets are used to specify a channel
     w_d.specific_cup_types[current_nutrient] = get_channel_specifier(slk_data.sample_ids, slk_data.cup_types,
-                                                                     slk_data.chd_channel[current_nutrient], null_cup_type)
+                                                                     slk_data.chd_channel[current_nutrient],
+                                                                     null_cup_type)
     w_d.dilution_factor = get_dilution_factor(slk_data.sample_ids, w_d.dilution_factor)
-
 
     # ----------- Check peaks for peak shape - apply quality control -------------------------------------------
     w_d.quality_flag = peak_shape_qc(w_d.window_values, w_d.quality_flag)
@@ -92,6 +110,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     # ----------- Find the baseline peaks - apply baseline correction ------------------------------------------
     w_d.baseline_indexes = find_cup_indexes(baseline_cup_type, w_d.specific_cup_types[current_nutrient])
 
+    # Got to check if there is enough baselines for a correction, if not don't apply a correction and log the warning!
     if len(w_d.baseline_indexes) < 2:
         logging.info(f'WARNING: Not enough baseline peaks found, baseline correction not applied for run {w_d.run}')
         w_d.corr_window_medians = w_d.raw_window_medians
@@ -114,6 +133,8 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
 
     # ----------- Find drift peaks - apply drift correction -----------------------------------------------------
     w_d.drift_indexes = find_cup_indexes(drift_cup_type, w_d.specific_cup_types[current_nutrient])
+
+    # Got to check if there is enough drifts for a correction, if not don't apply a correction and log the warning!
     if len(w_d.drift_indexes) < 2:
         logging.info(f'WARNING: Not enough drift peaks found, drift correction not applied for run {w_d.run}')
     else:
@@ -130,6 +151,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     if len(w_d.calibrant_indexes) < 2:
         logging.error(f'ERROR: Not enough calibrants were found to create a curve in {w_d.run}. Processing Aborted!')
         return None
+
     # ----------- Prepare calibrants and various parameters ------------------------------------------------------
     w_d.calibrant_medians = get_calibrant_medians(w_d.calibrant_indexes, w_d.corr_window_medians)
     # Side note for baseline plot - get highest cal median and determine a percentage corr from that
@@ -180,7 +202,6 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
         w_d.recovery_medians = [w_d.corr_window_medians[ind] for ind in w_d.recovery_indexes]
         w_d.recovery_concentrations = [w_d.calculated_concentrations[ind] for ind in w_d.recovery_indexes]
         w_d.recovery_flags = [w_d.quality_flag[ind] for ind in w_d.recovery_indexes]
-
 
     print('Proc time: ' + str((time.time()) - st))
 
@@ -239,6 +260,7 @@ def flag_null_samples(analysis_cups, null_cup, quality_flags):
 
     return quality_flags
 
+
 def get_channel_specifier(sample_ids, cup_types, current_channel, null_type):
     """
     Sometimes a sample should only be recognised on a specific channel, round brackets and a number for the
@@ -259,7 +281,6 @@ def get_channel_specifier(sample_ids, cup_types, current_channel, null_type):
 
 
 def get_dilution_factor(sample_ids, dilution_factors):
-
     """
     This is a quality of life addition, allowing chemists to specify the dilution factor in the sample id
     label, the nomenclature dil nx is required for this to take place. 5x indicates a 1in5 dilution
@@ -272,7 +293,7 @@ def get_dilution_factor(sample_ids, dilution_factors):
         if ('dil') in sample_id:
             # Extract the dilution coefficient
             dil_index = sample_id.find('dil')
-            dilution_value = sample_id[dil_index+3:]
+            dilution_value = sample_id[dil_index + 3:]
             # Remove the X from the number
             dilution_value_clean = dilution_value.replace("x", "")
 
@@ -284,9 +305,12 @@ def get_dilution_factor(sample_ids, dilution_factors):
 
     return dilution_factors
 
+
 def peak_shape_qc(window_values, quality_flags):
     """
-    Apply a QC on the peak shape to determine if it is of an acceptable shape
+    Apply a QC on the peak shape to determine if it is of an acceptable shape. This is done by applying a second order
+    polynomial model to the peak window values. If the model deviates too far from an expected shape then it is deemed
+    suspect or bad.
     :param window_values:
     :param quality_flags:
     :return:
@@ -302,6 +326,8 @@ def peak_shape_qc(window_values, quality_flags):
         first_slopes.append(fit[0])
         second_slopes.append(fit[1])
 
+    # The values here currently were arrived upon through trial and error.
+    # TODO: make the peak QC cutoffs user configurable
     for i, x in enumerate(first_slopes):
         if abs(x) > 0.005:
             quality_flags[i] = 5
@@ -312,6 +338,8 @@ def peak_shape_qc(window_values, quality_flags):
         elif abs(second_slopes[i]) < 0.009 and quality_flags[i] == 5:
             quality_flags[i] = 1
 
+    # If the peak height is really low, lets ignore any QC applied
+    # TODO: allow min peak height for QC to be user configurable
     for i, x in enumerate(window_values):
         if npmedian(x) < 3800:
             quality_flags[i] = 1
@@ -377,9 +405,9 @@ def organise_basedrift_medians(relevant_indexes, window_medians):
     :param window_medians:
     :return: medians, indexes
     """
-    #print(f'Window medians for baseline or drifts: {window_medians}')
-    #print(f'Length of window medians {len(window_medians)}')
-    #print(f'Relevant indexes: {relevant_indexes}')
+    # print(f'Window medians for baseline or drifts: {window_medians}')
+    # print(f'Length of window medians {len(window_medians)}')
+    # print(f'Relevant indexes: {relevant_indexes}')
 
     medians = [window_medians[x] for x in relevant_indexes]
 
@@ -580,7 +608,7 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
     repeat_calibration = True
     calibration_iteration = 0
 
-    # TODO: Massive todo I've f'd this up royally, it works and works well, but it is not clean at all.
+    # TODO: Massive todo, it works and works OK, but it is not clean at all.
     # Subset on if the flag isn't bad
 
     medians_to_fit = [x for i, x in enumerate(calibrant_medians) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
@@ -589,7 +617,7 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
     original_indexes = [x for i, x in enumerate(range(len(calibrant_medians))) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
     flags_to_fit = [x for x in calibrant_flags]
 
-    cal_coefficients  = []
+    cal_coefficients = []
     while repeat_calibration:
         try:
 
@@ -756,6 +784,7 @@ def reset_calibrant_flags(quality_flags):
 
     return quality_flags
 
+
 def save_nutrient_samples(session, samples_array):
     sample_db_ids = []
     for row in samples_array:
@@ -781,6 +810,7 @@ def save_nutrient_samples(session, samples_array):
             sample_db_ids.append(row.id)
     return sample_db_ids
 
+
 def save_nutrient_measurements(session, measurements_array):
     for row in measurements_array:
         returned = session.execute(
@@ -794,13 +824,14 @@ def save_nutrient_measurements(session, measurements_array):
             returned.analyte = row[5]
 
         else:
-            row = Models.NutrientMeasurements(raw_measurement=row[0], corrected_measurement=row[1], concentration=row[2],
-                                         quality_flag=row[3], nutrient_sample=row[4], analyte=row[5])
+            row = Models.NutrientMeasurements(raw_measurement=row[0], corrected_measurement=row[1],
+                                              concentration=row[2],
+                                              quality_flag=row[3], nutrient_sample=row[4], analyte=row[5])
             session.add(row)
         session.commit()
 
-def pack_data(slk_data, working_data, database, file_path):
 
+def pack_data(slk_data, working_data, database, file_path):
     engine = create_engine("sqlite+pysqlite:///C:/HyPro/sqlite_sqlalchemy_testing_db.db", echo=False)
     session = Session(engine)
 
@@ -819,7 +850,7 @@ def pack_data(slk_data, working_data, database, file_path):
     # Check if the run has been added to the db
     exists = session.query(Models.NutrientRun.id).filter_by(file_name=working_data.run).scalar()
     if not exists:
-        run = Models.NutrientRun(file_name = working_data.run)
+        run = Models.NutrientRun(file_name=working_data.run)
         session.add(run)
         session.commit()
 
@@ -842,7 +873,6 @@ def pack_data(slk_data, working_data, database, file_path):
 
     run_id_list = [run_id for x in slk_data.sample_ids]
     peak_number = [i for i, x in enumerate(slk_data.sample_ids)]
-
 
     arr = list(zip(slk_data.sample_ids, slk_data.cup_types, peak_number, working_data.dilution_factor,
                    slk_data.epoch_timestamps, slk_data.deployment, slk_data.rosette_position, run_id_list,
@@ -881,9 +911,9 @@ def pack_data(slk_data, working_data, database, file_path):
         pass
 
     package = (working_data.analyte, working_data.run, working_data.channel,
-                        slk_data.gains[working_data.analyte], slk_data.bases[working_data.analyte],
-                        working_data.carryover_coefficient, working_data.calibrant_zero_mean,
-                        working_data.calibration_coefficients[0], working_data.calibration_coefficients[1])
+               slk_data.gains[working_data.analyte], slk_data.bases[working_data.analyte],
+               working_data.carryover_coefficient, working_data.calibrant_zero_mean,
+               working_data.calibration_coefficients[0], working_data.calibration_coefficients[1])
 
     c.execute('INSERT OR REPLACE INTO nutrientHeader VALUES(?,?,?,?,?,?,?,?,?)', package)
     conn.commit()
@@ -926,6 +956,7 @@ def pack_data(slk_data, working_data, database, file_path):
 
     conn.close()
 
+
 def populate_nutrient_survey(database, params, sample_id, cup_types):
     deployments = []
     rosette_positions = []
@@ -964,14 +995,14 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
         return 'Null', 'Null', 'Null'
 
     if ((cup_type == params['nutrient_processing']['cup_names']['primer']) or
-        (cup_type == params['nutrient_processing']['cup_names']['recovery']) or
-        (cup_type == params['nutrient_processing']['cup_names']['high']) or
-        (cup_type == params['nutrient_processing']['cup_names']['low']) or
-        (cup_type == params['nutrient_processing']['cup_names']['end']) or
-        (cup_type == params['nutrient_processing']['cup_names']['drift']) or
-        (cup_type == params['nutrient_processing']['cup_names']['baseline']) or
-        (cup_type == params['nutrient_processing']['cup_names']['calibrant']) or
-        (sample_id == params['nutrient_processing']['qc_sample_names']['driftcheck'])):
+            (cup_type == params['nutrient_processing']['cup_names']['recovery']) or
+            (cup_type == params['nutrient_processing']['cup_names']['high']) or
+            (cup_type == params['nutrient_processing']['cup_names']['low']) or
+            (cup_type == params['nutrient_processing']['cup_names']['end']) or
+            (cup_type == params['nutrient_processing']['cup_names']['drift']) or
+            (cup_type == params['nutrient_processing']['cup_names']['baseline']) or
+            (cup_type == params['nutrient_processing']['cup_names']['calibrant']) or
+            (sample_id == params['nutrient_processing']['qc_sample_names']['driftcheck'])):
         return 'StandardQC', 'StandardQC', 'StandardQC'
 
     if (params['nutrient_processing']['qc_sample_names']['rmns'] in sample_id):
@@ -1006,9 +1037,11 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
 
 
                 else:  # Sample id has more than just numbers in it
-                    if params['survey_params'][surv]['seal']['decode_sample_id']:  # Decode the sample ID, needs a prefisurv too
+                    if params['survey_params'][surv]['seal'][
+                        'decode_sample_id']:  # Decode the sample ID, needs a prefisurv too
                         survey_prefix = params['survey_params'][surv]['seal']['survey_prefix']
-                        if len(params['survey_params'][surv]['seal']['survey_prefix']) > 0:  # Check theres actually a prefix
+                        if len(params['survey_params'][surv]['seal'][
+                                   'survey_prefix']) > 0:  # Check theres actually a prefix
                             sampleprefix = sample_id[0:len(params['survey_params'][surv]['seal']['survey_prefix'])]
                             if survey_prefix == sampleprefix:
                                 survey = surv
@@ -1030,6 +1063,7 @@ def determine_nutrient_survey(database, params, sample_id, cup_type):
                                 survey = surv
                                 return deployment, rosettepos, survey
 
+
 def match_logsheet(database, sample_id, deployment, rosette_position):
     """
     Helper function to determine if a sample believed to be a voyage sample is entered on the sampling logsheet
@@ -1043,6 +1077,7 @@ def match_logsheet(database, sample_id, deployment, rosette_position):
         return True
     else:
         return False
+
 
 def find_qc_present(qc_cups, sample_ids):
     """
@@ -1091,9 +1126,10 @@ def get_qc_data(indexes, medians, flags):
     return qc_medians, qc_flags
 
 
-#
-# Functions relevant to matching underway nutrient files to RVI merged underway data
-#
+"""
+Functions relevant to matching underway nutrient files to RVI underway data (.nc)
+"""
+
 
 def generate_rvi_timestamps(epoch_date, length):
     """
@@ -1155,7 +1191,8 @@ def match_lat_lons_routine(path, project, database, current_nut, parameters, wor
     sample_times, sample_concs = extract_underway_samples(slk_data.sample_ids, slk_data.cup_types,
                                                           working_data.quality_flag, slk_data.epoch_timestamps,
                                                           working_data.calculated_concentrations,
-                                                          parameters['nutrient_processing']['qc_sample_names']['underway'],
+                                                          parameters['nutrient_processing']['qc_sample_names'][
+                                                              'underway'],
                                                           parameters['nutrient_processing']['cup_names']['sample'])
     print(f'Underway sample times: {sample_times}')
 
@@ -1177,8 +1214,8 @@ def match_lat_lons_routine(path, project, database, current_nut, parameters, wor
     store_underway_data(packaged_underway_data, database, current_nut)
 
 
-def extract_underway_samples(sample_ids, cup_types, quality_flags, time_stamps, concentrations, sample_id_name, cup_name):
-
+def extract_underway_samples(sample_ids, cup_types, quality_flags, time_stamps, concentrations, sample_id_name,
+                             cup_name):
     """
     Finds the underway samples and pulls out the time stamps and the relevant concentrations from the run data
     :param sample_ids:
@@ -1240,13 +1277,13 @@ def find_time_matches(rvi_start_index, rvi_end_index, rvi_times, sample_times):
     # A list of indexes is created so that it can be related back to the original file for pulling out the Lat/Lons
     rvi_indexes = [i for i, x in enumerate(rvi_times)]
 
-    rvi_time_subset = rvi_times[rvi_start_index : rvi_end_index]
-    rvi_index_subset = rvi_indexes[rvi_start_index : rvi_end_index]
+    rvi_time_subset = rvi_times[rvi_start_index: rvi_end_index]
+    rvi_index_subset = rvi_indexes[rvi_start_index: rvi_end_index]
 
     matched_rvi_indexes = []
     for i, x in enumerate(rvi_time_subset):
         for y in sample_times:
-            if abs(x - y) < 5: # Less than 5 because there is a RVI underway point every 5 seconds
+            if abs(x - y) < 5:  # Less than 5 because there is a RVI underway point every 5 seconds
                 matched_rvi_indexes.append(rvi_index_subset[i])
                 break
 
@@ -1295,11 +1332,12 @@ def store_underway_data(packaged_data, database, current_nutrient):
     else:
         c.executemany('INSERT or REPLACE into underwayNutrients(latitude, longitude, time, %s, file) '
                       'VALUES (?, ?, ?, ?, ?)' % current_nutrient, packaged_data)
-    
+
     conn.commit()
-    conn.close()        
-    
-    logging.info('Underway data successfully matched with Investigator data. Correctly packaged and stored in database.')
+    conn.close()
+
+    logging.info(
+        'Underway data successfully matched with Investigator data. Correctly packaged and stored in database.')
 
 
 def r_squared(y, y_hat):
@@ -1313,6 +1351,6 @@ def r_squared(y, y_hat):
     y_hat = asarray(y_hat)
 
     y_bar = y.mean()
-    ss_tot = ((y-y_bar)**2).sum()
-    ss_res = ((y-y_hat)**2).sum()
-    return 1 - (ss_res/ss_tot)
+    ss_tot = ((y - y_bar) ** 2).sum()
+    ss_res = ((y - y_hat) ** 2).sum()
+    return 1 - (ss_res / ss_tot)

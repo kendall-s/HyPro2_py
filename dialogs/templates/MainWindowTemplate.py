@@ -1,9 +1,17 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QApplication
+import json
+import os
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
-import json, os
+from PyQt5.QtWidgets import QMainWindow, QWidget, QGridLayout, QApplication
 
-import hyproicons, style
+import style, hyproicons
+
+"""
+Base class for the main menu and processing menu windows. Sets up the base boilerplate for the window and applies
+styling. 
+"""
+
 
 class hyproMainWindowTemplate(QMainWindow):
     def __init__(self, width, height, title):

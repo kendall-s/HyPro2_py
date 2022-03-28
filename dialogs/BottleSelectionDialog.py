@@ -1,14 +1,21 @@
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox)
 from PyQt5.QtCore import *
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
 """
 Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad, 
                 91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 """
+# TODO: consolidate the flagging elsewhere
+flag_converter = {1: 'Good', 2: 'Suspect', 3: 'Bad', 4: 'Shape Sus', 5: 'Shape Bad', 6: 'Cal Bad',
+                  91: 'CalError Sus', 92: 'CalError Bad', 8: 'Dup Diff'}
 
-flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad', 6: 'Cal Bad',
-                   91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
+"""
+A bottle refers to either salinity or oxygen sample, this window is used to provide info and allow a user to flag a 
+bad measurement when interactively processing salinity and oxygen data 
+"""
+
 
 class bottleSelection(hyproDialogTemplate):
     saveSig = pyqtSignal(tuple)

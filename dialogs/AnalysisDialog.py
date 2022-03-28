@@ -1,15 +1,17 @@
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QGridLayout, QComboBox, QMessageBox, QTableView,
-                             QInputDialog, QApplication, QFrame, QCheckBox, QDesktopWidget, QListWidget)
-from PyQt5 import QtGui, QtWidgets, QtCore
-from PyQt5.QtGui import *
-from PyQt5.QtCore import pyqtSignal
 import json
 from time import sleep
-from dialogs.templates.DialogTemplate import hyproDialogTemplate
-import hyproicons
 
-# This class produces the dialog and functionality for activating the different analyses in Hypro
-# Allows for entering the naming convention for files to be found and processed
+from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QMessageBox, QCheckBox)
+
+from dialogs.templates.DialogTemplate import hyproDialogTemplate
+
+"""
+This is the dialog which lets a user input the file parameters for each analysis, as well as letting them be toggled
+as active
+"""
 
 
 class analysisSettings(hyproDialogTemplate):
@@ -25,9 +27,7 @@ class analysisSettings(hyproDialogTemplate):
 
         self.init_ui()
 
-
     def init_ui(self):
-
         self.setWindowFlags(QtCore.Qt.WindowCloseButtonHint)
         self.setWindowModality(QtCore.Qt.ApplicationModal)
 
@@ -74,7 +74,7 @@ class analysisSettings(hyproDialogTemplate):
 
     # Populate fields from current info in the parameters file for the project
     def populate_fields(self):
-        with open(self.currpath +  '/' + '%sParams.json' % self.currproject, 'r') as file:
+        with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
             params = json.loads(file.read())
 
         self.prefixEdit.setText(params['analysis_params'][self.analysis]['file_prefix'])

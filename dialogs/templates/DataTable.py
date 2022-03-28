@@ -1,8 +1,15 @@
-import io
 import csv
-from PyQt5.QtWidgets import QApplication, QTableWidget, QTableWidgetItem
+import io
+
+from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import QKeySequence
-from PyQt5.QtCore import QSortFilterProxyModel, QEvent
+from PyQt5.QtWidgets import QApplication, QTableWidget, QTableWidgetItem
+
+"""
+Class extending the functionality of the QTableWidget. Primarily to streamline adding data and providing a cleaner
+copy functionality
+"""
+
 
 class Datatable(QTableWidget):
     def __init__(self, data):
@@ -59,7 +66,6 @@ class Datatable(QTableWidget):
             return True
         return super(QTableWidget, self).eventFilter(source, event)
 
-
     def copy_selection(self, copy_headers=False, header=False):
         """
         Provides functionality for copying data from the table
@@ -79,6 +85,6 @@ class Datatable(QTableWidget):
             if copy_headers:
                 left_most_col = min(columns)
                 right_most_col = max(columns)
-                csv.writer(stream, delimiter='\t').writerow(header[left_most_col: right_most_col+1])
+                csv.writer(stream, delimiter='\t').writerow(header[left_most_col: right_most_col + 1])
             csv.writer(stream, delimiter='\t').writerows(table)
             QApplication.clipboard().setText(stream.getvalue())

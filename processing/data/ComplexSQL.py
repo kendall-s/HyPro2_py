@@ -2,6 +2,14 @@
 Yeah, yeah, yeah, I know. This is ugly and most likely a product of my poor database design, but with close
 to 10k samples to join together, these queries make sure it happens in a fraction of a second. Which is good enough
 for me.
+
+Update: I've started implementing sqlalchemy models, but I stopped because I re-evaluated what that would actually mean.
+I think a better design choice, especially long term for an application like this, is to keep the table structure
+how it is, i.e. de-normalised. This allows lay-man end users to view the SQLite db and just treat each table like a
+spreadsheet. This simplification provides 2 bonuses, one being the end user with very little training can understand
+the underlying data structure and modify as necessary, which point two, reduces the burden on a savvy developer to
+assist them in completing what needs to be done. This does not mean sqlalchemy models shouldn't be introduced with the
+flat table structure, its just that I am not getting paid for this and don't have time.
 """
 
 export_ctd_data = \

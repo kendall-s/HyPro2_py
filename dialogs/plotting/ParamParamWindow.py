@@ -1,45 +1,55 @@
 import json
 import sqlite3
 import traceback
+
 import pandas as pd
 from PyQt5.QtWidgets import (QLabel, QComboBox, QCheckBox)
-from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
-COMBO_BOX_CONVERTER = {'Pressure': {'db': 'ctd', 'col': 'pressure', 'plot_name': 'Pressure (db)'},
-                       'CTD Salinity #1': {'db': 'ctd', 'col': 'salt1', 'plot_name': 'Primary CTD Salinity (psu)'},
-                       'CTD Salinity #2': {'db': 'ctd', 'col': 'salt2', 'plot_name': 'Secondary CTD Salinity (psu)'},
-                       'CTD Oxygen #1': {'db': 'ctd', 'col': 'oxygen1', 'plot_name': 'Primary CTD Oxygen (uM)'},
-                       'CTD Oxygen #2': {'db': 'ctd', 'col': 'oxygen2', 'plot_name': 'Secondary CTD Oxygen (uM)'},
-                       'CTD Fluorometer': {'db': 'ctd', 'col': 'fluoro', 'plot_name': 'CTD Fluorometer (ug/L)'},
-                       'CTD Temperature #1': {'db': 'ctd', 'col': 'temp1', 'plot_name': 'Primary CTD Temperature (C)'},
-                       'CTD Temperature #2': {'db': 'ctd', 'col': 'temp2', 'plot_name': 'Secondary CTD Temperature (C)'},
-                       'Rosette Position': {'db': 'ctd', 'col': 'rosettePosition', 'plot_name': 'Rosette Position'},
-                       'NOx': {'db': 'nitrate', 'col': 'concentration', 'plot_name': 'NOx (uM)'},
-                       'Phosphate': {'db': 'phosphate', 'col': 'concentration', 'plot_name': 'Phosphate (uM)'},
-                       'Silicate': {'db': 'silicate', 'col': 'concentration', 'plot_name': 'Silicate (uM)'},
-                       'Ammonia': {'db': 'ammonia', 'col': 'concentration', 'plot_name': 'Ammonia (uM)'},
-                       'Nitrite': {'db': 'nitrite', 'col': 'concentration', 'plot_name': 'Nitrite (uM'},
-                       'Bottle Salinity': {'db': 'salinity', 'col': 'salinity', 'plot_name': 'Salinity (psu)'},
-                       'Bottle Oxygen': {'db': 'oxygen', 'col': 'oxygenMoles', 'plot_name': 'Oxygen (uM)'}
-                       }
+from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 
-COLOR_CONVERTER = {'Auto': None, 'Blue': '#5975a4', 'Green': '#5f9e6e', 'Orange': '#cc8963',  'Red': '#b55d60'}
+COMBO_BOX_CONVERTER = {
+    'Pressure': {'db': 'ctd', 'col': 'pressure', 'plot_name': 'Pressure (db)'},
+    'CTD Salinity #1': {'db': 'ctd', 'col': 'salt1', 'plot_name': 'Primary CTD Salinity (psu)'},
+    'CTD Salinity #2': {'db': 'ctd', 'col': 'salt2', 'plot_name': 'Secondary CTD Salinity (psu)'},
+    'CTD Oxygen #1': {'db': 'ctd', 'col': 'oxygen1', 'plot_name': 'Primary CTD Oxygen (uM)'},
+    'CTD Oxygen #2': {'db': 'ctd', 'col': 'oxygen2', 'plot_name': 'Secondary CTD Oxygen (uM)'},
+    'CTD Fluorometer': {'db': 'ctd', 'col': 'fluoro', 'plot_name': 'CTD Fluorometer (ug/L)'},
+    'CTD Temperature #1': {'db': 'ctd', 'col': 'temp1', 'plot_name': 'Primary CTD Temperature (C)'},
+    'CTD Temperature #2': {'db': 'ctd', 'col': 'temp2', 'plot_name': 'Secondary CTD Temperature (C)'},
+    'Rosette Position': {'db': 'ctd', 'col': 'rosettePosition', 'plot_name': 'Rosette Position'},
+    'NOx': {'db': 'nitrate', 'col': 'concentration', 'plot_name': 'NOx (uM)'},
+    'Phosphate': {'db': 'phosphate', 'col': 'concentration', 'plot_name': 'Phosphate (uM)'},
+    'Silicate': {'db': 'silicate', 'col': 'concentration', 'plot_name': 'Silicate (uM)'},
+    'Ammonia': {'db': 'ammonia', 'col': 'concentration', 'plot_name': 'Ammonia (uM)'},
+    'Nitrite': {'db': 'nitrite', 'col': 'concentration', 'plot_name': 'Nitrite (uM'},
+    'Bottle Salinity': {'db': 'salinity', 'col': 'salinity', 'plot_name': 'Salinity (psu)'},
+    'Bottle Oxygen': {'db': 'oxygen', 'col': 'oxygenMoles', 'plot_name': 'Oxygen (uM)'}
+}
+# For auto, if none is provided as a color, the matplotlib color cycling takes over.
+COLOR_CONVERTER = {'Auto': None, 'Blue': '#5975a4', 'Green': '#5f9e6e', 'Orange': '#cc8963', 'Red': '#b55d60'}
 
-COMBO_ITEMS =['Pressure', 'CTD Salinity #1', 'CTD Salinity #2', 'CTD Oxygen #1', 'CTD Oxygen #2',
-                'CTD Fluorometer', 'Rosette Position', 'NOx', 'Phosphate', 'Silicate',
-                'Ammonia', 'Nitrite', 'Bottle Salinity', 'Bottle Oxygen']
+COMBO_ITEMS = ['Pressure', 'CTD Salinity #1', 'CTD Salinity #2', 'CTD Oxygen #1', 'CTD Oxygen #2',
+               'CTD Fluorometer', 'Rosette Position', 'NOx', 'Phosphate', 'Silicate',
+               'Ammonia', 'Nitrite', 'Bottle Salinity', 'Bottle Oxygen']
+
+"""
+This window provides the functionality for a user to plot a number of parameters against other parameters. Letting the
+user plot any of the stored variables is important as they can be used to diagnose measurement errors or identify
+significant features
+"""
+
 
 class paramPlotWindowTemplate(QMainPlotterTemplate):
     def __init__(self, database, params_path):
         super().__init__(database)
 
-        self. database = database
+        self.database = database
         with open(params_path, 'r') as file:
             self.params = json.loads(file.read())
 
         self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
-                             'Ammonia': 'ammonia'}
+                              'Ammonia': 'ammonia'}
 
         self.rmnscols = {'NOx': 5, 'Phosphate': 1, 'Silicate': 3, 'Nitrite': 7, 'Ammonia': 9}
 
@@ -105,7 +115,6 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
         self.show()
 
         self.canvas.mpl_connect('pick_event', self.on_pick)
-
 
     def populate_deployment_list(self):
         try:
@@ -240,7 +249,7 @@ class paramPlotWindowTemplate(QMainPlotterTemplate):
                                              )
 
             # Decide whether a legend is necessary
-            if len(set(deployment)) > 1 or x_axis_two_selection !='N/A':
+            if len(set(deployment)) > 1 or x_axis_two_selection != 'N/A':
                 self.main_plot.legend()
 
             # Invert the y axis based on the check box

@@ -34,7 +34,7 @@ from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
 from processing.procdata.InteractiveNutrientsProcessing import processingNutrientsWindow
-from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
+from processing.readdata import ReadCTDData, ReadSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
 
@@ -453,7 +453,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
 
     def run_ctd_process(self, file):
-        self.init_ctd_data = InitialiseCTDData.initCTDdata(file,
+        self.init_ctd_data = ReadCTDData.initCTDdata(file,
                                                          self.db,
                                                          self.currpath,
                                                          self.currproject,
@@ -465,7 +465,7 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         self.init_ctd_data.loadfilein()
 
     def run_sampling_process(self, file):
-        self.init_sample_data = InitialiseSampleSheet.initSampleSheet(file,
+        self.init_sample_data = ReadSampleSheet.initSampleSheet(file,
                                                                     self.currproject,
                                                                     self.db,
                                                                     self.currpath,

@@ -1,31 +1,45 @@
+import json
+import logging
+import os
+import sys
+import traceback
+
+import pyqtgraph as pg
+from PyQt5.QtCore import Qt, QSize, pyqtSignal, QThread
+from PyQt5.QtGui import *
 from PyQt5.QtWidgets import (QWidget, QPushButton, QLabel, QDockWidget, QListWidget, QVBoxLayout, QTabWidget,
                              QDesktopWidget, QApplication, QLineEdit, QHBoxLayout, QSplitter, QAction)
-from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt, QSize, pyqtSignal, QThread
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from pylab import *
+
 import dialogs.plotting.QCPlots as qcp
-import sys, logging, traceback, os
-import json
-import style
 import processing.procdata.ProcessSealNutrients as psn
 import processing.util.NutrientProcessUtilities as npu
-from processing.util.NutrientProcessUtilities import save_proc_settings, load_proc_settings, match_click_to_peak, match_hover_to_peak
+import style
 from dialogs.TraceSelectionDialog import traceSelection
-from processing.data.Structures import WorkingData, SLKData, CHDData
-from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
 from dialogs.plotting.TracePlot import TracePlotter
-import pyqtgraph as pg
+from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
+from processing.data.Structures import WorkingData, SLKData, CHDData
 from processing.procdata.ProcessNutrientsController import processNutrientsController
+from processing.util.NutrientProcessUtilities import (save_proc_settings, load_proc_settings, match_click_to_peak,
+                                                      match_hover_to_peak)
 
-#background-color: #ededed;
-
+# background-color: #ededed;
 mpl.use('Agg')
+
+"""
+Serves as the window for interactively processing nutrients
+
+I've tried to be delibrate in only including functions here that interact with what is shown on screen. Everything for
+processing the data in the background should live either within the process nutrients controller class or as a function
+in process seal nutrients.
+
+"""
+
 
 # TODO: Finish new implementation of cleaned up testable Nutrients
 
 class processingNutrientsWindow(hyproMainWindowTemplate):
-
     """
     This is the class that handles the GUI interface for Nutrient processing
 
@@ -45,16 +59,15 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         super().__init__((screenwidth * 0.85), (screenheight * 0.85), 'HyPro - Process Nutrient Analysis')
 
         # Set flagging colours
-        self.FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4:'#3CB6C9', 5: '#C92724', 6: '#DC9530',
+        self.FLAG_COLORS = {1: '#68C968', 2: '#45D4E8', 3: '#C92724', 4: '#3CB6C9', 5: '#C92724', 6: '#DC9530',
                             91: '#9CCDD6', 92: '#F442D9', 8: '#3CB6C9'}
 
-        self.FLAG_CONVERTER = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad',
-                               91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
-        self.REVERSE_FLAG_CONVERTER = {x : y for y, x in self.FLAG_CONVERTER.items()}
+        self.FLAG_CONVERTER = {1: 'Good', 2: 'Suspect', 3: 'Bad', 4: 'Shape Sus', 5: 'Shape Bad',
+                               91: 'CalError Sus', 92: 'CalError Bad', 8: 'Dup Diff'}
+        self.REVERSE_FLAG_CONVERTER = {x: y for y, x in self.FLAG_CONVERTER.items()}
 
         # Load in the processing parameters
         self.processing_parameters = load_proc_settings(path, project)
-
 
         self.file_path = path + '/' + 'Nutrients' + '/' + file
         self.file = file
@@ -118,11 +131,11 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                                                                          self.processing_parameters)
         self.nutrient_processing_controller.moveToThread(self.processing_thread)
         self.processing_thread.started.connect(self.nutrient_processing_controller.startup_routine)
-        
+
         # After startup and subsequent reprocessing, update the UI elements
         self.nutrient_processing_controller.startup_routine_completed.connect(self.update_ui)
         self.nutrient_processing_controller.reprocessing_completed.connect(self.update_ui)
-        
+
         # Set cursor based on what the processing controller is up to
         self.nutrient_processing_controller.thinking.connect(self.loading_cursor)
         self.nutrient_processing_controller.startup_routine_completed.connect(self.reset_cursor)
@@ -163,13 +176,17 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                     self.create_custom_qc_tabs(self.view_slk_data.sample_ids, qc_cups)
 
                     self.actions_list[self.current_nutrient] = []
-                    self.actions_list['initial_window_start'][self.current_nutrient] = self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['window_start']
-                    self.actions_list['initial_window_size'][self.current_nutrient] = self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['window_size']
+                    self.actions_list['initial_window_start'][self.current_nutrient] = \
+                        self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient][
+                            'window_start']
+                    self.actions_list['initial_window_size'][self.current_nutrient] = \
+                        self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient][
+                            'window_size']
 
             self.interactive_routine(trace_redraw=trace_redraw)
         else:
             self.logging_signal.emit('Cannot find any nutrients in the SLK file. Check the naming in parameters?')
-            #logging.info('Cannot find any nutrients in the SLK file. Check the naming in parameters?')
+            # logging.info('Cannot find any nutrients in the SLK file. Check the naming in parameters?')
             self.processing_thread.quit()
             self.destroy(destroyWindow=True)
 
@@ -236,7 +253,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             editMenu.addAction(undo_action)
             undo_action.triggered.connect(self.undo_action)
 
-
             """
             Widgets for UI
             """
@@ -264,7 +280,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             # Processing trace
             label_text = f'Processing Nutrient File: {self.file} - Analyte: {self.current_nutrient.capitalize()}'
             self.analysistraceLabel = QLabel(label_text)
-            #analysistraceLabel.setProperty('headerText', True)
+            # analysistraceLabel.setProperty('headerText', True)
             self.analysistraceLabel.setStyleSheet('font: 18px Segoe UI; font-weight: 500;')
 
             left_v_box.addWidget(self.analysistraceLabel)
@@ -367,7 +383,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             zoomfit.setToolTip('Scale to highest peak')
             zoomfit.setCursor(QCursor(Qt.PointingHandCursor))
 
-
             trace_control_buttons_layout.addWidget(leftonxaxis)
             trace_control_buttons_layout.addWidget(zoomin)
             trace_control_buttons_layout.addWidget(zoomfit)
@@ -398,7 +413,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             process_control_buttons = QHBoxLayout()
             process_control_buttons.setSpacing(20)
-            #right_v_box.addLayout(process_control_buttons)
+            # right_v_box.addLayout(process_control_buttons)
             self.grid_layout.addLayout(process_control_buttons, 1, 0)
 
             process_control_buttons.addStretch()
@@ -460,7 +475,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         ft = time.time()
 
-        print('Draw time: ' + str(ft-st))
+        print('Draw time: ' + str(ft - st))
 
     def store_data(self):
         psn.pack_data(self.view_slk_data, self.view_w_d, self.database, self.file_path)
@@ -499,29 +514,35 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             if not os.path.exists(f'{self.path}/Nutrients/processing'):
                 os.mkdir(f'{self.path}/Nutrients/processing')
 
-            with open(f'{self.path}/Nutrients/processing/{self.file}_{self.current_nutrient}_procfile.json', 'w+') as out_file:
+            with open(f'{self.path}/Nutrients/processing/{self.file}_{self.current_nutrient}_procfile.json',
+                      'w+') as out_file:
                 json.dump(self.actions_list, out_file)
 
             if not os.path.exists(f'{self.path}/Nutrients/plot/{self.file}'):
                 os.mkdir(f'{self.path}/Nutrients/plot/{self.file}')
 
-            self.standard_plots['drift']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_drift_plot.png',
-                                   dpi=300)
-            self.standard_plots['baseline']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_baseline_plot.png',
-                                      dpi=300)
-            self.standard_plots['cal_curve']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_curve_plot.png',
-                                      dpi=300)
-            self.standard_plots['cal_error']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_error_plot.png',
-                                      dpi=300)
+            self.standard_plots['drift']['fig'].savefig(
+                f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_drift_plot.png',
+                dpi=300)
+            self.standard_plots['baseline']['fig'].savefig(
+                f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_baseline_plot.png',
+                dpi=300)
+            self.standard_plots['cal_curve']['fig'].savefig(
+                f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_curve_plot.png',
+                dpi=300)
+            self.standard_plots['cal_error']['fig'].savefig(
+                f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_cal_error_plot.png',
+                dpi=300)
             if len(self.rmns_plots) > 0:
-                self.custom_plots['RMNS']['fig'].savefig(f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_rmns_plot.png',
-                                        dpi=300)
+                self.custom_plots['RMNS']['fig'].savefig(
+                    f'{self.path}/Nutrients/plot/{self.file}/{self.current_nutrient}_rmns_plot.png',
+                    dpi=300)
 
             # Resave the processing settings to disk
             save_proc_settings(self.path, self.project, self.processing_parameters)
 
             # Try to increment the current nutrient - if an index error is raised, there is no more nutrients to process
-            self.current_nutrient = self.view_slk_data.active_nutrients[current_nut_index+1]
+            self.current_nutrient = self.view_slk_data.active_nutrients[current_nut_index + 1]
 
             self.analysistraceLabel.setText('<b>Processing file: </b>' + str(self.file) +
                                             '   |   <b>Analysis Trace: </b>' + str(self.current_nutrient).capitalize())
@@ -535,7 +556,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.graph_widget.removeItem(self.window_lines)
 
             self.reset_cursor()
-            
+
             self.nutrient_processing_controller.set_current_nutrient(self.current_nutrient)
             self.nutrient_processing_controller.re_process()
 
@@ -556,12 +577,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         data_coordinates = self.plotted_data.getViewBox().mapSceneToView(event)
         self.vertical_line.setPos(data_coordinates.x())
         x_point = data_coordinates.x()
-        #exists, peak_index = match_click_to_peak(x_point, self.view_slk_data, self.current_nutrient, self.view_w_d.adjusted_peak_starts)
-        exists, peak_index = match_hover_to_peak(x_point, self.view_slk_data, self.current_nutrient, self.view_w_d.time_values)
+        # exists, peak_index = match_click_to_peak(x_point, self.view_slk_data, self.current_nutrient, self.view_w_d.adjusted_peak_starts)
+        exists, peak_index = match_hover_to_peak(x_point, self.view_slk_data, self.current_nutrient,
+                                                 self.view_w_d.time_values)
 
         if len(peak_index) > 0:
             peak_index = peak_index[0]
-            self.hovered_peak_lineedit.setText(f'Peak #{peak_index+1} | Sample ID: {self.view_slk_data.sample_ids[peak_index]} | Cup Type: {self.view_slk_data.cup_types[peak_index]} | Conc: {round(self.view_w_d.calculated_concentrations[peak_index], 3)} | Corr A/D: {round(self.view_w_d.corr_window_medians[peak_index], 1)} | Raw A/D: {self.view_w_d.raw_window_medians[peak_index]} | Time: {self.view_slk_data.raw_timestamps[peak_index]}')
+            self.hovered_peak_lineedit.setText(
+                f'Peak #{peak_index + 1} | Sample ID: {self.view_slk_data.sample_ids[peak_index]} | Cup Type: {self.view_slk_data.cup_types[peak_index]} | Conc: {round(self.view_w_d.calculated_concentrations[peak_index], 3)} | Corr A/D: {round(self.view_w_d.corr_window_medians[peak_index], 1)} | Raw A/D: {self.view_w_d.raw_window_medians[peak_index]} | Time: {self.view_slk_data.raw_timestamps[peak_index]}')
         else:
             self.hovered_peak_lineedit.setText('No peak')
 
@@ -586,7 +609,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             if exists:
                 self.peak_display = traceSelection(self.view_slk_data.sample_ids[peak_index],
                                                    self.view_slk_data.cup_types[peak_index],
-                                                   (peak_index+1),
+                                                   (peak_index + 1),
                                                    self.view_w_d.corr_window_medians[peak_index],
                                                    self.view_w_d.calculated_concentrations[peak_index],
                                                    self.view_w_d.quality_flag[peak_index],
@@ -620,7 +643,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 new_window_start_time = x_axis_time - picked_peak_start
                 self.add_action('window_start_set', new_window_start_time, win_start)
 
-                new_window_length = win_length - (x_axis_time - (picked_peak_start+win_start))
+                new_window_length = win_length - (x_axis_time - (picked_peak_start + win_start))
                 self.add_action('window_length_set', new_window_length, win_length)
 
                 self.nutrient_processing_controller.set_window_start(new_window_start_time)
@@ -631,7 +654,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                 new_window_start_time = x_axis_time - picked_peak_start
                 self.add_action('window_start_set', new_window_start_time, win_start)
 
-                new_window_length = win_length + ((picked_peak_start+win_start) - x_axis_time)
+                new_window_length = win_length + ((picked_peak_start + win_start) - x_axis_time)
                 self.add_action('window_length_set', new_window_length, win_length)
 
                 self.nutrient_processing_controller.set_window_start(new_window_start_time)
@@ -640,7 +663,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             # If point is actually less than the value given of the peak starts...
             if x_axis_time < picked_peak_start:
                 time_offset = picked_peak_start - x_axis_time
-                adjusted_peak_starts = [p_s - time_offset for p_s in self.view_slk_data.clean_peak_starts[self.current_nutrient]]
+                adjusted_peak_starts = [p_s - time_offset for p_s in
+                                        self.view_slk_data.clean_peak_starts[self.current_nutrient]]
                 self.add_action('adjust_peak_starts', time_offset, time_offset)
 
                 self.nutrient_processing_controller.set_clean_peak_starts(adjusted_peak_starts)
@@ -705,10 +729,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         window_start = int(self.nutrient_processing_controller.get_window_start())
         window_size = int(self.nutrient_processing_controller.get_window_size())
 
-        #print(f'Key ID pressed: {event.key()}')
-        if k_id == Qt.Key_A: # Assign A to move left
+        # print(f'Key ID pressed: {event.key()}')
+        if k_id == Qt.Key_A:  # Assign A to move left
             self.move_camera_left()
-        elif k_id == Qt.Key_D: # Assign D to move right
+        elif k_id == Qt.Key_D:  # Assign D to move right
             self.move_camera_right()
         elif k_id == Qt.Key_W:
             # Assign W to zoom in
@@ -728,10 +752,10 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         elif k_id == Qt.Key_N:
             # Iterate through the QC tabs
             curr_tab = self.qctabs.currentIndex()
-            if curr_tab == (len(self.qctabs)-1):
+            if curr_tab == (len(self.qctabs) - 1):
                 self.qctabs.setCurrentIndex(0)
             else:
-                self.qctabs.setCurrentIndex(curr_tab+1)
+                self.qctabs.setCurrentIndex(curr_tab + 1)
 
         elif k_id == Qt.Key_Z:
             if mods == Qt.ShiftModifier:
@@ -770,19 +794,19 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         # Below is only meant to be used for DEVELOPMENT PURPOSES, used to inject random values into peak picking
         # to check how the software responds, used to check speed of processing and robustness
-        elif k_id == Qt.Key_R: # R Imitates changing peak windows etc, for testing optimisation of processing and draw
+        elif k_id == Qt.Key_R:  # R Imitates changing peak windows etc, for testing optimisation of processing and draw
             random_modifier = np.random.randint(low=15, high=45)
             self.nutrient_processing_controller.set_window_start(random_modifier)
             self.nutrient_processing_controller.set_window_size(random_modifier)
 
-            reset_flags = [self.view_w_d.quality_flag[i] if x not in [4,5] else 1 for i, x in enumerate(self.view_w_d.quality_flag)]
+            reset_flags = [self.view_w_d.quality_flag[i] if x not in [4, 5] else 1 for i, x in
+                           enumerate(self.view_w_d.quality_flag)]
             self.nutrient_processing_controller.set_quality_flags(reset_flags)
 
             self.nutrient_processing_controller.re_process()
 
         elif k_id == Qt.Key_P:
             print(self.actions_list)
-
 
     def move_camera_left(self):
         """
@@ -870,7 +894,6 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         self.graph_widget.setYRange(y_min, max_height * 1.02)
 
-
     def update_from_dialog(self, updates):
         updated_peak_index = updates['peak_index']
 
@@ -898,13 +921,14 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         an analysis, this includes Drift, Baseline, Calibration curve and calibration errors
         :return:
         """
-        standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'baseline': 'Baseline Corr', 'drift': 'Drift Corr'}
+        standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'baseline': 'Baseline Corr',
+                         'drift': 'Drift Corr'}
 
         if self.view_w_d.analyte == 'nitrate':
             standard_tabs = {'cal_curve': 'Calibration', 'cal_error': 'Cal Error', 'recovery': 'NOx Recovery',
                              'baseline': 'Baseline Corr', 'drift': 'Drift Corr'}
         for qc in standard_tabs:
-            
+
             # Logic here is we dynamically create the plot tabs and store them in the dict
             # Structure being {'baseline': {'tab': tab, 'layout': layout, 'fig': fig, 'canvas': canvas}}
 
@@ -968,7 +992,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
                         rmns_list = [x for x in sample_ids_set if qc_samps[qc] in x and x[0:4].lower() != 'test']
                         for i, rmns in enumerate(rmns_list):
                             rmns_name = ''.join(i for i in rmns.replace(" ", "") if not i.isdigit())
-                            self.custom_plots[qc_name]['plot'+rmns_name] = self.custom_plots[qc_name]['fig'].add_subplot(len(rmns_list), 1, i+1)
+                            self.custom_plots[qc_name]['plot' + rmns_name] = self.custom_plots[qc_name][
+                                'fig'].add_subplot(len(rmns_list), 1, i + 1)
                             self.rmns_plots.append(rmns_name)
                     else:
                         self.custom_plots[qc_name]['plot'] = self.custom_plots[qc_name]['fig'].add_subplot(111)
@@ -982,35 +1007,37 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         :return:
         """
         qcp.calibration_curve_plot(self.standard_plots['cal_curve']['fig'], self.standard_plots['cal_curve']['plot'],
-                                    self.view_w_d.calibrant_medians, self.view_w_d.calibrant_concs,
-                                    self.view_w_d.calibrant_flags, self.view_w_d.calibration_coefficients,
-                                    self.view_w_d.calibration_r_score, title_append=self.plot_title_appender)
+                                   self.view_w_d.calibrant_medians, self.view_w_d.calibrant_concs,
+                                   self.view_w_d.calibrant_flags, self.view_w_d.calibration_coefficients,
+                                   self.view_w_d.calibration_r_score, title_append=self.plot_title_appender)
         self.standard_plots['cal_curve']['canvas'].draw()
 
-        analyte_error = self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['cal_error']
+        analyte_error = self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient][
+            'cal_error']
         qcp.calibration_error_plot(self.standard_plots['cal_error']['fig'], self.standard_plots['cal_error']['plot'],
                                    self.view_w_d.calibrant_indexes, self.view_w_d.calibrant_residuals, analyte_error,
-                                    self.view_w_d.calibrant_flags, title_append=self.plot_title_appender)
+                                   self.view_w_d.calibrant_flags, title_append=self.plot_title_appender)
         self.standard_plots['cal_error']['canvas'].draw()
 
         qcp.basedrift_correction_plot(self.standard_plots['baseline']['fig'], self.standard_plots['baseline']['plot'],
-                                      self.standard_plots['baseline']['plot2'], 'Baseline', self.view_w_d.baseline_indexes,
+                                      self.standard_plots['baseline']['plot2'], 'Baseline',
+                                      self.view_w_d.baseline_indexes,
                                       self.view_w_d.baseline_corr_percent, self.view_w_d.baseline_medians,
                                       self.view_w_d.baseline_flags, title_append=self.plot_title_appender)
         self.standard_plots['baseline']['canvas'].draw()
 
         qcp.basedrift_correction_plot(self.standard_plots['drift']['fig'], self.standard_plots['drift']['plot'],
                                       self.standard_plots['drift']['plot2'], 'Drift', self.view_w_d.drift_indexes,
-                                      self.view_w_d.drift_corr_percent, self.view_w_d.drift_medians, self.view_w_d.drift_flags,
+                                      self.view_w_d.drift_corr_percent, self.view_w_d.drift_medians,
+                                      self.view_w_d.drift_flags,
                                       title_append=self.plot_title_appender)
         self.standard_plots['drift']['canvas'].draw()
 
-
         if self.view_w_d.analyte == 'nitrate':
-            qcp.recovery_plot(self.standard_plots['recovery']['fig'], self.standard_plots['recovery']['plot'], 
-                                self.view_w_d.recovery_indexes, self.view_w_d.recovery_concentrations, 
-                                self.view_w_d.recovery_ids, self.view_w_d.recovery_flags, 
-                                title_append=self.plot_title_appender)
+            qcp.recovery_plot(self.standard_plots['recovery']['fig'], self.standard_plots['recovery']['plot'],
+                              self.view_w_d.recovery_indexes, self.view_w_d.recovery_concentrations,
+                              self.view_w_d.recovery_ids, self.view_w_d.recovery_flags,
+                              title_append=self.plot_title_appender)
 
             self.standard_plots['recovery']['canvas'].draw()
 
@@ -1024,7 +1051,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             if qc.lower() == 'rmns':
                 for rmns in self.rmns_plots:
                     fig = self.custom_plots['RMNS']['fig']
-                    plot = self.custom_plots['RMNS']['plot'+rmns]
+                    plot = self.custom_plots['RMNS']['plot' + rmns]
                     concs = getattr(self.view_w_d, "{}".format(rmns + '_concentrations'))
                     indexes = getattr(self.view_w_d, "{}".format(rmns + '_indexes'))
                     flags = getattr(self.view_w_d, "{}".format(rmns + '_flags'))
@@ -1037,17 +1064,17 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             else:
                 if qc.lower() == 'mdl':
                     qcp.mdl_plot(self.custom_plots['MDL']['fig'], self.custom_plots['MDL']['plot'],
-                                self.view_w_d.MDL_indexes, self.view_w_d.MDL_concentrations,
-                                self.view_w_d.MDL_flags)
+                                 self.view_w_d.MDL_indexes, self.view_w_d.MDL_concentrations,
+                                 self.view_w_d.MDL_flags)
 
                 elif qc.lower() == 'bqc':
                     qcp.bqc_plot(self.custom_plots['BQC']['fig'], self.custom_plots['BQC']['plot'],
-                                self.view_w_d.BQC_indexes, self.view_w_d.BQC_concentrations,
-                                self.view_w_d.BQC_flags)
+                                 self.view_w_d.BQC_indexes, self.view_w_d.BQC_concentrations,
+                                 self.view_w_d.BQC_flags)
 
                 # elif qc.lower() == 'intqc':
                 #     qcp.intqc_plot(self.IntQC_fig, self.IntQC_plot, self.view_w_d.)
-                    # pass
+                # pass
 
     def reset_initial_windows(self):
         """
@@ -1058,11 +1085,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             procfile_data = json.load(json_file)
 
         if self.current_nutrient in procfile_data['initial_window_start']:
-            self.nutrient_processing_controller.set_window_start(procfile_data['initial_window_start'][self.current_nutrient])
-            self.nutrient_processing_controller.set_window_size(procfile_data['initial_window_size'][self.current_nutrient])
+            self.nutrient_processing_controller.set_window_start(
+                procfile_data['initial_window_start'][self.current_nutrient])
+            self.nutrient_processing_controller.set_window_size(
+                procfile_data['initial_window_size'][self.current_nutrient])
 
             self.nutrient_processing_controller.re_process()
-
 
     # TODO: this could actually be turned into a class method of the nutrient processing controller.
     def replay_processing(self):
@@ -1074,7 +1102,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
         with open(f'{self.path}/Nutrients/processing/{self.file}_{self.current_nutrient}_procfile.json') as json_file:
             procfile_data = json.load(json_file)
 
-        actions  = procfile_data[self.current_nutrient]
+        actions = procfile_data[self.current_nutrient]
 
         for action_step in actions:
             self.actions_list[self.current_nutrient].append(action_step)
@@ -1082,7 +1110,8 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         self.history_list.clear()
         for action_step in self.actions_list[self.current_nutrient]:
-            list_string = self.create_history_string(action_step['action'], action_step['old_value'], action_step['value'])
+            list_string = self.create_history_string(action_step['action'], action_step['old_value'],
+                                                     action_step['value'])
             self.history_list.addItem(list_string)
 
         self.nutrient_processing_controller.re_process()
@@ -1102,11 +1131,13 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             self.history_list.addItem(self.create_history_string(action, old_value, new_value))
         # Else, we have to remove the steps which we have reverted, then save our new action
         else:
-            self.actions_list[self.current_nutrient] = [x for x in self.actions_list[self.current_nutrient][0:self.reverted_history_index]]
+            self.actions_list[self.current_nutrient] = [x for x in self.actions_list[self.current_nutrient][
+                                                                   0:self.reverted_history_index]]
             self.actions_list[self.current_nutrient].append(obj)
             self.history_list.clear()
             for action_step in self.actions_list[self.current_nutrient]:
-                history_string = self.create_history_string(action_step['action'], action_step['old_value'], action_step['value'])
+                history_string = self.create_history_string(action_step['action'], action_step['old_value'],
+                                                            action_step['value'])
                 self.history_list.addItem(history_string)
 
     def undo_action(self):
@@ -1147,14 +1178,12 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
         self.nutrient_processing_controller.re_process()
 
-
     def create_history_string(self, action, old_value, value):
         """
         Create the semi-human readable string to display in the history list
         """
         list_string = f"{action} ({old_value} ➡ {value})"
         return list_string
-
 
     def closeEvent(self, event):
         plt.close('all')
@@ -1168,9 +1197,9 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
             pass
 
 
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = processingNutrientsWindow('in2018_v01nut001.SLK', 'C:/Users/she384/Documents/HyPro_Dev/in2019_v05/-in2019_v05Data.db', 'C:/Users/she384/Documents/HyPro_Dev', 'in2018_v01')
+    ex = processingNutrientsWindow('in2018_v01nut001.SLK',
+                                   'C:/Users/she384/Documents/HyPro_Dev/in2019_v05/-in2019_v05Data.db',
+                                   'C:/Users/she384/Documents/HyPro_Dev', 'in2018_v01')
     sys.exit(app.exec_())
-

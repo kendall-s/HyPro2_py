@@ -1,14 +1,14 @@
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QGridLayout, QComboBox, QMessageBox, QTableView,
-                             QInputDialog, QApplication, QFrame, QDesktopWidget, QListWidget, QDialog)
-from PyQt5 import QtGui, QtWidgets, QtCore
-from PyQt5.QtGui import *
-from PyQt5.QtCore import pyqtSignal
 import json
-from time import sleep
-import hyproicons, style
 
-# This class produces the dialog and functionality for activating the different analyses in Hypro
-# Allows for entering the naming convention for files to be found and processed
+from PyQt5 import QtGui, QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import (QGridLayout, QApplication, QDialog)
+
+import style, hyproicons
+
+"""
+This class is the basis for the majority of dialogs in HyPro. It sets up some basic functionality, layout and styling
+"""
 
 
 class hyproDialogTemplate(QDialog):

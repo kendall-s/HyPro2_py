@@ -4,13 +4,18 @@ import os
 import sqlite3
 import time
 import traceback
+
 from PyQt5.QtCore import pyqtSignal, QObject
 
 import processing.procdata.ProcessScrippsOxygen as pso
 import processing.readdata.ReadScrippsOxygen as rso
-from processing.util.NutrientProcessUtilities import get_max_rp
-from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 from dialogs.plotting.OxygenProcessingWindow import oxygenDifferencesPlot
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
+from processing.util.NutrientProcessUtilities import get_max_rp
+
+"""
+The window shown to allow for interactive oxygen processing
+"""
 
 
 class processingOxygenWindow(QObject):

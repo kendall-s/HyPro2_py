@@ -1,20 +1,30 @@
 import json
 import sqlite3
-import traceback
 import statistics
+import traceback
+
 from PyQt5.QtWidgets import (QLabel, QComboBox)
+
 from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 from dialogs.plotting.QCPlots import mdl_plot
+
+"""
+This window allows the user to select nutrient analysis runs and look at the MDL measurements from those.
+
+It is useful to determine if the instrument is getting dirty and needs cleaning or if there is something wrong with 
+measurements overall
+"""
+
 
 class mdlPlotWindowTemplate(QMainPlotterTemplate):
     def __init__(self, database, params_path):
         super().__init__(database)
-        self. database = database
+        self.database = database
         with open(params_path, 'r') as file:
             self.params = json.loads(file.read())
 
         self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
-                             'Ammonia': 'ammonia'}
+                              'Ammonia': 'ammonia'}
 
         self.setWindowTitle('HyPro - MDL')
         self.main_plot.set_title('MDL', fontsize=18)
@@ -120,4 +130,3 @@ class mdlPlotWindowTemplate(QMainPlotterTemplate):
 
     def on_pick(self, event):
         self.base_on_pick(event, self.runs, self.peak_nums, nutrient=self.nutq)
-

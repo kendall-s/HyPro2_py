@@ -1,7 +1,14 @@
-import sqlite3, logging, traceback, json, bisect
-from numpy import asarray, sum, argmin, where
+import bisect
+import json
+import logging
 import time
-# This file contains some more of the complicated functions that are required for hypro, namely determining a survey..
+
+from numpy import asarray, sum, argmin
+
+"""
+A few algorithms and helper functions for processing
+"""
+
 
 def get_max_rp(rosette_positions: list):
     if max(rosette_positions) > 24:
@@ -49,8 +56,8 @@ def update_annotation(anno, new_x, new_y, new_text, axes, canvas):
 
 
 def zoom(axes, ad_max=None, ad_min=None, out=None):
-    #y_min, y_max = axes.get_ybound()
-    #x_min, x_max = axes.get_xbound()
+    # y_min, y_max = axes.get_ybound()
+    # x_min, x_max = axes.get_xbound()
     trace_state = axes.getViewBox().state
     x_min = trace_state['viewRange'][0][0]
     x_max = trace_state['viewRange'][0][1]
@@ -80,7 +87,6 @@ def zoom(axes, ad_max=None, ad_min=None, out=None):
 
 
 def move_camera_calc(axes, right=None, ad_max=None):
-
     trace_state = axes.getViewBox().state
     x_min = trace_state['viewRange'][0][0]
     x_max = trace_state['viewRange'][0][1]
@@ -98,11 +104,11 @@ def move_camera_calc(axes, right=None, ad_max=None):
         new_x_max = x_max - movement_amount
         return new_x_min, new_x_max
 
-def match_hover_to_peak(x_time, slk_data, current_nutrient, peak_windows):
 
+def match_hover_to_peak(x_time, slk_data, current_nutrient, peak_windows):
     st = time.time()
     hovered_peak_index = [i for i, x in enumerate(peak_windows) if int(x_time) in x]
-    #print(f'match hover to peak time taken: {time.time() - st}')
+    # print(f'match hover to peak time taken: {time.time() - st}')
     return True, hovered_peak_index
 
 
@@ -117,10 +123,10 @@ def match_click_to_peak(x_time, slk_data, current_nutrient, adj_p_s):
     '''
     st = time.time()
     clicked_peak_index = bisect.bisect_left(adj_p_s[current_nutrient], x_time) - 1
-    #clicked_peak_index = bisect.bisect_left(slk_data.clean_peak_starts[current_nutrient], x_time) - 1
+    # clicked_peak_index = bisect.bisect_left(slk_data.clean_peak_starts[current_nutrient], x_time) - 1
     if clicked_peak_index == -1:
         clicked_peak_index = 0
-    #print(f'match click to peak time taken: {time.time() - st}')
+    # print(f'match click to peak time taken: {time.time() - st}')
     return True, clicked_peak_index
 
 
@@ -153,4 +159,3 @@ def save_proc_settings(path, project, settings):
     except Exception as e:
         logging.error(
             'ERROR: Could not save to project parameters file, this should live within the project folder')
-

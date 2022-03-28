@@ -1,7 +1,7 @@
 import os, sqlite3, logging, json, traceback
 from time import sleep
 from PyQt5.QtCore import QThread, QObject, pyqtSignal
-from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
+from processing.readdata import ReadCTDData, ReadSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
 from processing.procdata.InteractiveNutrientsProcessing import processingNutrientsWindow

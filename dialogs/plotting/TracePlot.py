@@ -2,6 +2,11 @@ import pyqtgraph as pg
 from PyQt5 import QtGui
 from PyQt5.QtCore import QPointF, QRectF
 
+"""
+Provides the wrapper for the pyqt graph which is used to draw the nutrient peaks. This is customised and optimised such
+that the peak windows are drawn as one continuous line, but where the windows don't exist the line width goes to zero.
+"""
+
 
 class TracePlotter(pg.GraphicsObject):
     """
@@ -39,7 +44,7 @@ class TracePlotter(pg.GraphicsObject):
 
             for sm_i, point in enumerate(self.ad_values[i]):
                 if sm_i > 0:
-                    p.drawLine(QPointF(self.time_values[i][sm_i-1], self.ad_values[i][sm_i-1]),
+                    p.drawLine(QPointF(self.time_values[i][sm_i - 1], self.ad_values[i][sm_i - 1]),
                                QPointF(self.time_values[i][sm_i], self.ad_values[i][sm_i]))
 
                 p.setPen(pg.mkPen(color=self.FLAG_COLORS[self.flag_values[i]], width=4))

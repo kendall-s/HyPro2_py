@@ -6,18 +6,25 @@ from matplotlib.ticker import MaxNLocator
 
 from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 
+"""
+This window is called from the Processing menu view. It allows the user to look at the absolute difference 
+between duplicate nutrient samples. 
+
+For nutrient analysis this is important to understand the reproducibility of measurements
+"""
+
 
 class duplicatesPlot(QMainPlotterTemplate):
     def __init__(self, database, processing_parameters):
         super().__init__(database)
-        self. database = database
+        self.database = database
         self.processing_parameters = processing_parameters
 
         self.retrieved_data = []
         self.runs_max_peak = {}
         self.cutoff = 0
 
-        self.runs =[]
+        self.runs = []
         self.peak_nums = []
 
         self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
@@ -63,7 +70,6 @@ class duplicatesPlot(QMainPlotterTemplate):
         runs_with_duplicates = list(c.fetchall())
         self.retrieved_data = runs_with_duplicates
 
-
         c.execute(f"""SELECT runNumber, MAX(peakNumber) FROM {nutq}Data GROUP BY runNumber""")
         runs_max_peak = list(c.fetchall())
         conn.close()
@@ -89,7 +95,8 @@ class duplicatesPlot(QMainPlotterTemplate):
 
         if selected_runs:
             qc_list = ['StandardQC', 'MDL', 'BQC', 'IntQC', 'RMNS', 'Test']
-            selected_retrieved_data = [x for x in self.retrieved_data if (x[0] in selected_runs and x[8] not in qc_list)]
+            selected_retrieved_data = [x for x in self.retrieved_data if
+                                       (x[0] in selected_runs and x[8] not in qc_list)]
 
             # Get the matching duplicates and determine the difference between them
             set_sample_ids = set([x[2] for x in selected_retrieved_data])
@@ -97,12 +104,12 @@ class duplicatesPlot(QMainPlotterTemplate):
             # Get the difference to the sample mean for the sample
             y_plot = []
             x_plot = []
-            for sample_id in  set_sample_ids:
+            for sample_id in set_sample_ids:
                 replicates = [x for x in selected_retrieved_data if x[2] == sample_id]
 
                 mean_concentration = statistics.mean([x[6] for x in replicates])
-                differences = [abs(x[6]-mean_concentration) for x in replicates]
-                peak_run_x_axes = [x[0]+ (self.runs_max_peak[x[0]] / x[3]) for x in replicates]
+                differences = [abs(x[6] - mean_concentration) for x in replicates]
+                peak_run_x_axes = [x[0] + (self.runs_max_peak[x[0]] / x[3]) for x in replicates]
 
                 runs = [x[0] for x in replicates]
                 peak_nums = [x[3] for x in replicates]
@@ -115,14 +122,13 @@ class duplicatesPlot(QMainPlotterTemplate):
                     self.runs.append(runs[i])
                     self.peak_nums.append(peak_nums[i])
 
-
             self.main_plot.plot(x_plot, y_plot, lw=0, marker='o', ms=11, picker=5, mec="#3C3F41", mfc='None')
             self.main_plot.plot(x_plot, y_plot, lw=0, marker='.', ms=4, mec="#3C3F41", mfc='None')
 
             self.main_plot.xaxis.set_major_locator(MaxNLocator(integer=True))
 
             # Plot the duplicates cutoff line for the selected nutrient
-            self.main_plot.plot([int(min(x_plot)), int(max(x_plot))+1], [self.cutoff, self.cutoff],
+            self.main_plot.plot([int(min(x_plot)), int(max(x_plot)) + 1], [self.cutoff, self.cutoff],
                                 lw=1.5, color="#B03E45", label="Cutoff")
 
             self.main_plot.legend()

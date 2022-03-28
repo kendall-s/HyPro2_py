@@ -1,12 +1,20 @@
-from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QListWidget, QAbstractItemView)
 import sqlite3
-from dialogs.ViewData import viewData
 import traceback
-from dialogs.templates.DialogTemplate import hyproDialogTemplate
+
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QListWidget, QAbstractItemView)
+
+from dialogs.ViewData import viewData
+from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
 DATABASE_NAME_CONVERTER = {'Salinity': 'salinity', 'Dissolved Oxygen': 'oxygen', 'Nitrate': 'nitrate',
                            'Silicate': 'silicate', 'Phosphate': 'phosphate', 'Nitrite': 'nitrite', 'Ammonia': 'ammonia'}
+
+"""
+This dialog allows a user to select what and how the data is shown to them from HyPro. The user can select specific
+analytes to view or view them as a joined table. 
+"""
+
 
 class viewDataDialog(hyproDialogTemplate):
     def __init__(self, database, parameters):
@@ -17,15 +25,14 @@ class viewDataDialog(hyproDialogTemplate):
         self.nutrients = ['nitrate', 'phosphate', 'silicate', 'ammonia', 'nitrite']
 
         self.analyses = ['As CTD Results', 'All Available Nutrients', 'Nitrate', 'Phosphate', 'Silicate', 'Nitrite',
-                    'Ammonia', 'Salinity', 'Dissolved Oxygen', 'CTD',
-                    'Logsheet']
+                         'Ammonia', 'Salinity', 'Dissolved Oxygen', 'CTD',
+                         'Logsheet']
 
         self.init_ui()
 
         self.populate_list()
 
         self.show()
-
 
     def init_ui(self):
 
@@ -130,7 +137,7 @@ class viewDataDialog(hyproDialogTemplate):
             self.view_by.setDisabled(True)
             # Remove the CTD results option as there won't be any in this survey, best to check
             # that it is still in the combobox too - we might have already removed it
-            if in_combobox > -1: # The find text method returns the index if text is in combobox or -1 if not
+            if in_combobox > -1:  # The find text method returns the index if text is in combobox or -1 if not
                 self.analysis_type.removeItem(0)
         else:
             if in_combobox < 0:
@@ -144,7 +151,6 @@ class viewDataDialog(hyproDialogTemplate):
 
         conn = sqlite3.connect(self.db)
         c = conn.cursor()
-
 
         if analysis in ['Salinity', 'Dissolved Oxygen', 'Nitrate', 'Silicate', 'Phosphate', 'Nitrite', 'Ammonia']:
             analysis = DATABASE_NAME_CONVERTER[analysis]
@@ -181,15 +187,14 @@ class viewDataDialog(hyproDialogTemplate):
 
 
         elif analysis == 'All Available Nutrients':
-                if view == 'Deployment':
-                    c.execute('SELECT DISTINCT deployment from nutrientMeasurements')
-                elif view == 'File':
-                    c.execute('SELECT DISTINCT runNumber from nutrientMeasurements')
-
+            if view == 'Deployment':
+                c.execute('SELECT DISTINCT deployment from nutrientMeasurements')
+            elif view == 'File':
+                c.execute('SELECT DISTINCT runNumber from nutrientMeasurements')
 
         data = list(c.fetchall())
         c.close()
-        
+
         data_to_display = []
         if view == 'Deployment':
             for i in data:

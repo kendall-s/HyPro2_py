@@ -1,22 +1,21 @@
-# https://pythonspot.com/pyqt5-file-dialog/
-# https://pythonspot.com/pyqt5-file-dialog/
-# http://www.qtcentre.org/threads/20895-PyQt4-Want-to-connect-a-window-s-close-button
-# https://pythonprogramminglanguage.com/pyqt5-window-flags/
-# https://stackoverflow.com/questions/23617112/how-to-process-only-new-unprocessed-files-in-linux
-
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox, QMessageBox, QFileDialog)
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import *
-from PyQt5.QtCore import pyqtSignal
-import os, logging, traceback, json
+import json
+import logging
+import os
+import traceback
 from time import sleep
+
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox, QFileDialog)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-# Class for the functionality and interface for creating a new project
+
+"""
+Allows as user to create a new project
+"""
 
 
 class createNewProject(hyproDialogTemplate):
-
     new_project_created = pyqtSignal()
 
     def __init__(self):
@@ -89,11 +88,12 @@ class createNewProject(hyproDialogTemplate):
 
                     if continue_create_proj:
 
-                        new_proj = {'%s' % self.project_prefix_str: {'path': project_directorystr, 'type': self.project_type_str}}
+                        new_proj = {'%s' % self.project_prefix_str: {'path': project_directorystr,
+                                                                     'type': self.project_type_str}}
 
                         self.params['projects'].update(new_proj)
 
-                        #self.params['activeproject'] = project_prefixstr
+                        # self.params['activeproject'] = project_prefixstr
 
                         # Write project info back to disk
                         with open('C:/HyPro/hyprosettings.json', 'w') as file:
@@ -117,7 +117,6 @@ class createNewProject(hyproDialogTemplate):
                         filebuffer.write(self.project_type_str + '\n')
                         filebuffer.write(project_directorystr + '\n')
                         filebuffer.close()
-
 
                         messagebox = hyproMessageBoxTemplate('Success', 'A new project was successfully created.',
                                                              'success')

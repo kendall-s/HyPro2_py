@@ -1,11 +1,19 @@
 import sqlite3
+
 import numpy as np
 import pandas as pd
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QLabel, QComboBox)
-from processing.util.NutrientProcessUtilities import get_max_rp
+
 from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 from dialogs.plotting.QCPlots import sensor_difference_plot
+from processing.util.NutrientProcessUtilities import get_max_rp
+
+"""
+Gives the user a window to look at the CTD sensor differences vs bottle data from the processing window. It allows a 
+user to look across the whole project to see if the difference offset is consistent across the whole voyage.
+"""
+
 
 class ctdSensorDifferencePlot(QMainPlotterTemplate):
     def __init__(self, database, type):
@@ -32,7 +40,7 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
         self.sensor_selector.addItems(['Salinity', 'Oxygen'])
         self.sensor_selector.setEditable(True)
         self.sensor_selector.setEditable(False)
-        #self.sensor_selector.currentTextChanged.connect(self.populate_fields)
+        # self.sensor_selector.currentTextChanged.connect(self.populate_fields)
 
         sensor_number_label = QLabel('# Sensor:')
         self.sensor_number_selector = QComboBox()
@@ -94,7 +102,7 @@ class ctdSensorDifferencePlot(QMainPlotterTemplate):
             conn = sqlite3.connect(self.database)
             query_placeholder = ', '.join('?' for unused in selected_deps)
             bottle_data_df = pd.read_sql_query(f'SELECT * FROM %sData WHERE deployment IN ({query_placeholder})'
-                                       %sensor.lower(), conn, params=selected_deps)
+                                               % sensor.lower(), conn, params=selected_deps)
 
             ctd_data_df = pd.read_sql_query(f'SELECT deployment, rosettePosition, salt1, salt2, oxygen1, oxygen2 '
                                             f'FROM ctdData '

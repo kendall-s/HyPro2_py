@@ -1,12 +1,20 @@
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QMessageBox, QFrame)
-import sqlite3, traceback, logging
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+import logging
+import sqlite3
+import traceback
 from time import sleep
+
+from PyQt5 import QtWidgets
+from PyQt5.QtCore import *
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QMessageBox, QFrame)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
-# This class produces the dialog that allows entering a new RMNS into the database for use in nutrient processing
+
+"""
+Produces the dialog allowing the entry of RMNS data into the computer wide db living under C:/HyPro
+
+"""
 
 
 class addrmnsDialog(hyproDialogTemplate):

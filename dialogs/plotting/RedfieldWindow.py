@@ -1,13 +1,20 @@
 import sqlite3
+
 import pandas as pd
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import (QLabel, QComboBox)
+
 from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
+
+"""
+Provides functionality from the processing view to chart the NOx/Phosphate ratio from the measured samples
+"""
+
 
 class redfieldPlot(QMainPlotterTemplate):
     def __init__(self, database):
         super().__init__(database)
-        self. database = database
+        self.database = database
 
         self.peak_numbers = []
         self.run_numbers = []
@@ -55,7 +62,6 @@ class redfieldPlot(QMainPlotterTemplate):
         for x in distinct_surveys:
             self.survey_selector.addItem(x[0])
 
-
     def draw_data(self):
 
         del self.main_plot.collections[:]
@@ -70,7 +76,7 @@ class redfieldPlot(QMainPlotterTemplate):
             nox_df = pd.read_sql_query(f"SELECT * FROM nitrateData WHERE runNumber IN ({query_placeholder})", conn,
                                        params=selected_runs)
             phos_df = pd.read_sql_query(f"SELECT * FROM phosphateData WHERE runNumber IN ({query_placeholder})", conn,
-                                       params=selected_runs)
+                                        params=selected_runs)
 
             nox_df = nox_df.loc[nox_df['cupType'] == 'SAMP']
 
@@ -86,11 +92,12 @@ class redfieldPlot(QMainPlotterTemplate):
                 nox_plottable.append(nox_row[7])
                 phos_plottable.append(float(phos_point['concentration']))
 
-            self.main_plot.scatter(nox_plottable, phos_plottable, marker='o', facecolors='#FFB186', edgecolors='#EF8A68',
+            self.main_plot.scatter(nox_plottable, phos_plottable, marker='o', facecolors='#FFB186',
+                                   edgecolors='#EF8A68',
                                    alpha=0.75, picker=5)
 
             self.main_plot.annotate(f'Ratio: {round(sum(nox_plottable) / sum(phos_plottable), 2)}', [0.02, 0.96],
-                          xycoords='axes fraction', fontsize=11)
+                                    xycoords='axes fraction', fontsize=11)
 
             self.canvas.draw()
 

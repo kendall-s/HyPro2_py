@@ -1,10 +1,16 @@
-from PyQt5.QtWidgets import (QPushButton, QLabel, QTableWidget, QTableWidgetItem)
 import sqlite3
 from time import sleep
+
+from PyQt5.QtWidgets import (QPushButton, QLabel, QTableWidget, QTableWidgetItem)
+
 from dialogs.AddRMNSDialog import addrmnsDialog
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
-# Shows a table of the current RMNS in the database, need to finish to incorporate a import function
+"""
+Allows a user to view the currently entered RMNS data as well as adding additional ones
+"""
+
+
 class rmnsDialog(hyproDialogTemplate):
     def __init__(self):
         super().__init__(780, 320, 'HyPro - View RMNS')
@@ -47,7 +53,6 @@ class rmnsDialog(hyproDialogTemplate):
         self.grid_layout.addWidget(rmnsAdd, 2, 1)
         self.grid_layout.addWidget(saveEdit, 2, 2)
         self.grid_layout.addWidget(close, 2, 3)
-
 
     def populatetable(self):
         print('refresh')

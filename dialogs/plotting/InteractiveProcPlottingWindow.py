@@ -1,25 +1,32 @@
-from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QApplication, QTabWidget, QVBoxLayout, QPushButton,
-                             QFileDialog, QSizePolicy)
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QFont, QImage
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from processing.util.NutrientProcessUtilities import find_closest, update_annotation, check_hover
-from dialogs.BottleSelectionDialog import bottleSelection
+import io
 import json
 import time
-import io
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QIcon, QFont, QImage
+from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QApplication, QTabWidget, QVBoxLayout, QPushButton,
+                             QFileDialog, QSizePolicy)
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
+
 import style
+from dialogs.BottleSelectionDialog import bottleSelection
+from processing.util.NutrientProcessUtilities import find_closest, update_annotation, check_hover
 
 # Set the matplotlib backend to be more stable with PyQt integration
 mpl.use('Agg')
 
-flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad', 6: 'Cal Bad',
-                    91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
+flag_converter = {1: 'Good', 2: 'Suspect', 3: 'Bad', 4: 'Shape Sus', 5: 'Shape Bad', 6: 'Cal Bad',
+                  91: 'CalError Sus', 92: 'CalError Bad', 8: 'Dup Diff'}
 
 # TODO: This windows code could probably be scaled back and re-use some of the general plotting functionality, there is now some double ups i.e. flagging
+
+"""
+This window serves as a basis for extending, primarily for interactive salinity and oxygen processing 
+"""
+
 
 class hyproProcPlotWindow(QMainWindow):
     redraw = pyqtSignal()
@@ -298,10 +305,12 @@ class hyproProcPlotWindow(QMainWindow):
             concentration = round(self.full_data.salinity[self.referenced_index], 4)
             analyte = 'salinity'
 
-        self.picked_bottle_dialog = bottleSelection(self.full_data.file, self.full_data.deployment[self.referenced_index],
-                                          self.full_data.rosette_position[self.referenced_index],
-                                          self.full_data.bottle_id[self.referenced_index],
-                                          concentration, self.full_data.quality_flag[self.referenced_index], analyte)
+        self.picked_bottle_dialog = bottleSelection(self.full_data.file,
+                                                    self.full_data.deployment[self.referenced_index],
+                                                    self.full_data.rosette_position[self.referenced_index],
+                                                    self.full_data.bottle_id[self.referenced_index],
+                                                    concentration, self.full_data.quality_flag[self.referenced_index],
+                                                    analyte)
 
         self.picked_bottle_dialog.saveSig.connect(self.update_flag)
 

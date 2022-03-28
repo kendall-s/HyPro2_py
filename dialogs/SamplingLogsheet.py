@@ -1,17 +1,21 @@
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox, QTableWidgetItem, QCheckBox)
-from PyQt5.QtGui import QIntValidator
+import sqlite3
+
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIntValidator
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox, QTableWidgetItem, QCheckBox)
+
 from dialogs.templates.DataTable import Datatable
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-import sqlite3
 from processing.util.NutrientProcessUtilities import load_proc_settings, save_proc_settings
 
-# Small GUI dialog that provides information and functionality when a peak is clicked on the trace of
-# nutrient processing
 """
 Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad, 
                 91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
+"""
+
+"""
+This window lets a user directly input a sampling logsheet as opposed to having it read in from an excel spreadsheet.
 """
 
 
@@ -55,7 +59,7 @@ class samplingLogsheet(hyproDialogTemplate):
 
         data = []
         for x in range(int(rosette_default)):
-            data.append([x+1, '', '', '', ''])
+            data.append([x + 1, '', '', '', ''])
 
         self.datatable = Datatable(data)
         self.datatable.setHorizontalHeaderLabels(['RP', 'Oxygen', 'Oxygen Temp', 'Salinity', 'Nutrient'])
@@ -80,7 +84,6 @@ class samplingLogsheet(hyproDialogTemplate):
 
         self.show()
 
-
     def get_table_data(self):
         """
         Retrieve the current data in the table and return it
@@ -96,7 +99,6 @@ class samplingLogsheet(hyproDialogTemplate):
             data.append(temp)
 
         return data
-
 
     def update_table(self):
         """
@@ -121,7 +123,7 @@ class samplingLogsheet(hyproDialogTemplate):
                     fmt_rp = rp
                 try:
                     data.append([rp, current_data[rp][1], current_data[rp][2],
-                                f'{salinity_letter}{fmt_rp}', f'{deployment}{fmt_rp}'])
+                                 f'{salinity_letter}{fmt_rp}', f'{deployment}{fmt_rp}'])
                 except IndexError:
                     data.append([rp, '', '',
                                  f'{salinity_letter}{fmt_rp}', f'{deployment}{fmt_rp}'])
@@ -144,7 +146,8 @@ class samplingLogsheet(hyproDialogTemplate):
             c.executemany('INSERT OR REPLACE INTO logsheetData VALUES (?,?,?,?,?,?)', db_data)
             conn.commit()
 
-            c.execute('INSERT OR REPLACE INTO logsheetFilesProcessed VALUES (?,?)', (f'hypro_created_{deployment}', 999))
+            c.execute('INSERT OR REPLACE INTO logsheetFilesProcessed VALUES (?,?)',
+                      (f'hypro_created_{deployment}', 999))
             conn.commit()
 
             conn.close()
@@ -160,7 +163,7 @@ class samplingLogsheet(hyproDialogTemplate):
         if k_id == Qt.Key_Enter or k_id == 16777220:
             selected_cell_row = self.datatable.currentIndex().row()
             selected_cell_col = self.datatable.currentIndex().column()
-            self.datatable.setCurrentCell(selected_cell_row+1, selected_cell_col)
+            self.datatable.setCurrentCell(selected_cell_row + 1, selected_cell_col)
 
         # On delete - delete the selected cell contents
         elif k_id == Qt.Key_Delete:

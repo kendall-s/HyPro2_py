@@ -1,15 +1,22 @@
 # http://www.ceda.ac.uk/static/media/uploads/ncas-reading-2015/11_create_netcdf_python.pdf
-from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QMessageBox,
-                             QListWidget)
+import csv
+import logging
+import sqlite3
+import time
+import traceback
+
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
-import sqlite3
-import csv, logging, time, traceback
+from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QMessageBox,
+                             QListWidget)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
-
-# Class that provides GUI and functionality for exporting data from a project, will rename to exportdata down the track
-# # TODO: implement proper data exporting functionality after everything is setup that way it will be
+"""
+Provides the user with the ability to select specific deployments for export, with ideally export functionality for 
+both csv and netcdf and whatever else is necessary
+"""
+# TODO: implement proper data exporting functionality after everything is setup that way it will be
 
 class exportDeployments(hyproDialogTemplate):
     def __init__(self, database, curr_project):
@@ -77,7 +84,6 @@ class exportDeployments(hyproDialogTemplate):
 
                 queryq = '?'
                 queryplace = ', '.join(queryq for unused in deployments)
-
 
                 """
                 CTD data selects
@@ -149,40 +155,45 @@ class exportDeployments(hyproDialogTemplate):
                 """
                 Nutrient data selects
                 """
-                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from nitrateData where deployment in (%s)' % queryplace,
-                               deployments)
+                self.c.execute(
+                    'SELECT concentration, flag, deployment, rosettePosition from nitrateData where deployment in (%s)' % queryplace,
+                    deployments)
                 rows = list(self.c.fetchall())
                 self.nitrate_concs = [x[0] for x in rows]
                 self.nitrate_flags = [x[1] for x in rows]
                 self.nitrate_deps = [x[2] for x in rows]
                 self.nitrate_rps = [x[3] for x in rows]
 
-                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from phosphateData where deployment in (%s)' % queryplace,
-                               deployments)
+                self.c.execute(
+                    'SELECT concentration, flag, deployment, rosettePosition from phosphateData where deployment in (%s)' % queryplace,
+                    deployments)
                 rows = list(self.c.fetchall())
                 self.phosphate_concs = [x[0] for x in rows]
                 self.phosphate_flags = [x[1] for x in rows]
                 self.phosphate_deps = [x[2] for x in rows]
                 self.phosphate_rps = [x[3] for x in rows]
 
-                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from nitriteData where deployment in (%s)' % queryplace,
-                               deployments)
+                self.c.execute(
+                    'SELECT concentration, flag, deployment, rosettePosition from nitriteData where deployment in (%s)' % queryplace,
+                    deployments)
                 rows = list(self.c.fetchall())
                 self.nitrite_concs = [x[0] for x in rows]
                 self.nitrite_flags = [x[1] for x in rows]
                 self.nitrite_deps = [x[2] for x in rows]
                 self.nitrite_rps = [x[3] for x in rows]
 
-                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from silicateData where deployment in (%s)' % queryplace,
-                               deployments)
+                self.c.execute(
+                    'SELECT concentration, flag, deployment, rosettePosition from silicateData where deployment in (%s)' % queryplace,
+                    deployments)
                 rows = list(self.c.fetchall())
                 self.silicate_concs = [x[0] for x in rows]
                 self.silicate_flags = [x[1] for x in rows]
                 self.silicate_deps = [x[2] for x in rows]
                 self.silicate_rps = [x[3] for x in rows]
 
-                self.c.execute('SELECT concentration, flag, deployment, rosettePosition from ammoniaData where deployment in (%s)' % queryplace,
-                               deployments)
+                self.c.execute(
+                    'SELECT concentration, flag, deployment, rosettePosition from ammoniaData where deployment in (%s)' % queryplace,
+                    deployments)
                 rows = list(self.c.fetchall())
                 self.ammonia_concs = [x[0] for x in rows]
                 self.ammonia_flags = [x[1] for x in rows]
@@ -213,11 +224,12 @@ class exportDeployments(hyproDialogTemplate):
             filepath = filedialog[0] + filedialog[1]
             filebuffer = open(filepath, 'w', newline='')
             writer = csv.writer(filebuffer, delimiter=',')
-            writer.writerow(['Voyage', 'Deployment', 'RP', 'Time (UTC)', 'Latitiude', 'Longitude', 'Pressure', 'Temperature',
-                             'Salinity (PSU)', 'Salinity Flag', 'Oxygen (uM)', 'Oxygen Flag', 'Nitrate (uM)',
-                             'Nitrate Flag', 'Phosphate (uM)', 'Phosphate Flag', 'Silicate (uM)', 'Silicate Flag',
-                             'Nitrite (uM)', 'Nitrite Flag', 'Ammonia (uM)', 'Ammonia Flag'
-                             ])
+            writer.writerow(
+                ['Voyage', 'Deployment', 'RP', 'Time (UTC)', 'Latitiude', 'Longitude', 'Pressure', 'Temperature',
+                 'Salinity (PSU)', 'Salinity Flag', 'Oxygen (uM)', 'Oxygen Flag', 'Nitrate (uM)',
+                 'Nitrate Flag', 'Phosphate (uM)', 'Phosphate Flag', 'Silicate (uM)', 'Silicate Flag',
+                 'Nitrite (uM)', 'Nitrite Flag', 'Ammonia (uM)', 'Ammonia Flag'
+                 ])
 
             for i, dep in enumerate(self.deployment):
                 oxy = ''
@@ -234,7 +246,7 @@ class exportDeployments(hyproDialogTemplate):
                 nitrite_flag = ''
                 ammonia = ''
                 ammonia_flag = ''
-                
+
                 for x, rospos in enumerate(self.oxygenrp):
                     if rospos == self.rp[i] and self.oxygendeps[x] == dep:
                         oxy = self.oxygen[x]
@@ -317,11 +329,8 @@ class exportDeployments(hyproDialogTemplate):
             for i, x in enumerate(lat):
                 writer.writerow([x, lon[i], times[i], nitrate[i], phosphate[i], file[i]])
 
-
             logging.info('Successfully exported data as NetCDF')
             filebuffer.close()
-
-
 
     def cancel(self):
         self.close()

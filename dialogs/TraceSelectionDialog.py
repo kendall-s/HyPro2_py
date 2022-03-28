@@ -1,13 +1,19 @@
-from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox)
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QIntValidator
+from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
-# Small GUI dialog that provides information and functionality when a peak is clicked on the trace of
-# nutrient processing
+# TODO: consolidate the flagging
 """
 Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad, 
                 91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
+"""
+
+"""
+This dialog is shown when a user selects a nutrient peak from the interactive nutrient processing window. It provides
+information about the selected sample and allows the user to flag it if necessary.
+
 """
 
 
@@ -21,9 +27,8 @@ class traceSelection(hyproDialogTemplate):
     def __init__(self, sampleid, cuptype, peaknumber, admedian, conc, flag, dil, type):
         super().__init__(550, 245, 'HyPro - Peak:')
 
-        self.flag_converter = {1 : 'Good', 2 : 'Suspect', 3 : 'Bad', 4 : 'Shape Sus', 5 : 'Shape Bad', 6: 'Cal Bad',
-                               91 : 'CalError Sus', 92 : 'CalError Bad', 8 : 'Dup Diff'}
-
+        self.flag_converter = {1: 'Good', 2: 'Suspect', 3: 'Bad', 4: 'Shape Sus', 5: 'Shape Bad', 6: 'Cal Bad',
+                               91: 'CalError Sus', 92: 'CalError Bad', 8: 'Dup Diff'}
 
         self.sampleid = sampleid
         self.cuptype = cuptype
@@ -105,7 +110,6 @@ class traceSelection(hyproDialogTemplate):
         self.grid_layout.addWidget(flaglabel, 2, 2)
         self.grid_layout.addWidget(self.flagbox, 2, 3)
 
-
         if self.dialogtype == 'Trace':
             self.setstart = QPushButton('Set Start', self)
             self.setstart.clicked.connect(self.setStart)
@@ -143,7 +147,7 @@ class traceSelection(hyproDialogTemplate):
         if (cup != self.cuptype) or (dilution != self.dil) or (q_flag != self.flag_converter[self.flag]):
             # Peak index is the peak number minus one, doing it here for ease of signal
             updates = {'cup_type': cup, 'dilution_factor': dilution, 'quality_flag': q_flag,
-                       'peak_index': self.peaknum-1}
+                       'peak_index': self.peaknum - 1}
             self.saveSig.emit(updates)
 
         self.close()
@@ -164,4 +168,3 @@ class traceSelection(hyproDialogTemplate):
     def pick_end(self):
         self.setEnd.emit()
         self.close()
-

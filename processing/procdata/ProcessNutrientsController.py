@@ -1,11 +1,19 @@
-from PyQt5.QtCore import Qt, QSize, pyqtSignal, QObject, QThread
-from processing.data.Structures import WorkingData, SLKData, CHDData
+from PyQt5.QtCore import pyqtSignal, QObject
+
 import processing.procdata.ProcessSealNutrients as psn
 import processing.readdata.ReadSealNutrients as rsn
+from processing.data.Structures import WorkingData, SLKData, CHDData
+
+"""
+This controller serves as the layer between the interactive GUI and the processing nutrient functions and routines. It
+handles passing functionality between the user and actually editing the data. Think of it like the API gateway.
+
+Also done this way so that this QObject can live in it's own thread and action data processing while the GUI thread 
+is still free to do it's own thing.
+"""
 
 
 class processNutrientsController(QObject):
-
     startup_routine_completed = pyqtSignal(tuple)
     reprocessing_completed = pyqtSignal(tuple)
     thinking = pyqtSignal()
@@ -37,7 +45,8 @@ class processNutrientsController(QObject):
         self.slk_data.run_number = int \
             (self.file[len(self.processing_parameters['analysis_params']['seal']['file_prefix']):-4])
 
-        self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters, self.current_nutrient)
+        self.w_d = psn.processing_routine(self.slk_data, self.chd_data, self.w_d, self.processing_parameters,
+                                          self.current_nutrient)
 
         return_package = (self.current_nutrient, self.slk_data, self.chd_data, self.w_d)
         self.startup_routine_completed.emit(return_package)
@@ -50,10 +59,10 @@ class processNutrientsController(QObject):
         return_package = (self.current_nutrient, self.slk_data, self.chd_data, self.w_d)
         self.reprocessing_completed.emit(return_package)
 
-
     """
     These relate to setting data that is changed in the interactive processing window
     """
+
     def set_current_nutrient(self, curr_nut):
         self.current_nutrient = curr_nut
 
@@ -65,7 +74,6 @@ class processNutrientsController(QObject):
 
     def set_quality_flags(self, new_flags):
         self.w_d.quality_flag = new_flags
-
 
     """
     General data getting functions from SLK, CHD and W_D (working data)
@@ -80,6 +88,7 @@ class processNutrientsController(QObject):
     """
     CHD file surgeons
     """
+
     def add_to_chd(self, x_time):
         for i in range(3):
             self.chd_data.ad_data[self.current_nutrient].insert(int(x_time), 100)
@@ -88,10 +97,10 @@ class processNutrientsController(QObject):
         for i in range(3):
             self.chd_data.ad_data[self.current_nutrient].pop(int(x_time))
 
-
     """
     These functions are for setting the values of 1 sample
     """
+
     def set_one_cup_type(self, index, new_cup_type):
         self.slk_data.cup_types[index] = new_cup_type
 
@@ -101,25 +110,25 @@ class processNutrientsController(QObject):
     def set_one_quality_flag(self, index, new_flag):
         self.w_d.quality_flag[index] = new_flag
 
-
-
     """
     These getters and setters relate to the processing parameters
     """
+
     def set_window_start(self, new_window_start):
         self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['window_start'] \
             = new_window_start
 
     def get_window_start(self):
-        return self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['window_start']
+        return self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient][
+            'window_start']
 
     def set_window_size(self, new_window_size):
         self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['window_size'] \
             = new_window_size
 
     def get_window_size(self):
-        return self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient]['window_size']
-
+        return self.processing_parameters['nutrient_processing']['processing_pars'][self.current_nutrient][
+            'window_size']
 
     """
     Functionality for replaying through processing steps

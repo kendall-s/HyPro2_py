@@ -1,21 +1,27 @@
 import json
 import sqlite3
 import traceback
+
 from PyQt5.QtWidgets import (QLabel, QComboBox)
+
 from dialogs.plotting.PlottingWindow import QMainPlotterTemplate
 from dialogs.plotting.QCPlots import rmns_plot
+
+"""
+Gives the user a window to chart the different RMNS reference samples on across a whole project
+"""
 
 
 class rmnsPlotWindowTemplate(QMainPlotterTemplate):
     def __init__(self, database, params_path):
         super().__init__(database)
 
-        self. database = database
+        self.database = database
         with open(params_path, 'r') as file:
             self.params = json.loads(file.read())
 
         self.nut_converter = {'NOx': 'nitrate', 'Phosphate': 'phosphate', 'Silicate': 'silicate', 'Nitrite': 'nitrite',
-                             'Ammonia': 'ammonia'}
+                              'Ammonia': 'ammonia'}
 
         self.rmnscols = {'NOx': 5, 'Phosphate': 1, 'Silicate': 3, 'Nitrite': 7, 'Ammonia': 9}
 

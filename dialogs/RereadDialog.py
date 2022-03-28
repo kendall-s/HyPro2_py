@@ -3,7 +3,7 @@ import sqlite3, re
 import logging
 from PyQt5 import QtWidgets
 from PyQt5.QtGui import *
-from processing.readdata import InitialiseCTDData, InitialiseSampleSheet
+from processing.readdata import ReadCTDData, ReadSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
 from processing.procdata.InteractiveNutrientsProcessing import processingNutrientsWindow
@@ -109,7 +109,7 @@ class rereadDialog(hyproDialogTemplate):
             logging.info(f'Rereading file {selected_file}')
 
             if file_type == 'CTD':
-                self.init_ctd = InitialiseCTDData.initCTDdata(selected_file, self.db, self.currpath, self.currproject,
+                self.init_ctd = ReadCTDData.initCTDdata(selected_file, self.db, self.currpath, self.currproject,
                                                              self.interactive, True)
 
             if file_type == 'Nutrients':
@@ -127,7 +127,7 @@ class rereadDialog(hyproDialogTemplate):
                                                           self.interactive, True)
 
             if file_type == 'Sampling':
-                self.init_sample_data = InitialiseSampleSheet.initSampleSheet(selected_file, self.currproject, self.db,
+                self.init_sample_data = ReadSampleSheet.initSampleSheet(selected_file, self.currproject, self.db,
                                                                             self.currpath, self.interactive, True)
 
         else:

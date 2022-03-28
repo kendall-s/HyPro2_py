@@ -2,6 +2,10 @@ from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QListWidget)
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
 # TODO: Needs finishing is currently only the starting GUI
+"""
+Might need removing, could be superseded by the param/param plot window
+"""
+
 
 class producePlotsDialog(hyproDialogTemplate):
     def __init__(self):
@@ -30,7 +34,6 @@ class producePlotsDialog(hyproDialogTemplate):
 
         self.deploymentslist = QListWidget()
         # self.deploymentslist.itemSelectionChanged.connect()
-
 
         okbut = QPushButton('Produce Plots', self)
         okbut.setFixedWidth(90)

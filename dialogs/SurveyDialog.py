@@ -1,17 +1,20 @@
-# https://stackoverflow.com/questions/8979409/get-text-from-qpushbutton-in-pyqt
+import json
+import traceback
+
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QGridLayout, QFrame,
+                             QCheckBox, QTabWidget, QGroupBox)
 
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QGridLayout, QMessageBox, QFrame,
-                             QCheckBox, QTabWidget, QGroupBox)
-from PyQt5 import QtGui, QtWidgets, QtCore
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-import traceback
-import json
-import hyproicons, style
 
-# The GUI for adding or editing surveys to the required settings needed
+"""
+Provides the interface for a user to add or edit survey settings. A survey is used to group specific samples together.
+
+"""
+
+
 class surveyDialog(hyproDialogTemplate):
     def __init__(self, project, survey, path):
         super().__init__(420, 665, 'HyPro - Add Survey')
@@ -24,16 +27,15 @@ class surveyDialog(hyproDialogTemplate):
             self.setWindowTitle('HyPro - Survey Settings')
             self.surveyName = QLineEdit(self.survey)
             self.surveyName.setReadOnly(True)
-        else: 
+        else:
             self.surveyName = QLineEdit(self)
         self.surveyName.setStyleSheet("QLineEdit {font: 14px Segoe UI; font-weight: bold; }")
         self.init_ui()
 
-
     def init_ui(self):
         try:
             self.setFont(QFont('Segoe UI'))
-            
+
             headerLabel = QLabel('Survey name: ', self)
 
             analyses = ['Guildline Salinity', 'Scripps Oxygen', 'Seal Nutrients', 'Seasave CTD']
@@ -98,7 +100,6 @@ class surveyDialog(hyproDialogTemplate):
 
             # Salinity Tab
             if self.salt_active:
-
                 salt_grid = QGridLayout()
                 salt_grid.setSpacing(5)
                 self.activate_salt = QCheckBox('Activate for use with this survey', self)
@@ -106,12 +107,12 @@ class surveyDialog(hyproDialogTemplate):
 
                 self.ctd_survey_salt = QCheckBox('This is the survey for CTD samples ')
                 self.ctd_survey_salt_label = QLabel('<i>This is used for samples collected from a CTD and recorded '
-                                                      'with a logsheet. Tick if this is the CTD survey. \n</i>')
+                                                    'with a logsheet. Tick if this is the CTD survey. \n</i>')
                 self.ctd_survey_salt_label.setWordWrap(True)
 
                 self.decode_salt = QCheckBox('Decode Salinity file Sample ID value to a survey')
                 self.decode_salt_label = QLabel('<i>Use this to represent a custom survey, such as underway or TSG. '
-                                                  'Keep the prefix short for ease of use. </i>')
+                                                'Keep the prefix short for ease of use. </i>')
                 self.decode_salt_label.setWordWrap(True)
                 # self.decodeOxygen.clicked.connect(self.enabledisable)
 
@@ -173,12 +174,10 @@ class surveyDialog(hyproDialogTemplate):
                 salt_grid.addWidget(self.sample_salt_id, 14, 1)
                 salt_grid.addWidget(self.sample_salt_id_label, 15, 1, 1, 6)
 
-
                 self.salttab.setLayout(salt_grid)
 
             # Oxygen Tab
             if self.oxy_active:
-                
                 oxy_grid = QGridLayout()
                 oxy_grid.setSpacing(5)
                 self.activate_oxygen = QCheckBox('Activate for use with this survey', self)
@@ -186,14 +185,14 @@ class surveyDialog(hyproDialogTemplate):
 
                 self.ctd_survey_oxygen = QCheckBox('This is the survey for CTD samples ')
                 self.ctd_survey_oxygen_label = QLabel('<i>This is used for samples collected from a CTD and recorded '
-                                                          'with a logsheet. Tick if this is the CTD survey. \n</i>')
+                                                      'with a logsheet. Tick if this is the CTD survey. \n</i>')
                 self.ctd_survey_oxygen_label.setWordWrap(True)
 
                 self.decode_oxygen = QCheckBox('Decode Oxygen file Station value to a survey')
                 self.decode_oxygen_label = QLabel('<i>Use this to represent a custom survey, do not use a station '
-                                                   'number less than 900. Less than 900 and HyPro will not recognise. Increase RP for each sample. </i>')
+                                                  'number less than 900. Less than 900 and HyPro will not recognise. Increase RP for each sample. </i>')
                 self.decode_oxygen_label.setWordWrap(True)
-                #self.decodeOxygen.clicked.connect(self.enabledisable)
+                # self.decodeOxygen.clicked.connect(self.enabledisable)
 
                 self.survey_number_station_label = QLabel('Enter a number to represent the survey: ')
 
@@ -201,15 +200,17 @@ class surveyDialog(hyproDialogTemplate):
                 self.survey_number_station.setPlaceholderText('e.g. 901')
 
                 self.decode_oxygen_deployment = QCheckBox('Decode deployment and RP from oxygen file')
-                self.decode_oxygen_deployment_label = QLabel('<i>Use the Cast and Rosette Position data columns to decode '
-                                                              'a deployment and rp. Do not use for typical CTD '
-                                                              'deployments, use for TMR or Coastal projects without a '
-                                                              'CTD file or logsheet.</i>')
+                self.decode_oxygen_deployment_label = QLabel(
+                    '<i>Use the Cast and Rosette Position data columns to decode '
+                    'a deployment and rp. Do not use for typical CTD '
+                    'deployments, use for TMR or Coastal projects without a '
+                    'CTD file or logsheet.</i>')
                 self.decode_oxygen_deployment_label.setWordWrap(True)
 
                 self.sample_oxygen_id = QCheckBox('Just use Bottle ID', self)
-                self.sample_oxygen_id_label = QLabel('<i>Directly use bottle ID instead of dep/ros label decoding system,'
-                                                ' beware this overrides all other decoding of IDs')
+                self.sample_oxygen_id_label = QLabel(
+                    '<i>Directly use bottle ID instead of dep/ros label decoding system,'
+                    ' beware this overrides all other decoding of IDs')
                 self.sample_oxygen_id_label.setWordWrap(True)
 
                 oxylinesep1 = QFrame(self)
@@ -254,17 +255,16 @@ class surveyDialog(hyproDialogTemplate):
 
                 self.activate_nutrient = QCheckBox('Activate for use with this survey', self)
                 self.activate_nutrient.setStyleSheet('QCheckBox { font-weight: bold; }')
-                #self.activateNutrient.clicked.connect(self.enabledisable)
+                # self.activateNutrient.clicked.connect(self.enabledisable)
 
                 nut_linesep1 = QFrame()
                 nut_linesep1.setFrameShape(QFrame.HLine)
                 nut_linesep1.setFrameShadow(QFrame.Sunken)
 
-
                 self.ctd_survey_nutrient = QCheckBox('This is the survey for CTD samples', self)
-                ctd_survey_nutrient_label = QLabel( '<i>This is used for samples collected from a CTD and recorded '
-                                                    'with a logsheet. Tick if this is the CTD survey. Assumes sample'
-                                                    ' ID has Dep/RP format of DDBB.</i>')
+                ctd_survey_nutrient_label = QLabel('<i>This is used for samples collected from a CTD and recorded '
+                                                   'with a logsheet. Tick if this is the CTD survey. Assumes sample'
+                                                   ' ID has Dep/RP format of DDBB.</i>')
                 ctd_survey_nutrient_label.setWordWrap(True)
 
                 nut_group_box = QGroupBox(self)
@@ -341,30 +341,33 @@ class surveyDialog(hyproDialogTemplate):
                         self.ctd_survey_salt.setChecked(params['survey_params'][k]['guildline']['ctd_survey'])
                         self.decode_salt.setChecked(params['survey_params'][k]['guildline']['decode_sample_id'])
                         self.survey_prefix_salt.setText(params['survey_params'][k]['guildline']['survey_prefix'])
-                        self.decode_salt_deployment.setChecked(params['survey_params'][k]['guildline']['decode_dep_from_id'])
+                        self.decode_salt_deployment.setChecked(
+                            params['survey_params'][k]['guildline']['decode_dep_from_id'])
                         self.sample_salt_id.setChecked(params['survey_params'][k]['guildline']['use_sample_id'])
                         self.dep_rp_format_salt.setText(params['survey_params'][k]['guildline']['depformat'])
-                        
+
                     if self.oxy_active:
                         self.activate_oxygen.setChecked(params['survey_params'][k]['scripps']['activated'])
                         self.ctd_survey_oxygen.setChecked(params['survey_params'][k]['scripps']['ctd_survey'])
                         self.decode_oxygen.setChecked(params['survey_params'][k]['scripps']['decode_sample_id'])
                         self.survey_number_station.setText(params['survey_params'][k]['scripps']['survey_prefix'])
-                        self.decode_oxygen_deployment.setChecked(params['survey_params'][k]['scripps']['decode_dep_from_id'])
+                        self.decode_oxygen_deployment.setChecked(
+                            params['survey_params'][k]['scripps']['decode_dep_from_id'])
                         self.sample_oxygen_id.setChecked(params['survey_params'][k]['scripps']['use_sample_id'])
-    
+
                     if self.nuts_active:
                         self.activate_nutrient.setChecked(params['survey_params'][k]['seal']['activated'])
                         self.ctd_survey_nutrient.setChecked(params['survey_params'][k]['seal']['ctd_survey'])
                         self.decode_nutrient.setChecked(params['survey_params'][k]['seal']['decode_sample_id'])
                         self.survey_prefix_nutrient.setText(params['survey_params'][k]['seal']['survey_prefix'])
-                        self.decode_deployment_nutrient.setChecked(params['survey_params'][k]['seal']['decode_dep_from_id'])
+                        self.decode_deployment_nutrient.setChecked(
+                            params['survey_params'][k]['seal']['decode_dep_from_id'])
                         self.dep_rp_format_nutrient.setText(params['survey_params'][k]['seal']['depformat'])
                         self.sample_id_nutrient.setChecked(params['survey_params'][k]['seal']['use_sample_id'])
                 except KeyError:
                     print('Missing key from parameters file')
                     pass
-                    
+
     def savefunction(self):
         try:
             surveyname = str(self.surveyName.text())
@@ -374,27 +377,27 @@ class surveyDialog(hyproDialogTemplate):
             newsurvey = {'%s' % surveyname: {}}
             if self.nuts_active:
                 newsurvey[surveyname]['seal'] = {'activated': self.activate_nutrient.isChecked(),
-                                                      'ctd_survey': self.ctd_survey_nutrient.isChecked(),
-                                                      'use_sample_id': self.sample_id_nutrient.isChecked(),
-                                                      'survey_prefix': self.survey_prefix_nutrient.text(),
-                                                      'decode_dep_from_id': self.decode_deployment_nutrient.isChecked(),
-                                                      'depformat': self.dep_rp_format_nutrient.text(),
-                                                      'decode_sample_id': self.decode_nutrient.isChecked()}
+                                                 'ctd_survey': self.ctd_survey_nutrient.isChecked(),
+                                                 'use_sample_id': self.sample_id_nutrient.isChecked(),
+                                                 'survey_prefix': self.survey_prefix_nutrient.text(),
+                                                 'decode_dep_from_id': self.decode_deployment_nutrient.isChecked(),
+                                                 'depformat': self.dep_rp_format_nutrient.text(),
+                                                 'decode_sample_id': self.decode_nutrient.isChecked()}
             if self.salt_active:
                 newsurvey[surveyname]['guildline'] = {'activated': self.activate_salt.isChecked(),
-                                                         'ctd_survey': self.ctd_survey_salt.isChecked(),
-                                                         'decode_sample_id': self.decode_salt.isChecked(),
-                                                         'survey_prefix': self.survey_prefix_salt.text(),
-                                                         'decode_dep_from_id': self.decode_salt_deployment.isChecked(),
-                                                         'use_sample_id': self.sample_salt_id.isChecked(),
-                                                          'depformat': self.dep_rp_format_salt.text()}
+                                                      'ctd_survey': self.ctd_survey_salt.isChecked(),
+                                                      'decode_sample_id': self.decode_salt.isChecked(),
+                                                      'survey_prefix': self.survey_prefix_salt.text(),
+                                                      'decode_dep_from_id': self.decode_salt_deployment.isChecked(),
+                                                      'use_sample_id': self.sample_salt_id.isChecked(),
+                                                      'depformat': self.dep_rp_format_salt.text()}
             if self.oxy_active:
                 newsurvey[surveyname]['scripps'] = {'activated': self.activate_oxygen.isChecked(),
-                                                         'ctd_survey': self.ctd_survey_oxygen.isChecked(),
-                                                         'decode_sample_id': self.decode_oxygen.isChecked(),
-                                                         'survey_prefix': self.survey_number_station.text(),
-                                                         'decode_dep_from_id': self.decode_oxygen_deployment.isChecked(),
-                                                         'use_sample_id': self.sample_oxygen_id.isChecked()}
+                                                    'ctd_survey': self.ctd_survey_oxygen.isChecked(),
+                                                    'decode_sample_id': self.decode_oxygen.isChecked(),
+                                                    'survey_prefix': self.survey_number_station.text(),
+                                                    'decode_dep_from_id': self.decode_oxygen_deployment.isChecked(),
+                                                    'use_sample_id': self.sample_oxygen_id.isChecked()}
 
             params['survey_params'].update(newsurvey)
 

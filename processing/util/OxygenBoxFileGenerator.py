@@ -12,6 +12,11 @@ Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Pea
                 91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
 """
 
+"""
+A short utility for generating oxygen analysis box files. These simple text files are read in by the oxygen instrument
+and allow analysis to be much faster as all sample information is automatically read from the box file.
+"""
+
 
 class generateBoxFile(hyproDialogTemplate):
 
@@ -25,7 +30,6 @@ class generateBoxFile(hyproDialogTemplate):
         self.init_ui()
 
         self.get_deloyments_available()
-
 
     def init_ui(self):
 
@@ -48,8 +52,28 @@ class generateBoxFile(hyproDialogTemplate):
         self.grid_layout.addWidget(self.deployments_available, 3, 0)
         self.grid_layout.addWidget(generate_box_file, 4, 0)
 
-
     def generate_box(self, external_data=None):
+
+        """
+        A box file is a simple text file and looks like the following:
+        101
+        1
+        1
+        1
+        1
+        user
+        33    144    16.3
+        29    143    15.6
+        and so on ...
+
+        At the top is the station number and cast. CSIRO just uses deployment and keeps incrementing, so just increment
+        station number. i.e. 101, 201, 301 = deps 1, 2 and 3
+        Then four 1s, read the manual what these are for can't remember
+        Then the user operating, hypro puts its name for now.
+        Then the bottle data, which is rosette position, bottle number and oxygen sample temp
+        """
+
+
         if not external_data:
             data = self.get_logsheet_data()
         else:
@@ -58,19 +82,19 @@ class generateBoxFile(hyproDialogTemplate):
         initial_deployment = data[0][0]
         print(initial_deployment)
         if int(initial_deployment) < 10:
-            initial_deployment_fmt = '0'+str(initial_deployment)
+            initial_deployment_fmt = '0' + str(initial_deployment)
         else:
             initial_deployment_fmt = initial_deployment
 
         if self.make_folder():
             with open(f'{self.path}/Oxygen/BoxFiles/0{initial_deployment_fmt}01.box', mode='w+') as file:
                 # Write weird box file header
-                file.write(f'{initial_deployment}01\t\t\n')
+                file.write(f'{initial_deployment}01\t\t\n') # station (deployment) and cast
                 file.write('1\t\t\n')
                 file.write('1\t\t\n')
                 file.write('1\t\t\n')
                 file.write('1\t\t\n')
-                file.write('hypro\t\t\n')
+                file.write('hypro\t\t\n') # user
 
                 # Now lets write the box file data
                 for row in data:
@@ -108,7 +132,6 @@ class generateBoxFile(hyproDialogTemplate):
 
         returned_data = c.fetchall()
         return returned_data
-
 
     def make_folder(self):
         if os.path.isdir(f'{self.path}/Oxygen/BoxFiles'):

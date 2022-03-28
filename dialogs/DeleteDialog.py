@@ -1,13 +1,21 @@
-from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QMessageBox,
-                             QCheckBox, QListWidget)
+import logging
+import os
+import sqlite3
+import traceback
+
 from PyQt5 import QtCore
-import os, sqlite3, logging, traceback
-from PyQt5 import QtWidgets
-from PyQt5.QtGui import *
+from PyQt5.QtWidgets import (QPushButton, QLabel, QComboBox, QCheckBox, QListWidget)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
-# Functionality and GUI to delete data from a projects database, also can delete original files as well
+"""
+Provides the functionality for letting a user choose data to be deleted. Data is deleted by selecting the input file, 
+which then removes all the processing data which came from that file. Allows user to delete that data file as well,
+if necessary
+"""
+
+
 class deleteDialog(hyproDialogTemplate):
     def __init__(self, path, project, database):
         super().__init__(235, 470, 'HyPro - Select Data to Delete')

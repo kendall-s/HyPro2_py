@@ -1,11 +1,16 @@
-from PyQt5.QtWidgets import QMessageBox, QDialogButtonBox
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap, QFont, QIcon
 import json
-import hyproicons
-import style
+import style, hyproicons
+
+"""
+Template for the message box, extends QMessagebox and provides shorthand functionality for showing certain icons and 
+messages.
+"""
+
 
 class hyproMessageBoxTemplate(QMessageBox):
-    def __init__(self, title, short_text, type,long_text=None):
+    def __init__(self, title, short_text, type, long_text=None):
         super().__init__()
 
         self.setWindowIcon(QIcon(':/assets/icon.svg'))

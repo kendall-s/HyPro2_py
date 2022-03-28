@@ -1,22 +1,29 @@
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
-from pylab import get_current_fig_manager
-import matplotlib.pyplot as plt
+import io
+import json
+import sqlite3
+
 import matplotlib as mpl
+import matplotlib.pyplot as plt
+from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtGui import QFont, QIcon, QImage
 from PyQt5.QtWidgets import (QMainWindow, QWidget, QAction, QVBoxLayout, QFileDialog, QApplication,
                              QGridLayout, QLabel, QListWidget, QCheckBox, QPushButton, QAbstractItemView, QFrame)
-from PyQt5.QtGui import QFont, QIcon, QImage
-from PyQt5.QtCore import pyqtSignal
-import io, json, sqlite3
-import hyproicons, style
-from dialogs.TraceSelectionDialog import traceSelection
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+import style
 from dialogs.BottleSelectionDialog import bottleSelection
+from dialogs.TraceSelectionDialog import traceSelection
 
 # Set the matplotlib backend to be more stable with PyQt integration
 mpl.use('Agg')
 
-class QMainPlotterTemplate(QMainWindow):
+"""
+Is the basis for the other plotting windows, i.e. RMNSWindow, MDLWindow etc. Provides some basic functionality, 
+layout and menu that is necessary across all
+"""
 
+
+class QMainPlotterTemplate(QMainWindow):
     need_update = pyqtSignal()
 
     def __init__(self, database):
@@ -153,7 +160,8 @@ class QMainPlotterTemplate(QMainWindow):
                       (picked_run_number, picked_peak_number))
             data = list(c.fetchall())[0]
             conn.close()
-            self.picked_peak_dialog = traceSelection(data[2], data[1], data[3], data[5], data[6], data[10], data[11], 'Plot')
+            self.picked_peak_dialog = traceSelection(data[2], data[1], data[3], data[5], data[6], data[10], data[11],
+                                                     'Plot')
 
         else:
             c = conn.cursor()
@@ -167,7 +175,7 @@ class QMainPlotterTemplate(QMainWindow):
 
             elif salinity:
                 c.execute('SELECT * from salinityData WHERE deployment = ? and rosettePosition = ?', (picked_run_number,
-                                                                                                    picked_peak_number))
+                                                                                                      picked_peak_number))
                 data = list(c.fetchall())[0]
                 conn.close()
                 self.picked_bottle_dialog = bottleSelection(data[0], data[10], data[11], data[2], data[6],
@@ -189,9 +197,9 @@ class QMainPlotterTemplate(QMainWindow):
         c.execute("""UPDATE %sData 
                 SET flag=?
                 WHERE runNumber=? and deployment=? and rosettePosition=? and bottle%s=?"""
-                % (update_inputs[5], id_or_label[update_inputs[5]]),
-                (flag_conversion[update_inputs[0]], update_inputs[1], update_inputs[2], update_inputs[3],
-                 update_inputs[4]))
+                  % (update_inputs[5], id_or_label[update_inputs[5]]),
+                  (flag_conversion[update_inputs[0]], update_inputs[1], update_inputs[2], update_inputs[3],
+                   update_inputs[4]))
 
         conn.commit()
         conn.close()

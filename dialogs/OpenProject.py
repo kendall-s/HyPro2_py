@@ -1,14 +1,19 @@
-from PyQt5.QtWidgets import (QPushButton, QLabel, QListWidget)
-from time import sleep
 import json
+from time import sleep
+
+from PyQt5.QtWidgets import (QPushButton, QLabel, QListWidget)
+
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
+"""
+The dialog for selecting the active project
+"""
 
-# Small GUI functionality for opening a project and loading it in as the active project
+
 class openProject(hyproDialogTemplate):
     def __init__(self):
         super().__init__(200, 350, 'HyPro - Open Project')
-        
+
         self.selectedproject = ''
 
         self.init_ui()
