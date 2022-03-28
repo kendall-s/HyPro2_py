@@ -1,35 +1,46 @@
 # old color fcfcfc
-import sys, os, sqlite3, json, traceback
-# Need these imports for pyinstaller
+import json
+import logging
+import os
+import sqlite3
+import sys
+import time
+import traceback
+from time import sleep
+
+from PyQt5 import QtCore
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import (QApplication, QPushButton, QLabel, QGridLayout,
+                             QInputDialog, QComboBox, QAction, QFrame)
+
+# from MapPlotting import mapPlotting these are currently disabled ..
+# from TriaxusPlotting import triaxusPlotting
+import style
+from dialogs.CreateNewProject import createNewProject
+from dialogs.ImportProject import importProject
+from dialogs.OpenProject import openProject
+from dialogs.RMNSDialog import rmnsDialog
+from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
+
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
+from processing.ProcessingMenu import Processingmenu
+
+# Need these imports for pyinstaller, not that sqlalchemy is properly used yet though.
 import sqlalchemy
 import sqlalchemy.ext.baked
 import sqlalchemy.sql.default_comparator
-from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
-from PyQt5.QtWidgets import (QApplication, QWidget, QMainWindow, QPushButton, QLabel, QGridLayout,
-                             QInputDialog, QComboBox, QAction, QDesktopWidget, QFrame)
-from time import sleep
-import time
-import logging
-from PyQt5 import QtGui, QtCore, QtWidgets
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from dialogs.CreateNewProject import createNewProject
-from dialogs.OpenProject import openProject
-from dialogs.ImportProject import importProject
-from processing.ProcessingMenu import Processingmenu
-from dialogs.RMNSDialog import rmnsDialog
-from dialogs.templates.MainWindowTemplate import hyproMainWindowTemplate
-# from MapPlotting import mapPlotting these are currently disabled ..
-# from TriaxusPlotting import triaxusPlotting
-import hyproicons, style
-
 
 # TODO: please clean me up - style sheet needs transfer to style file
 # TODO: Refactor code to suit current code style
-# TODO: re-write of QMainWindow to template for Main and processing menu. Total lines in half that way.
 # TODO: clean up Tools menu - revmoved ununsed. Change to Utility menu, include DO calc, QC stats
 
-# The class that starts it all, the main menu for HyPro, main event loop runs from this
+
+"""
+This is the class that starts the app. A lot of the functionality kept within here just opens other dialogs or windows.
+There is some initial start up functionality which could be pulled out and refactored. 
+"""
+
+
 class Mainmenu(hyproMainWindowTemplate):
 
     def __init__(self):
@@ -115,7 +126,7 @@ class Mainmenu(hyproMainWindowTemplate):
         helpMenu.addAction(manualMenu)
 
         header_logo = QLabel(self)
-        header_logo.setPixmap(QPixmap(':/assets/2dropsshadow.ico').scaled(32, 32, Qt.KeepAspectRatio))
+        header_logo.setPixmap(QPixmap(':/assets/2dropsshadow.ico').scaled(32, 32, QtCore.Qt.KeepAspectRatio))
         header_logo.setProperty('headerLogo', True)
 
         # Labels
@@ -138,9 +149,8 @@ class Mainmenu(hyproMainWindowTemplate):
         self.curr_project_disp.setProperty('dashboardText', True)
         self.curr_project_disp.setStyleSheet('font: 15px; font-weight: bold;')
 
-
         sel_project_label = QLabel('<b>Select Active Project</b>')
-        sel_project_label.setAlignment(Qt.AlignCenter)
+        sel_project_label.setAlignment(QtCore.Qt.AlignCenter)
         sel_project_label.setProperty('sideBarText', True)
 
         processor_label = QLabel('<b>Processor</b>')
@@ -323,7 +333,7 @@ class Mainmenu(hyproMainWindowTemplate):
         self.oxygen_samples_processed.setProperty('dashboardText', True)
 
         sub_grid_layout = QGridLayout()
-        
+
         self.grid_layout.addWidget(analysis_frame, 7, 1, 10, 3)
 
         sub_grid_layout.addWidget(analyses_activated_label, 0, 1)
@@ -335,17 +345,17 @@ class Mainmenu(hyproMainWindowTemplate):
         sub_grid_layout.addWidget(self.nutrients_activated_state, 1, 2)
         sub_grid_layout.addWidget(self.nutrients_files_processed, 1, 3)
         sub_grid_layout.addWidget(self.nutrients_samples_processed, 1, 4)
-        
+
         sub_grid_layout.addWidget(salinity_activated_label, 2, 1)
         sub_grid_layout.addWidget(self.salinity_activated_state, 2, 2)
         sub_grid_layout.addWidget(self.salinity_files_processed, 2, 3)
         sub_grid_layout.addWidget(self.salinity_samples_processed, 2, 4)
-        
+
         sub_grid_layout.addWidget(oxygen_activated_label, 3, 1)
         sub_grid_layout.addWidget(self.oxygen_activated_state, 3, 2)
         sub_grid_layout.addWidget(self.oxygen_files_processed, 3, 3)
         sub_grid_layout.addWidget(self.oxygen_samples_processed, 3, 4)
-        
+
         self.grid_layout.addLayout(sub_grid_layout, 7, 1, 10, 3)
 
         # Set grid layout to overarching main window central layout
@@ -354,7 +364,6 @@ class Mainmenu(hyproMainWindowTemplate):
             self.populate_dashboards()
 
         self.show()
-
 
         # End of initialising Main Menu.
 
@@ -413,7 +422,8 @@ class Mainmenu(hyproMainWindowTemplate):
     def populate_dashboards(self):
         try:
             print(self.hypro_settings['activeproject'])
-            self.project_path.setText(str(self.hypro_settings['projects'][self.hypro_settings['activeproject']]['path']))
+            self.project_path.setText(
+                str(self.hypro_settings['projects'][self.hypro_settings['activeproject']]['path']))
 
             self.project_type.setText(
                 '<b>Project Type:</b> ' + self.hypro_settings['projects'][self.hypro_settings['activeproject']]['type'])
@@ -424,10 +434,12 @@ class Mainmenu(hyproMainWindowTemplate):
             hypro_file = project_path + '/' + active_project + '.hypro'
             proj_db_file = project_path + '/' + active_project + 'Data.db'
 
-            self.project_created.setText(str(time.strftime("%d/%m/%y %I:%M:%S %p", (time.localtime((os.path.getctime(hypro_file)))))))
+            self.project_created.setText(
+                str(time.strftime("%d/%m/%y %I:%M:%S %p", (time.localtime((os.path.getctime(hypro_file)))))))
 
             try:
-                self.project_modified.setText(str(time.strftime("%d/%m/%y %I:%M:%S %p", (time.localtime((os.path.getmtime(proj_db_file)))))))
+                self.project_modified.setText(
+                    str(time.strftime("%d/%m/%y %I:%M:%S %p", (time.localtime((os.path.getmtime(proj_db_file)))))))
 
                 params_file = project_path + '/' + active_project + 'Params.json'
 
@@ -465,7 +477,8 @@ class Mainmenu(hyproMainWindowTemplate):
                 nuts = ['nitrate', 'phosphate', 'silicate', 'nitrite', 'ammonia']
                 counts = []
                 for nut in nuts:
-                    c.execute(f'''SELECT COUNT(*) from {nut}Data WHERE survey NOT IN ('StandardQC', 'Null', 'RMNS', 'BQC', 'MDL', 'Test', 'Unknown')  ''')
+                    c.execute(
+                        f'''SELECT COUNT(*) from {nut}Data WHERE survey NOT IN ('StandardQC', 'Null', 'RMNS', 'BQC', 'MDL', 'Test', 'Unknown')  ''')
                     nut_count = c.fetchone()
                     counts.append(nut_count[0])
                 self.nutrients_samples_processed.setText(str(max(counts)))
@@ -522,7 +535,6 @@ class Mainmenu(hyproMainWindowTemplate):
     # TODO: finish this feature
     def osil_standards(self):
         print('osils')
-
 
     def enable_dark_mode(self):
         with open('C:/HyPro/hyprosettings.json', 'r') as file:
@@ -588,7 +600,7 @@ class Mainmenu(hyproMainWindowTemplate):
                 self.hide()
 
                 self.proccing.backToMain.connect(self.show)
-                #self.proccing.backToMain.connect(self.proccing.output_box.close)
+                # self.proccing.backToMain.connect(self.proccing.output_box.close)
                 self.proccing.backToMain.connect(lambda: self.proccing.output_box.widget.close())
                 self.proccing.backToMain.connect(lambda: logging.shutdown())
                 self.proccing.backToMain.connect(lambda: self.proccing.hide())
