@@ -8,7 +8,7 @@ import traceback
 def determine_run(file, processing_parameters):
     file_prefix_length = len(processing_parameters['analysis_params']['guildline']['file_prefix'])
     run_fomat_length = len(processing_parameters['analysis_params']['guildline']['run_format'])
-    run_number = file[file_prefix_length : (file_prefix_length + run_fomat_length)]
+    run_number = file[file_prefix_length: (file_prefix_length + run_fomat_length)]
 
     return run_number
 
@@ -17,7 +17,7 @@ def populate_salinity_survey(sample_id, bottle_id, database_path, processing_par
     deployments = []
     rosette_positions = []
     survey = []
-    
+
     for i, s_id in enumerate(sample_id):
         b_id = bottle_id[i]
         # print(s_id)
@@ -80,8 +80,13 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
 
                 else:
                     if processing_parameters['survey_params'][surv]['guildline']['decode_sample_id']:
-                        if processing_parameters['survey_params'][surv]['guildline']['survey_prefix'] == sample_id[0:len(
-                        processing_parameters['survey_params'][surv]['guildline']['survey_prefix'])]:
+                        if processing_parameters['survey_params'][surv]['guildline']['survey_prefix'] == sample_id[
+                                                                                                         0:len(
+                                                                                                             processing_parameters[
+                                                                                                                 'survey_params'][
+                                                                                                                 surv][
+                                                                                                                 'guildline'][
+                                                                                                                 'survey_prefix'])]:
                             survey = surv
                             if processing_parameters['survey_params'][surv]['guildline']['decode_dep_from_id']:
                                 dep_format = processing_parameters['survey_params'][surv]['guildline']['depformat']
@@ -94,7 +99,9 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
                                     return deployment, rosette_position, survey
 
                             else:
-                                c.execute('SELECT MAX(rosettePosition) from salinityData WHERE survey=? and sampleid!= ? ', [surv, sample_id])
+                                c.execute(
+                                    'SELECT MAX(rosettePosition) from salinityData WHERE survey=? and sampleid!= ? ',
+                                    [surv, sample_id])
                                 max_rosette_position = list(c.fetchone())
                                 if max_rosette_position[0]:
                                     rosette_position = max_rosette_position[0] + 1
@@ -105,21 +112,22 @@ def determine_salinity_survey(sample_id, bottle_id, database_path, processing_pa
 
     return 'Unknown', 'Unknown', 'Unknown'
 
+
 def store_data(database, salinity_data, file, last_modified_time):
     try:
         run_list = [salinity_data.run for x in salinity_data.sample_id]
-        #flag_list = [1 for x in salinity_data.sample_id]
+        # flag_list = [1 for x in salinity_data.sample_id]
 
         packed_data = list(zip(run_list, salinity_data.sample_id, salinity_data.bottle_id, salinity_data.date_time,
-                               salinity_data.uncorrected_ratio, salinity_data.uncorrected_ratio_stdev,
-                               salinity_data.salinity, salinity_data.salinity_stdev, salinity_data.comments,
-                               salinity_data.quality_flag, salinity_data.deployment, salinity_data.rosette_position,
-                               salinity_data.survey))
+                               salinity_data.bath_temp, salinity_data.uncorrected_ratio,
+                               salinity_data.uncorrected_ratio_stdev, salinity_data.salinity,
+                               salinity_data.salinity_stdev, salinity_data.comments, salinity_data.quality_flag,
+                               salinity_data.deployment, salinity_data.rosette_position, salinity_data.survey))
 
         # Put packed up data into database file
         conn = sqlite3.connect(database)
         c = conn.cursor()
-        c.executemany('INSERT OR REPLACE INTO salinityData VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)', packed_data)
+        c.executemany('INSERT OR REPLACE INTO salinityData VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)', packed_data)
         conn.commit()
         conn.close()
 
@@ -136,11 +144,11 @@ def store_data(database, salinity_data, file, last_modified_time):
         processing_time = time.time()
 
         for i, x in enumerate(salinity_data.survey):
-            if x[-9:] == 'Match CTD':
-                c.execute \
-                ('INSERT or REPLACE INTO ctdSalinityCalibrationData VALUES (?,?,?,?,?)',
-                      (salinity_data.deployment[i], salinity_data.rosette_position[i],
-                       salinity_data.salinity[i], salinity_data.quality_flag[i], processing_time))
+            if salinity_data.deployment[i] != 'Unknown' and salinity_data.rosette_position[i] != 'Unknown':
+                c.execute('INSERT or REPLACE INTO ctdSalinityCalibrationData VALUES (?,?,?,?,?,?)',
+                          (salinity_data.deployment[i], salinity_data.rosette_position[i],
+                           salinity_data.salinity[i], salinity_data.bath_temp[i],
+                           salinity_data.quality_flag[i], processing_time))
 
         conn.commit()
         c.close()
@@ -150,4 +158,3 @@ def store_data(database, salinity_data, file, last_modified_time):
     except Exception:
         logging.error(traceback.print_exc())
         return False
-

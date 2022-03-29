@@ -166,6 +166,7 @@ class SalinityData:
         self.sample_id = []
         self.bottle_id = []
         self.date_time = []
+        self.bath_temp = []
         self.uncorrected_ratio = []
         self.uncorrected_ratio_stdev = []
         self.salinity = []

@@ -112,6 +112,7 @@ def form_tables(database):
                         sampleid TEXT,
                         bottleLabel TEXT,
                         dateTime FLOAT,
+                        bathTemp FLOAT,
                         uncorrectedRatio FLOAT,
                         uncorrectedRatioStdev FLOAT,
                         salinity FLOAT,
@@ -158,7 +159,7 @@ def form_tables(database):
     c.execute('''CREATE TABLE IF NOT EXISTS ctdOxygenCalibrationData
                         (deployment INTEGER,
                         rosettePosition INTEGER,
-                        oxygen FLOAT,
+                        oxygenMoles FLOAT,
                         oxygenFlag INTEGER,
                         oxygenProcTime FLOAT,
                         UNIQUE(deployment, rosettePosition))''')
@@ -166,7 +167,8 @@ def form_tables(database):
     c.execute('''CREATE TABLE IF NOT EXISTS ctdSalinityCalibrationData
                         (deployment INTEGER,
                         rosettePosition INTEGER,
-                        salinity FLOAT,
+                        salinityPsu FLOAT,
+                        salinityTemp FLOAT,
                         salinityFlag INTEGER,
                         salinityProcTime FLOAT, 
                         UNIQUE(deployment, rosettePosition))''')

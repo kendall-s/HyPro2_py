@@ -32,7 +32,7 @@ def store_data(database, oxygen_data, file, last_modified_time):
     conn = sqlite3.connect(database)
     c = conn.cursor()
     for i, x in enumerate(oxygen_data.survey):
-        if x[-9:] == 'Match CTD':
+        if oxygen_data.deployment[i] != 'Unknown' and oxygen_data.rosette_position[i] != 'Unknown':
             submit = (oxygen_data.deployment[i], oxygen_data.rosette_position[i],
                       oxygen_data.oxygen_mols[i], oxygen_data.quality_flag[i], process_time)
             c.execute('INSERT OR REPLACE INTO ctdOxygenCalibrationData VALUES (?,?,?,?,?)', submit)

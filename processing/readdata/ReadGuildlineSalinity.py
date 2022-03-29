@@ -14,6 +14,7 @@ def parse_guildline_excel(excel_path):
     salt_data.sample_id = [str(x) for x in data_sheet.col_values(0)[1:]]
     salt_data.bottle_id = [str(x) for x in data_sheet.col_values(1)[1:]]
     salt_data.date_time = data_sheet.col_values(2)[1:]
+    salt_data.bath_temp = data_sheet.col_values(3)[1:]
     salt_data.uncorrected_ratio = data_sheet.col_values(4)[1:]
     salt_data.uncorrected_ratio_stdev = data_sheet.col_values(5)[1:]
     salt_data.salinity = data_sheet.col_values(8)[1:]
