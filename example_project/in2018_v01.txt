@@ -1,0 +1,825 @@
+22/03 18:00 | she384: There is not any analyses currently activated, HyPro can not recognise files that need processing if you don't activate and assign a naming nomenclature. If this is also the first time setting up the project it would be a good idea to check Parameters, under Edit. Don't forget to also set up the surveys required, so data can be automatically grouped for your ease.
+22/03 18:17 | she384: CTD file in2018_v01_001.ros found. Not yet in database.
+22/03 18:17 | she384: Processing CTD file: in2018_v01_001.ros
+22/03 18:17 | she384: CTD file in2018_v01_001.ros processed
+23/03 13:50 | she384: Nutrient file in2018_v01nut001.SLK found. Not yet in database.
+23/03 13:50 | she384: Processing Nutrients file: in2018_v01nut001.SLK
+23/03 13:52 | she384: Nutrient file in2018_v01nut001.SLK found. Not yet in database.
+23/03 13:52 | she384: Processing Nutrients file: in2018_v01nut001.SLK
+23/03 13:54 | she384: Nutrient file in2018_v01nut001.SLK found. Not yet in database.
+23/03 13:54 | she384: Processing Nutrients file: in2018_v01nut001.SLK
+23/03 13:54 | she384: Nutrient file in2018_v01nut001.SLK found. Not yet in database.
+23/03 13:54 | she384: Processing Nutrients file: in2018_v01nut001.SLK
+24/03 07:52 | she384: Nutrient file in2018_v01nut001.SLK found. Not yet in database.
+24/03 07:52 | she384: Processing Nutrients file: in2018_v01nut001.SLK
+24/03 08:11 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:15 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:16 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:17 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:18 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:29 | she384: Processing successfully completed for nutrient file - in2018_v01nut001.SLK
+24/03 08:33 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:34 | she384: Processing successfully completed for nutrient file - in2018_v01nut001.SLK
+24/03 08:34 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:34 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+24/03 08:34 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+24/03 08:34 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+24/03 08:34 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+24/03 08:34 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+24/03 08:34 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+24/03 08:34 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+24/03 08:34 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+24/03 08:34 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 08:34 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 08:34 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+24/03 08:34 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+24/03 08:34 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+24/03 08:34 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+24/03 08:34 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+24/03 08:34 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+24/03 08:34 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+24/03 08:34 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+24/03 08:34 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+24/03 08:34 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+24/03 08:34 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+24/03 08:34 | she384: Processing successfully completed for nutrient file - in2018_v01nut001.SLK
+24/03 08:37 | she384: Attempting to package and export data
+24/03 08:37 | she384: Successfully exported data as .CSV
+24/03 08:43 | she384: CTD file in2018_v01_002.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_003.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_004.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_005.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_006.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_007.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_008.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_009.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_010.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_011.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_012.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_013.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_014.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_015.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_016.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_017.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_018.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_019.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_020.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_021.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_022.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_023.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_024.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_025.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_026.ros found. Not yet in database.
+24/03 08:43 | she384: CTD file in2018_v01_027.ros found. Not yet in database.
+24/03 08:43 | she384: Processing CTD file: in2018_v01_002.ros
+24/03 08:43 | she384: CTD file in2018_v01_002.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_003.ros
+24/03 08:43 | she384: CTD file in2018_v01_003.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_004.ros
+24/03 08:43 | she384: CTD file in2018_v01_004.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_005.ros
+24/03 08:43 | she384: CTD file in2018_v01_005.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_006.ros
+24/03 08:43 | she384: CTD file in2018_v01_006.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_007.ros
+24/03 08:43 | she384: CTD file in2018_v01_007.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_008.ros
+24/03 08:43 | she384: CTD file in2018_v01_008.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_009.ros
+24/03 08:43 | she384: CTD file in2018_v01_009.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_010.ros
+24/03 08:43 | she384: CTD file in2018_v01_010.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_011.ros
+24/03 08:43 | she384: CTD file in2018_v01_011.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_012.ros
+24/03 08:43 | she384: CTD file in2018_v01_012.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_013.ros
+24/03 08:43 | she384: CTD file in2018_v01_013.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_014.ros
+24/03 08:43 | she384: CTD file in2018_v01_014.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_015.ros
+24/03 08:43 | she384: CTD file in2018_v01_015.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_016.ros
+24/03 08:43 | she384: CTD file in2018_v01_016.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_017.ros
+24/03 08:43 | she384: CTD file in2018_v01_017.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_018.ros
+24/03 08:43 | she384: CTD file in2018_v01_018.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_019.ros
+24/03 08:43 | she384: CTD file in2018_v01_019.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_020.ros
+24/03 08:43 | she384: CTD file in2018_v01_020.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_021.ros
+24/03 08:43 | she384: CTD file in2018_v01_021.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_022.ros
+24/03 08:43 | she384: CTD file in2018_v01_022.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_023.ros
+24/03 08:43 | she384: CTD file in2018_v01_023.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_024.ros
+24/03 08:43 | she384: CTD file in2018_v01_024.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_025.ros
+24/03 08:43 | she384: CTD file in2018_v01_025.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_026.ros
+24/03 08:43 | she384: CTD file in2018_v01_026.ros processed
+24/03 08:43 | she384: Processing CTD file: in2018_v01_027.ros
+24/03 08:43 | she384: CTD file in2018_v01_027.ros processed
+24/03 08:43 | she384: Attempting to package and export data
+24/03 08:43 | she384: Successfully exported data as .CSV
+24/03 08:47 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:47 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+24/03 08:47 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+24/03 08:47 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+24/03 08:47 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+24/03 08:47 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+24/03 08:47 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+24/03 08:47 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+24/03 08:47 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+24/03 08:47 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 08:47 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 08:47 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+24/03 08:47 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+24/03 08:47 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+24/03 08:47 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+24/03 08:47 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+24/03 08:47 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+24/03 08:47 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+24/03 08:47 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+24/03 08:47 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+24/03 08:47 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+24/03 08:47 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+24/03 08:48 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:48 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+24/03 08:48 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+24/03 08:48 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+24/03 08:48 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+24/03 08:48 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+24/03 08:48 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+24/03 08:48 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+24/03 08:48 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+24/03 08:48 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 08:48 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 08:48 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+24/03 08:48 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+24/03 08:48 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+24/03 08:48 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+24/03 08:48 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+24/03 08:48 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+24/03 08:48 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+24/03 08:48 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+24/03 08:48 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+24/03 08:48 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+24/03 08:48 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+24/03 08:49 | she384: Rereading file in2018_v01nut001.SLK
+24/03 08:49 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+24/03 08:49 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+24/03 08:49 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+24/03 08:49 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+24/03 08:49 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+24/03 08:49 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+24/03 08:49 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+24/03 08:49 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+24/03 08:49 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 08:49 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 08:49 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+24/03 08:49 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+24/03 08:49 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+24/03 08:49 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+24/03 08:49 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+24/03 08:49 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+24/03 08:49 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+24/03 08:49 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+24/03 08:49 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+24/03 08:49 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+24/03 08:49 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+24/03 08:52 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:52 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 08:52 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:52 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 08:53 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:53 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 08:54 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:54 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 08:54 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:54 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 08:55 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:55 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 08:56 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:56 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 08:56 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:56 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 08:56 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 08:56 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 09:03 | she384: Salinity file in2018_v01sal001.xlsx found. Not yet in database.
+24/03 09:03 | she384: Salinity file in2018_v01sal002.xlsx found. Not yet in database.
+24/03 09:03 | she384: Processing Salinity file: in2018_v01sal001.xlsx
+24/03 09:04 | she384: Salinity file - in2018_v01sal001.xlsx successfully processed
+24/03 09:04 | she384: Processing Salinity file: in2018_v01sal002.xlsx
+24/03 09:04 | she384: Salinity file - in2018_v01sal002.xlsx successfully processed
+24/03 09:04 | she384: Oxygen file in2018_v01oxy001.LST found. Not yet in database.
+24/03 09:04 | she384: Processing Oxygen file: in2018_v01oxy001.LST
+24/03 09:05 | she384: Oyxgen file - in2018_v01oxy001.LST successfully processed
+24/03 10:04 | she384: Rereading file in2018_v01nut001.SLK
+24/03 10:04 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+24/03 10:04 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+24/03 10:04 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+24/03 10:04 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+24/03 10:04 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+24/03 10:04 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+24/03 10:04 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+24/03 10:04 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+24/03 10:04 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 10:04 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 10:04 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+24/03 10:04 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+24/03 10:04 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+24/03 10:04 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+24/03 10:04 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+24/03 10:04 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+24/03 10:04 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+24/03 10:04 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+24/03 10:04 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+24/03 10:04 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+24/03 10:04 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+24/03 10:05 | she384: Rereading file in2018_v01nut001.SLK
+24/03 10:05 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+24/03 10:05 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+24/03 10:05 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+24/03 10:05 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+24/03 10:05 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+24/03 10:05 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+24/03 10:05 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+24/03 10:05 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+24/03 10:05 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 10:05 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 10:05 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+24/03 10:05 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+24/03 10:05 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+24/03 10:05 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+24/03 10:05 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+24/03 10:05 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+24/03 10:05 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+24/03 10:05 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+24/03 10:05 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+24/03 10:05 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+24/03 10:05 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+24/03 10:07 | she384: Rereading file in2018_v01sal001.xlsx
+24/03 10:07 | she384: Rereading file in2018_v01sal001.xlsx
+24/03 10:07 | she384: Salinity data - in2018_v01sal002.xlsx deleted
+24/03 10:07 | she384: Salinity file in2018_v01sal002.xlsx found. Not yet in database.
+24/03 10:07 | she384: BoxFiles does not match analysis settings
+24/03 10:07 | she384: Processing Salinity file: in2018_v01sal002.xlsx
+24/03 10:07 | she384: Salinity file - in2018_v01sal002.xlsx successfully processed
+24/03 10:11 | she384: Salinity data - in2018_v01sal002.xlsx deleted
+24/03 10:11 | she384: Salinity file in2018_v01sal002.xlsx found. Not yet in database.
+24/03 10:11 | she384: BoxFiles does not match analysis settings
+24/03 10:11 | she384: Processing Salinity file: in2018_v01sal002.xlsx
+24/03 10:12 | she384: Oxygen data - in2018_v01oxy001.LST deleted
+24/03 10:12 | she384: Salinity file in2018_v01sal002.xlsx found. Not yet in database.
+24/03 10:12 | she384: BoxFiles does not match analysis settings
+24/03 10:12 | she384: Oxygen file in2018_v01oxy001.LST found. Not yet in database.
+24/03 10:12 | she384: Processing Salinity file: in2018_v01sal002.xlsx
+24/03 10:12 | she384: Salinity file - in2018_v01sal002.xlsx successfully processed
+24/03 10:12 | she384: Processing Oxygen file: in2018_v01oxy001.LST
+24/03 10:13 | she384: Oyxgen file - in2018_v01oxy001.LST successfully processed
+24/03 10:24 | she384: Rereading file in2018_v01nut001.SLK
+24/03 10:24 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+24/03 10:24 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+24/03 10:24 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+24/03 10:24 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+24/03 10:24 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+24/03 10:24 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+24/03 10:24 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+24/03 10:24 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+24/03 10:24 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 10:24 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+24/03 10:24 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+24/03 10:24 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+24/03 10:24 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+24/03 10:24 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+24/03 10:24 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+24/03 10:24 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+24/03 10:24 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+24/03 10:24 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+24/03 10:24 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+24/03 10:24 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+24/03 10:24 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+24/03 11:39 | she384: BoxFiles does not match analysis settings
+25/03 08:42 | she384: Attempting to package and export data
+25/03 08:43 | she384: Attempting to package and export data
+25/03 08:44 | she384: Attempting to package and export data
+25/03 08:44 | she384: Successfully exported data as .CSV
+25/03 09:23 | she384: Rereading file in2018_v01nut001.SLK
+25/03 09:23 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+25/03 09:23 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+25/03 09:23 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+25/03 09:23 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+25/03 09:23 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+25/03 09:23 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+25/03 09:23 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+25/03 09:23 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+25/03 09:23 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+25/03 09:23 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+25/03 09:23 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+25/03 09:23 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+25/03 09:23 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+25/03 09:23 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+25/03 09:23 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+25/03 09:23 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+25/03 09:23 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+25/03 09:23 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+25/03 09:23 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+25/03 09:23 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+25/03 09:23 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+25/03 10:20 | she384: Rereading file in2018_v01nut001.SLK
+25/03 10:20 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+25/03 10:20 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+25/03 10:20 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+25/03 10:20 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+25/03 10:20 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+25/03 10:20 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+25/03 10:20 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+25/03 10:20 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+25/03 10:20 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+25/03 10:20 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+25/03 10:20 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+25/03 10:20 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+25/03 10:20 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+25/03 10:20 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+25/03 10:20 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+25/03 10:20 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+25/03 10:20 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+25/03 10:20 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+25/03 10:20 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+25/03 10:20 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+25/03 10:20 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+25/03 10:25 | she384: Rereading file in2018_v01nut001.SLK
+25/03 10:25 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+25/03 10:25 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+25/03 10:25 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+25/03 10:25 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+25/03 10:25 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+25/03 10:25 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+25/03 10:25 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+25/03 10:25 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+25/03 10:25 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+25/03 10:25 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+25/03 10:25 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+25/03 10:25 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+25/03 10:25 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+25/03 10:25 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+25/03 10:25 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+25/03 10:25 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+25/03 10:25 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+25/03 10:25 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+25/03 10:25 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+25/03 10:25 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+25/03 10:25 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+28/03 09:03 | she384: Rereading file in2018_v01nut001.SLK
+28/03 09:03 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+28/03 09:03 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+28/03 09:03 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+28/03 09:03 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+28/03 09:03 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+28/03 09:03 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+28/03 09:03 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+28/03 09:03 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+28/03 09:03 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 09:03 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 09:03 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+28/03 09:03 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+28/03 09:03 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+28/03 09:03 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+28/03 09:03 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+28/03 09:03 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+28/03 09:03 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+28/03 09:03 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+28/03 09:03 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+28/03 09:03 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+28/03 09:03 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+28/03 09:13 | she384: Rereading file in2018_v01nut001.SLK
+28/03 09:13 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+28/03 09:13 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+28/03 09:13 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+28/03 09:13 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+28/03 09:13 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+28/03 09:13 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+28/03 09:13 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+28/03 09:13 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+28/03 09:13 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 09:13 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 09:13 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+28/03 09:13 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+28/03 09:13 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+28/03 09:13 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+28/03 09:13 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+28/03 09:13 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+28/03 09:13 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+28/03 09:13 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+28/03 09:13 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+28/03 09:13 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+28/03 09:13 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+28/03 09:16 | she384: Rereading file in2018_v01sal001.xlsx
+28/03 09:16 | she384: Rereading file in2018_v01sal002.xlsx
+28/03 09:16 | she384: Rereading file in2018_v01oxy001.LST
+28/03 09:16 | she384: Salinity data - in2018_v01sal002.xlsx deleted
+28/03 09:17 | she384: Salinity file in2018_v01sal002.xlsx found. Not yet in database.
+28/03 09:17 | she384: BoxFiles does not match analysis settings
+28/03 09:17 | she384: Processing Salinity file: in2018_v01sal002.xlsx
+28/03 09:19 | she384: Salinity file in2018_v01sal002.xlsx found. Not yet in database.
+28/03 09:19 | she384: BoxFiles does not match analysis settings
+28/03 09:19 | she384: Processing Salinity file: in2018_v01sal002.xlsx
+28/03 09:19 | she384: Salinity file - in2018_v01sal002.xlsx successfully processed
+28/03 09:19 | she384: Rereading file in2018_v01sal002.xlsx
+28/03 09:20 | she384: Rereading file in2018_v01oxy001.LST
+28/03 09:22 | she384: Rereading file in2018_v01sal002.xlsx
+28/03 09:25 | she384: Rereading file in2018_v01_027.ros
+28/03 12:20 | she384: Rereading file in2018_v01nut001.SLK
+28/03 12:20 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+28/03 12:20 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+28/03 12:20 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+28/03 12:20 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+28/03 12:20 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+28/03 12:20 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+28/03 12:20 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+28/03 12:20 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+28/03 12:20 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:20 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:20 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+28/03 12:20 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+28/03 12:20 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+28/03 12:20 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+28/03 12:20 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+28/03 12:20 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+28/03 12:20 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+28/03 12:20 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+28/03 12:20 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+28/03 12:20 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+28/03 12:20 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+28/03 12:25 | she384: Rereading file in2018_v01nut001.SLK
+28/03 12:25 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+28/03 12:25 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+28/03 12:25 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+28/03 12:25 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+28/03 12:25 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+28/03 12:25 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+28/03 12:25 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+28/03 12:25 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+28/03 12:25 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:25 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:25 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+28/03 12:25 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+28/03 12:25 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+28/03 12:25 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+28/03 12:25 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+28/03 12:25 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+28/03 12:25 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+28/03 12:25 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+28/03 12:25 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+28/03 12:25 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+28/03 12:25 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+28/03 12:27 | she384: Rereading file in2018_v01nut001.SLK
+28/03 12:27 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+28/03 12:27 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+28/03 12:27 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+28/03 12:27 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+28/03 12:27 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+28/03 12:27 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+28/03 12:27 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+28/03 12:27 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+28/03 12:27 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:27 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:27 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+28/03 12:27 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+28/03 12:27 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+28/03 12:27 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+28/03 12:27 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+28/03 12:27 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+28/03 12:27 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+28/03 12:27 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+28/03 12:27 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+28/03 12:27 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+28/03 12:27 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+28/03 12:28 | she384: Rereading file in2018_v01nut001.SLK
+28/03 12:28 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+28/03 12:28 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+28/03 12:28 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+28/03 12:28 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+28/03 12:28 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+28/03 12:28 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+28/03 12:28 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+28/03 12:28 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+28/03 12:28 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:28 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:28 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+28/03 12:28 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+28/03 12:28 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+28/03 12:28 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+28/03 12:28 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+28/03 12:28 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+28/03 12:28 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+28/03 12:28 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+28/03 12:28 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+28/03 12:28 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+28/03 12:28 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+28/03 12:29 | she384: Rereading file in2018_v01nut001.SLK
+28/03 12:29 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+28/03 12:29 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+28/03 12:29 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+28/03 12:29 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+28/03 12:29 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+28/03 12:29 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+28/03 12:29 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+28/03 12:29 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+28/03 12:29 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:29 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:29 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+28/03 12:29 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+28/03 12:29 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+28/03 12:29 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+28/03 12:29 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+28/03 12:29 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+28/03 12:29 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+28/03 12:29 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+28/03 12:29 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+28/03 12:29 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+28/03 12:29 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+28/03 12:29 | she384: Rereading file in2018_v01nut001.SLK
+28/03 12:29 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+28/03 12:29 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+28/03 12:29 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+28/03 12:29 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+28/03 12:29 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+28/03 12:29 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+28/03 12:29 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+28/03 12:29 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+28/03 12:29 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:29 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+28/03 12:29 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+28/03 12:29 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+28/03 12:29 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+28/03 12:29 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+28/03 12:29 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+28/03 12:29 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+28/03 12:29 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+28/03 12:29 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+28/03 12:29 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+28/03 12:29 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+28/03 12:29 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+29/03 07:50 | she384: BoxFiles does not match analysis settings
+29/03 07:50 | she384: Nutrient file in2018_v01nut002.SLK found. Not yet in database.
+29/03 07:50 | she384: Processing Nutrients file: in2018_v01nut002.SLK
+29/03 07:50 | she384: ERROR: 334 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:34.
+29/03 07:50 | she384: ERROR: 331 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:31.
+29/03 07:50 | she384: ERROR: 329 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:29.
+29/03 07:50 | she384: ERROR: 327 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:27.
+29/03 07:50 | she384: ERROR: 325 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:25.
+29/03 07:50 | she384: ERROR: 321 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:21.
+29/03 07:50 | she384: ERROR: 317 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:17.
+29/03 07:50 | she384: ERROR: 313 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:13.
+29/03 07:50 | she384: ERROR: 311 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:11.
+29/03 07:50 | she384: ERROR: 309 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:09.
+29/03 07:50 | she384: ERROR: 307 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:07.
+29/03 07:50 | she384: ERROR: 305 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:05.
+29/03 07:50 | she384: ERROR: 304 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:04.
+29/03 07:50 | she384: ERROR: 301 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:01.
+29/03 07:50 | she384: ERROR: 301 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:01.
+29/03 07:52 | she384: BoxFiles does not match analysis settings
+29/03 07:52 | she384: Nutrient file in2018_v01nut002.SLK found. Not yet in database.
+29/03 07:52 | she384: Processing Nutrients file: in2018_v01nut002.SLK
+29/03 07:52 | she384: ERROR: 334 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:34.
+29/03 07:52 | she384: ERROR: 331 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:31.
+29/03 07:52 | she384: ERROR: 329 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:29.
+29/03 07:52 | she384: ERROR: 327 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:27.
+29/03 07:52 | she384: ERROR: 325 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:25.
+29/03 07:52 | she384: ERROR: 321 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:21.
+29/03 07:52 | she384: ERROR: 317 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:17.
+29/03 07:52 | she384: ERROR: 313 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:13.
+29/03 07:52 | she384: ERROR: 311 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:11.
+29/03 07:52 | she384: ERROR: 309 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:09.
+29/03 07:52 | she384: ERROR: 307 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:07.
+29/03 07:52 | she384: ERROR: 305 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:05.
+29/03 07:52 | she384: ERROR: 304 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:04.
+29/03 07:52 | she384: ERROR: 301 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:01.
+29/03 07:52 | she384: ERROR: 301 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:01.
+29/03 07:52 | she384: BoxFiles does not match analysis settings
+29/03 07:52 | she384: Nutrient file in2018_v01nut002.SLK found. Not yet in database.
+29/03 07:52 | she384: Processing Nutrients file: in2018_v01nut002.SLK
+29/03 07:52 | she384: ERROR: 334 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:34.
+29/03 07:52 | she384: ERROR: 331 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:31.
+29/03 07:52 | she384: ERROR: 329 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:29.
+29/03 07:52 | she384: ERROR: 327 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:27.
+29/03 07:52 | she384: ERROR: 325 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:25.
+29/03 07:52 | she384: ERROR: 321 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:21.
+29/03 07:52 | she384: ERROR: 317 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:17.
+29/03 07:52 | she384: ERROR: 313 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:13.
+29/03 07:52 | she384: ERROR: 311 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:11.
+29/03 07:52 | she384: ERROR: 309 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:09.
+29/03 07:52 | she384: ERROR: 307 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:07.
+29/03 07:52 | she384: ERROR: 305 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:05.
+29/03 07:52 | she384: ERROR: 304 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:04.
+29/03 07:52 | she384: ERROR: 301 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:01.
+29/03 07:52 | she384: ERROR: 301 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:01.
+29/03 07:52 | she384: BoxFiles does not match analysis settings
+29/03 07:52 | she384: Nutrient file in2018_v01nut002.SLK found. Not yet in database.
+29/03 07:52 | she384: Processing Nutrients file: in2018_v01nut002.SLK
+29/03 07:52 | she384: ERROR: 334 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:34.
+29/03 07:52 | she384: ERROR: 331 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:31.
+29/03 07:52 | she384: ERROR: 329 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:29.
+29/03 07:52 | she384: ERROR: 327 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:27.
+29/03 07:52 | she384: ERROR: 325 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:25.
+29/03 07:52 | she384: ERROR: 321 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:21.
+29/03 07:52 | she384: ERROR: 317 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:17.
+29/03 07:52 | she384: ERROR: 313 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:13.
+29/03 07:52 | she384: ERROR: 311 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:11.
+29/03 07:52 | she384: ERROR: 309 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:09.
+29/03 07:52 | she384: ERROR: 307 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:07.
+29/03 07:52 | she384: ERROR: 305 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:05.
+29/03 07:52 | she384: ERROR: 304 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:04.
+29/03 07:52 | she384: ERROR: 301 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:01.
+29/03 07:52 | she384: ERROR: 301 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:3 rp:01.
+29/03 07:53 | she384: Processing successfully completed for nutrient file - in2018_v01nut002.SLK
+29/03 07:55 | she384: Salinity file in2018_v01sal003.xlsx found. Not yet in database.
+29/03 07:55 | she384: BoxFiles does not match analysis settings
+29/03 07:55 | she384: Processing Salinity file: in2018_v01sal003.xlsx
+29/03 07:55 | she384: Salinity file - in2018_v01sal003.xlsx successfully processed
+29/03 07:55 | she384: BoxFiles does not match analysis settings
+29/03 07:55 | she384: Oxygen file in2018_v01oxy002.LST found. Not yet in database.
+29/03 07:55 | she384: Processing Oxygen file: in2018_v01oxy002.LST
+29/03 07:55 | she384: Oyxgen file - in2018_v01oxy002.LST successfully processed
+29/03 07:57 | she384: Rereading file hypro_created_3
+29/03 07:57 | she384: None
+29/03 09:52 | she384: Rereading file in2018_v01sal001.xlsx
+29/03 09:54 | she384: Rereading file in2018_v01sal002.xlsx
+29/03 09:55 | she384: Rereading file in2018_v01oxy001.LST
+29/03 10:00 | she384: Rereading file in2018_v01nut001.SLK
+29/03 10:00 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+29/03 10:00 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+29/03 10:00 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+29/03 10:00 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+29/03 10:00 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+29/03 10:00 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+29/03 10:00 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+29/03 10:00 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+29/03 10:00 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 10:00 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 10:00 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+29/03 10:00 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+29/03 10:00 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+29/03 10:00 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+29/03 10:00 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+29/03 10:00 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+29/03 10:00 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+29/03 10:00 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+29/03 10:00 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+29/03 10:00 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+29/03 10:00 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+29/03 10:26 | she384: Rereading file in2018_v01nut001.SLK
+29/03 10:26 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+29/03 10:26 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+29/03 10:26 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+29/03 10:26 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+29/03 10:26 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+29/03 10:26 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+29/03 10:26 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+29/03 10:26 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+29/03 10:26 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 10:26 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 10:26 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+29/03 10:26 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+29/03 10:26 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+29/03 10:26 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+29/03 10:26 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+29/03 10:26 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+29/03 10:26 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+29/03 10:26 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+29/03 10:26 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+29/03 10:26 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+29/03 10:26 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+29/03 10:49 | she384: Rereading file in2018_v01oxy001.LST
+29/03 10:49 | she384: Oyxgen file - in2018_v01oxy001.LST successfully processed
+29/03 10:57 | she384: Rereading file in2018_v01oxy002.LST
+29/03 10:57 | she384: Oyxgen file - in2018_v01oxy002.LST successfully processed
+29/03 11:19 | she384: Rereading file in2018_v01sal001.xlsx
+29/03 11:19 | she384: None
+29/03 11:19 | she384: Salinity file - in2018_v01sal001.xlsx successfully processed
+29/03 11:19 | she384: Rereading file in2018_v01sal002.xlsx
+29/03 11:19 | she384: None
+29/03 11:19 | she384: Salinity file - in2018_v01sal002.xlsx successfully processed
+29/03 11:19 | she384: Rereading file in2018_v01sal003.xlsx
+29/03 11:19 | she384: None
+29/03 11:19 | she384: Salinity file - in2018_v01sal003.xlsx successfully processed
+29/03 11:21 | she384: Rereading file in2018_v01sal001.xlsx
+29/03 11:21 | she384: Salinity file - in2018_v01sal001.xlsx successfully processed
+29/03 11:21 | she384: Rereading file in2018_v01sal002.xlsx
+29/03 11:21 | she384: Salinity file - in2018_v01sal002.xlsx successfully processed
+29/03 11:21 | she384: Rereading file in2018_v01sal003.xlsx
+29/03 11:21 | she384: Salinity file - in2018_v01sal003.xlsx successfully processed
+29/03 14:55 | she384: Rereading file in2018_v01nut001.SLK
+29/03 14:55 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+29/03 14:55 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+29/03 14:55 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+29/03 14:55 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+29/03 14:55 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+29/03 14:55 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+29/03 14:55 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+29/03 14:55 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+29/03 14:55 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 14:55 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 14:55 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+29/03 14:55 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+29/03 14:55 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+29/03 14:55 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+29/03 14:55 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+29/03 14:55 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+29/03 14:55 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+29/03 14:55 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+29/03 14:55 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+29/03 14:55 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+29/03 14:55 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+29/03 14:56 | she384: Rereading file in2018_v01nut001.SLK
+29/03 14:56 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+29/03 14:56 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+29/03 14:56 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+29/03 14:56 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+29/03 14:56 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+29/03 14:56 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+29/03 14:56 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+29/03 14:56 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+29/03 14:56 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 14:56 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 14:56 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+29/03 14:56 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+29/03 14:56 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+29/03 14:56 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+29/03 14:56 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+29/03 14:56 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+29/03 14:56 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+29/03 14:56 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+29/03 14:56 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+29/03 14:56 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+29/03 14:56 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+29/03 14:59 | she384: Rereading file in2018_v01nut001.SLK
+29/03 14:59 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+29/03 14:59 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+29/03 14:59 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+29/03 14:59 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+29/03 14:59 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+29/03 14:59 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+29/03 14:59 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+29/03 14:59 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+29/03 14:59 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 14:59 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 14:59 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+29/03 14:59 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+29/03 14:59 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+29/03 14:59 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+29/03 14:59 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+29/03 14:59 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+29/03 14:59 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+29/03 14:59 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+29/03 14:59 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+29/03 14:59 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+29/03 14:59 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+29/03 15:03 | she384: Rereading file in2018_v01nut001.SLK
+29/03 15:03 | she384: ERROR: 133 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:33.
+29/03 15:03 | she384: ERROR: 129 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:29.
+29/03 15:03 | she384: ERROR: 125 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:25.
+29/03 15:03 | she384: ERROR: 121 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:21.
+29/03 15:03 | she384: ERROR: 118 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:18.
+29/03 15:03 | she384: ERROR: 114 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:14.
+29/03 15:03 | she384: ERROR: 109 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:09.
+29/03 15:03 | she384: ERROR: 105 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:05.
+29/03 15:03 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 15:03 | she384: ERROR: 101 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:1 rp:01.
+29/03 15:03 | she384: ERROR: 235 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:35.
+29/03 15:03 | she384: ERROR: 231 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:31.
+29/03 15:03 | she384: ERROR: 229 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:29.
+29/03 15:03 | she384: ERROR: 227 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:27.
+29/03 15:03 | she384: ERROR: 223 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:23.
+29/03 15:03 | she384: ERROR: 219 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:19.
+29/03 15:03 | she384: ERROR: 215 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:15.
+29/03 15:03 | she384: ERROR: 211 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:11.
+29/03 15:03 | she384: ERROR: 207 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:07.
+29/03 15:03 | she384: ERROR: 204 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:04.
+29/03 15:03 | she384: ERROR: 201 may be a voyage sample, but it is not entered correctly on the logsheet file. It has been saved as a sample for dep:2 rp:01.
+30/03 14:10 | she384: None
+30/03 14:10 | she384: CTD data - in2018_v01_026.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_025.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_024.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_023.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_022.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_021.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_020.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_019.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_018.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_017.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_016.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_015.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_014.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_013.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_012.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_011.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_010.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_009.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_008.ros deleted
+30/03 14:11 | she384: CTD data - in2018_v01_007.ros deleted
