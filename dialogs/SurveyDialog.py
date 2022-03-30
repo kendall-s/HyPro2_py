@@ -280,7 +280,7 @@ class surveyDialog(hyproDialogTemplate):
                 survey_prefix_nutrient_label = QLabel('Survey prefix on sample ID:')
 
                 self.survey_prefix_nutrient = QLineEdit(self)
-                self.survey_prefix_nutrient.setDisabled(True)
+                #self.survey_prefix_nutrient.setDisabled(True)
 
                 nut_linesep2 = QFrame()
                 nut_linesep2.setFrameShape(QFrame.HLine)

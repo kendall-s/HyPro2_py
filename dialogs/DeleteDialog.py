@@ -114,7 +114,7 @@ class deleteDialog(hyproDialogTemplate):
                     c.execute('DELETE from ctdFilesProcessed where filename=?', filename)
                     conn.commit()
                     conn.close()
-                    if self.deletefilescheckbox.isChecked():
+                    if self.delete_files_checkbox.isChecked():
                         print('Deleting data files as well')
                         file = self.currpath + '/' + 'CTD' + '/' + selectedfile
                         os.remove(file)
