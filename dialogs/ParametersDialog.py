@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (QWidget, QPushButton, QLineEdit, QLabel, QMessageBo
                              QCheckBox, QTabWidget, QGridLayout, QComboBox)
 
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
+from dialogs.templates.MessageBoxTemplate import hyproMessageBoxTemplate
 
 """
 This dialog provides the ability for a user to change all of the settings and parameters related to processing data. 
@@ -18,50 +19,50 @@ class parametersDialog(hyproDialogTemplate):
     def __init__(self, project, path):
         super().__init__(475, 800, 'HyPro Project Parameters')
 
-        self.currproject = project
+        self.current_project = project
         self.currpath = path
 
         self.init_ui()
 
     def init_ui(self):
         try:
-            with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
+            with open(self.currpath + '/' + '%sParams.json' % self.current_project, 'r') as file:
                 params = json.loads(file.read())
 
             self.tabs = QTabWidget()
 
-            self.nutrienttab = QTabWidget()
-            self.tabs.addTab(self.nutrienttab, 'Nutrients')
+            self.nutrient_tab = QTabWidget()
+            self.tabs.addTab(self.nutrient_tab, 'Nutrients')
 
-            self.generaltab = QWidget()
-            self.nutrienttab.addTab(self.generaltab, 'General')
+            self.general_tab = QWidget()
+            self.nutrient_tab.addTab(self.general_tab, 'General')
 
-            self.nitratetab = QWidget()
-            self.nutrienttab.addTab(self.nitratetab, 'Nitrate')
+            self.nitrate_tab = QWidget()
+            self.nutrient_tab.addTab(self.nitrate_tab, 'Nitrate')
 
-            self.phosphatetab = QWidget()
-            self.nutrienttab.addTab(self.phosphatetab, 'Phosphate')
+            self.phosphate_tab = QWidget()
+            self.nutrient_tab.addTab(self.phosphate_tab, 'Phosphate')
 
-            self.silicatetab = QWidget()
-            self.nutrienttab.addTab(self.silicatetab, 'Silicate')
+            self.silicate_tab = QWidget()
+            self.nutrient_tab.addTab(self.silicate_tab, 'Silicate')
 
-            self.nitritetab = QWidget()
-            self.nutrienttab.addTab(self.nitritetab, 'Nitrite')
+            self.nitrite_tab = QWidget()
+            self.nutrient_tab.addTab(self.nitrite_tab, 'Nitrite')
 
-            self.ammoniatab = QWidget()
-            self.nutrienttab.addTab(self.ammoniatab, 'Ammonia')
+            self.ammonia_tab = QWidget()
+            self.nutrient_tab.addTab(self.ammonia_tab, 'Ammonia')
 
-            self.salinitytab = QWidget()
-            self.tabs.addTab(self.salinitytab, 'Salinity')
+            self.salinity_tab = QWidget()
+            self.tabs.addTab(self.salinity_tab, 'Salinity')
 
-            self.oxygentab = QWidget()
-            self.tabs.addTab(self.oxygentab, 'Oxygen')
+            self.oxygen_tab = QWidget()
+            self.tabs.addTab(self.oxygen_tab, 'Oxygen')
 
             save = QPushButton('Save', self)
-            save.clicked.connect(self.savefunction)
+            save.clicked.connect(self.save_function)
 
             cancel = QPushButton('Cancel', self)
-            cancel.clicked.connect(self.cancelfunction)
+            cancel.clicked.connect(self.cancel_function)
 
             self.grid_layout.addWidget(self.tabs, 1, 0, 5, 4)
 
@@ -70,117 +71,119 @@ class parametersDialog(hyproDialogTemplate):
 
             self.setLayout(self.grid_layout)
 
-            self.generaltab.layout = QGridLayout()
+            self.general_tab.layout = QGridLayout()
 
-            slkcolumnlabel = QLabel('<b>SLK Column Headers</b>', self)
-            sampleidlabel = QLabel('Sample ID Header:', self)
-            self.sampleid = QLineEdit(self)
-            cupnumberlabel = QLabel('Cup Number Header:', self)
-            self.cupnumber = QLineEdit(self)
-            cuptypelabel = QLabel('Cup Type Header:', self)
-            self.cuptype = QLineEdit(self)
-            datetimelabel = QLabel('Time Stamp Header:', self)
-            self.datetime = QLineEdit(self)
+            slk_column_label = QLabel('<b>SLK Column Headers</b>', self)
+            sample_id_label = QLabel('Sample ID Header:', self)
+            self.sample_id = QLineEdit(self)
+            cup_number_label = QLabel('Cup Number Header:', self)
+            self.cup_number = QLineEdit(self)
+            cup_type_label = QLabel('Cup Type Header:', self)
+            self.cup_type = QLineEdit(self)
+            date_time_label = QLabel('Time Stamp Header:', self)
+            self.date_time = QLineEdit(self)
 
-            genlinesep1 = QFrame(self)
-            genlinesep1.setFrameShape(QFrame.HLine)
-            genlinesep1.setFrameShadow(QFrame.Sunken)
+            gen_line_sep1 = QFrame(self)
+            gen_line_sep1.setFrameShape(QFrame.HLine)
+            gen_line_sep1.setFrameShadow(QFrame.Sunken)
 
-            cupnameslabel = QLabel('<b>Cup Names</b>', self)
-            primerlabel = QLabel('Primer:', self)
+            cup_names_label = QLabel('<b>Cup Names</b>', self)
+            primer_label = QLabel('Primer:', self)
             self.primer = QLineEdit(self)
-            recoverylabel = QLabel('NO3 Recovery:', self)
+            recovery_label = QLabel('NO3 Recovery:', self)
             self.recovery = QLineEdit(self)
-            driftlabel = QLabel('Drift:', self)
+            drift_label = QLabel('Drift:', self)
             self.drift = QLineEdit(self)
-            baselinelabel = QLabel('Baseline:', self)
+            baseline_label = QLabel('Baseline:', self)
             self.baseline = QLineEdit(self)
-            calibrantlabel = QLabel('Calibrants:', self)
+            calibrant_label = QLabel('Calibrants:', self)
             self.calibrant = QLineEdit(self)
-            highlabel = QLabel('High Carryover:', self)
+            high_label = QLabel('High Carryover:', self)
             self.high = QLineEdit(self)
-            lowlabel = QLabel('Low Carryover:', self)
+            low_label = QLabel('Low Carryover:', self)
             self.low = QLineEdit(self)
-            nulllabel = QLabel('Null:', self)
+            null_label = QLabel('Null:', self)
             self.null = QLineEdit(self)
-            samplelabel = QLabel('Sample:', self)
+            sample_label = QLabel('Sample:', self)
             self.sample = QLineEdit(self)
-            endlabel = QLabel('End:', self)
+            end_label = QLabel('End:', self)
             self.end = QLineEdit(self)
 
-            genlinesep2 = QFrame(self)
-            genlinesep2.setFrameShape(QFrame.HLine)
-            genlinesep2.setFrameShadow(QFrame.Sunken)
+            gen_line_sep2 = QFrame(self)
+            gen_line_sep2.setFrameShape(QFrame.HLine)
+            gen_line_sep2.setFrameShadow(QFrame.Sunken)
 
-            qcsamplelabel = QLabel('<b>QC Sample Names</b>', self)
-            driftchecklabel = QLabel('Drift Check:', self)
-            self.driftcheck = QLineEdit(self)
-            rmnslabel = QLabel('RMNS:', self)
+            qc_sample_label = QLabel('<b>QC Sample Names</b>', self)
+            drift_check_label = QLabel('Drift Check:', self)
+            self.drift_check = QLineEdit(self)
+            rmns_label = QLabel('RMNS:', self)
             self.rmns = QLineEdit(self)
-            mdllabel = QLabel('MDL:', self)
+            mdl_label = QLabel('MDL:', self)
             self.mdl = QLineEdit(self)
-            bqclabel = QLabel('Bulk QC:', self)
+            bqc_label = QLabel('Bulk QC:', self)
             self.bqc = QLineEdit(self)
-            intqclabel = QLabel('Internal QC:', self)
-            self.intqc = QLineEdit(self)
-            uwylabel = QLabel('Underway Sample:', self)
+            int_qc_label = QLabel('Internal QC:', self)
+            self.int_qc = QLineEdit(self)
+            uwy_label = QLabel('Underway Sample:', self)
             self.uwy = QLineEdit(self)
 
-            self.generaltab.layout.addWidget(slkcolumnlabel, 0, 0, 1, 2, QtCore.Qt.AlignCenter)
-            self.generaltab.layout.addWidget(sampleidlabel, 1, 0)
-            self.generaltab.layout.addWidget(self.sampleid, 1, 1)
-            self.generaltab.layout.addWidget(cupnumberlabel, 2, 0)
-            self.generaltab.layout.addWidget(self.cupnumber, 2, 1)
-            self.generaltab.layout.addWidget(cuptypelabel, 3, 0)
-            self.generaltab.layout.addWidget(self.cuptype, 3, 1)
-            self.generaltab.layout.addWidget(datetimelabel, 4, 0)
-            self.generaltab.layout.addWidget(self.datetime, 4, 1)
+            self.general_tab.layout.addWidget(slk_column_label, 0, 0, 1, 2, QtCore.Qt.AlignCenter)
+            self.general_tab.layout.addWidget(sample_id_label, 1, 0)
+            self.general_tab.layout.addWidget(self.sample_id, 1, 1)
+            self.general_tab.layout.addWidget(cup_number_label, 2, 0)
+            self.general_tab.layout.addWidget(self.cup_number, 2, 1)
+            self.general_tab.layout.addWidget(cup_type_label, 3, 0)
+            self.general_tab.layout.addWidget(self.cup_type, 3, 1)
+            self.general_tab.layout.addWidget(date_time_label, 4, 0)
+            self.general_tab.layout.addWidget(self.date_time, 4, 1)
 
-            self.generaltab.layout.addWidget(genlinesep1, 5, 0, 1, 2)
+            self.general_tab.layout.addWidget(gen_line_sep1, 5, 0, 1, 2)
 
-            self.generaltab.layout.addWidget(cupnameslabel, 6, 0, 1, 2, QtCore.Qt.AlignCenter)
-            self.generaltab.layout.addWidget(primerlabel, 7, 0)
-            self.generaltab.layout.addWidget(self.primer, 7, 1)
-            self.generaltab.layout.addWidget(recoverylabel, 8, 0)
-            self.generaltab.layout.addWidget(self.recovery, 8, 1)
-            self.generaltab.layout.addWidget(driftlabel, 9, 0)
-            self.generaltab.layout.addWidget(self.drift, 9, 1)
-            self.generaltab.layout.addWidget(baselinelabel, 10, 0)
-            self.generaltab.layout.addWidget(self.baseline, 10, 1)
-            self.generaltab.layout.addWidget(calibrantlabel, 11, 0)
-            self.generaltab.layout.addWidget(self.calibrant, 11, 1)
-            self.generaltab.layout.addWidget(highlabel, 12, 0)
-            self.generaltab.layout.addWidget(self.high, 12, 1)
-            self.generaltab.layout.addWidget(lowlabel, 13, 0)
-            self.generaltab.layout.addWidget(self.low, 13, 1)
-            self.generaltab.layout.addWidget(nulllabel, 14, 0)
-            self.generaltab.layout.addWidget(self.null, 14, 1)
-            self.generaltab.layout.addWidget(samplelabel, 15, 0)
-            self.generaltab.layout.addWidget(self.sample, 15, 1)
-            self.generaltab.layout.addWidget(endlabel, 16, 0)
-            self.generaltab.layout.addWidget(self.end, 16, 1)
+            self.general_tab.layout.addWidget(cup_names_label, 6, 0, 1, 2, QtCore.Qt.AlignCenter)
+            self.general_tab.layout.addWidget(primer_label, 7, 0)
+            self.general_tab.layout.addWidget(self.primer, 7, 1)
+            self.general_tab.layout.addWidget(recovery_label, 8, 0)
+            self.general_tab.layout.addWidget(self.recovery, 8, 1)
+            self.general_tab.layout.addWidget(drift_label, 9, 0)
+            self.general_tab.layout.addWidget(self.drift, 9, 1)
+            self.general_tab.layout.addWidget(baseline_label, 10, 0)
+            self.general_tab.layout.addWidget(self.baseline, 10, 1)
+            self.general_tab.layout.addWidget(calibrant_label, 11, 0)
+            self.general_tab.layout.addWidget(self.calibrant, 11, 1)
+            self.general_tab.layout.addWidget(high_label, 12, 0)
+            self.general_tab.layout.addWidget(self.high, 12, 1)
+            self.general_tab.layout.addWidget(low_label, 13, 0)
+            self.general_tab.layout.addWidget(self.low, 13, 1)
+            self.general_tab.layout.addWidget(null_label, 14, 0)
+            self.general_tab.layout.addWidget(self.null, 14, 1)
+            self.general_tab.layout.addWidget(sample_label, 15, 0)
+            self.general_tab.layout.addWidget(self.sample, 15, 1)
+            self.general_tab.layout.addWidget(end_label, 16, 0)
+            self.general_tab.layout.addWidget(self.end, 16, 1)
 
-            self.generaltab.layout.addWidget(genlinesep2, 17, 0, 1, 2)
+            self.general_tab.layout.addWidget(gen_line_sep2, 17, 0, 1, 2)
 
-            self.generaltab.layout.addWidget(qcsamplelabel, 18, 0, 1, 2, QtCore.Qt.AlignCenter)
-            self.generaltab.layout.addWidget(driftchecklabel, 19, 0)
-            self.generaltab.layout.addWidget(self.driftcheck, 19, 1)
-            self.generaltab.layout.addWidget(rmnslabel, 20, 0)
-            self.generaltab.layout.addWidget(self.rmns, 20, 1)
-            self.generaltab.layout.addWidget(mdllabel, 21, 0)
-            self.generaltab.layout.addWidget(self.mdl, 21, 1)
-            self.generaltab.layout.addWidget(bqclabel, 22, 0)
-            self.generaltab.layout.addWidget(self.bqc, 22, 1)
-            self.generaltab.layout.addWidget(intqclabel, 23, 0)
-            self.generaltab.layout.addWidget(self.intqc, 23, 1)
-            self.generaltab.layout.addWidget(uwylabel, 24, 0)
-            self.generaltab.layout.addWidget(self.uwy, 24, 1)
+            self.general_tab.layout.addWidget(qc_sample_label, 18, 0, 1, 2, QtCore.Qt.AlignCenter)
+            self.general_tab.layout.addWidget(drift_check_label, 19, 0)
+            self.general_tab.layout.addWidget(self.drift_check, 19, 1)
+            self.general_tab.layout.addWidget(rmns_label, 20, 0)
+            self.general_tab.layout.addWidget(self.rmns, 20, 1)
+            self.general_tab.layout.addWidget(mdl_label, 21, 0)
+            self.general_tab.layout.addWidget(self.mdl, 21, 1)
+            self.general_tab.layout.addWidget(bqc_label, 22, 0)
+            self.general_tab.layout.addWidget(self.bqc, 22, 1)
+            self.general_tab.layout.addWidget(int_qc_label, 23, 0)
+            self.general_tab.layout.addWidget(self.int_qc, 23, 1)
+            self.general_tab.layout.addWidget(uwy_label, 24, 0)
+            self.general_tab.layout.addWidget(self.uwy, 24, 1)
 
-            self.generaltab.setLayout(self.generaltab.layout)
+            self.general_tab.setLayout(self.general_tab.layout)
 
-            # ************************* Nitrate Tab *************************
+            """
+            ************************* Nitrate Tab *************************
+            """
 
-            self.nitratetab.layout = QGridLayout()
+            self.nitrate_tab.layout = QGridLayout()
 
             nitratenamelabel = QLabel('Name:', self)
             self.nitratename = QLineEdit(self)
@@ -200,28 +203,34 @@ class parametersDialog(hyproDialogTemplate):
             self.nitratecaltype.addItems(('Linear', 'Quadratic'))
             nitratecalerrorlabel = QLabel('Calibration Error: ')
             self.nitratecalerror = QLineEdit(self)
+            nitrate_duplicate_label = QLabel('Duplicate Error: ')
+            self.nitrate_duplicate_error = QLineEdit(self)
 
-            self.nitratetab.layout.addWidget(nitratenamelabel, 0, 0)
-            self.nitratetab.layout.addWidget(self.nitratename, 0, 1)
-            self.nitratetab.layout.addWidget(nitratewindowsizelabel, 1, 0)
-            self.nitratetab.layout.addWidget(self.nitratewindowsize, 1, 1)
-            self.nitratetab.layout.addWidget(nitratewindowstartlabel, 2, 0)
-            self.nitratetab.layout.addWidget(self.nitratewindowstart, 2, 1)
-            self.nitratetab.layout.addWidget(nitratedrifttypelabel, 3, 0)
-            self.nitratetab.layout.addWidget(self.nitratedrifttype, 3, 1)
-            self.nitratetab.layout.addWidget(nitratebasetypelabel, 4, 0)
-            self.nitratetab.layout.addWidget(self.nitratebasetype, 4, 1)
-            self.nitratetab.layout.addWidget(self.nitratecarryover, 5, 0)
-            self.nitratetab.layout.addWidget(nitratecaltypelabel, 6, 0)
-            self.nitratetab.layout.addWidget(self.nitratecaltype, 6, 1)
-            self.nitratetab.layout.addWidget(nitratecalerrorlabel, 7, 0)
-            self.nitratetab.layout.addWidget(self.nitratecalerror, 7, 1)
+            self.nitrate_tab.layout.addWidget(nitratenamelabel, 0, 0)
+            self.nitrate_tab.layout.addWidget(self.nitratename, 0, 1)
+            self.nitrate_tab.layout.addWidget(nitratewindowsizelabel, 1, 0)
+            self.nitrate_tab.layout.addWidget(self.nitratewindowsize, 1, 1)
+            self.nitrate_tab.layout.addWidget(nitratewindowstartlabel, 2, 0)
+            self.nitrate_tab.layout.addWidget(self.nitratewindowstart, 2, 1)
+            self.nitrate_tab.layout.addWidget(nitratedrifttypelabel, 3, 0)
+            self.nitrate_tab.layout.addWidget(self.nitratedrifttype, 3, 1)
+            self.nitrate_tab.layout.addWidget(nitratebasetypelabel, 4, 0)
+            self.nitrate_tab.layout.addWidget(self.nitratebasetype, 4, 1)
+            self.nitrate_tab.layout.addWidget(self.nitratecarryover, 5, 0)
+            self.nitrate_tab.layout.addWidget(nitratecaltypelabel, 6, 0)
+            self.nitrate_tab.layout.addWidget(self.nitratecaltype, 6, 1)
+            self.nitrate_tab.layout.addWidget(nitratecalerrorlabel, 7, 0)
+            self.nitrate_tab.layout.addWidget(self.nitratecalerror, 7, 1)
+            self.nitrate_tab.layout.addWidget(nitrate_duplicate_label, 8, 0)
+            self.nitrate_tab.layout.addWidget(self.nitrate_duplicate_error, 8, 1)
 
-            self.nitratetab.setLayout(self.nitratetab.layout)
+            self.nitrate_tab.setLayout(self.nitrate_tab.layout)
 
-            # ************************ Phosphate Tab ***********************
+            """
+             ************************ Phosphate Tab ***********************
+            """
 
-            self.phosphatetab.layout = QGridLayout()
+            self.phosphate_tab.layout = QGridLayout()
 
             phosphatenamelabel = QLabel('Name:', self)
             self.phosphatename = QLineEdit(self)
@@ -240,29 +249,36 @@ class parametersDialog(hyproDialogTemplate):
             self.phosphatecaltype = QComboBox(self)
             self.phosphatecaltype.addItems(('Linear', 'Quadratic'))
             phosphatecalerrorlabel = QLabel('Calibration Error: ')
-
             self.phosphatecalerror = QLineEdit(self)
 
-            self.phosphatetab.layout.addWidget(phosphatenamelabel, 0, 0)
-            self.phosphatetab.layout.addWidget(self.phosphatename, 0, 1)
-            self.phosphatetab.layout.addWidget(phosphatewindowsizelabel, 1, 0)
-            self.phosphatetab.layout.addWidget(self.phosphatewindowsize, 1, 1)
-            self.phosphatetab.layout.addWidget(phosphatewindowstartlabel, 2, 0)
-            self.phosphatetab.layout.addWidget(self.phosphatewindowstart, 2, 1)
-            self.phosphatetab.layout.addWidget(phosphatedrifttypelabel, 3, 0)
-            self.phosphatetab.layout.addWidget(self.phosphatedrifttype, 3, 1)
-            self.phosphatetab.layout.addWidget(phosphatebasetypelabel, 4, 0)
-            self.phosphatetab.layout.addWidget(self.phosphatebasetype, 4, 1)
-            self.phosphatetab.layout.addWidget(self.phosphatecarryover, 5, 0)
-            self.phosphatetab.layout.addWidget(phosphatecaltypelabel, 6, 0)
-            self.phosphatetab.layout.addWidget(self.phosphatecaltype, 6, 1)
-            self.phosphatetab.layout.addWidget(phosphatecalerrorlabel, 7, 0)
-            self.phosphatetab.layout.addWidget(self.phosphatecalerror, 7, 1)
-            self.phosphatetab.setLayout(self.phosphatetab.layout)
+            phosphate_duplicate_label = QLabel('Duplicate Error: ')
+            self.phosphate_duplicate_error = QLineEdit(self)
 
-            # *************************** Silicate Tab ***************************
+            self.phosphate_tab.layout.addWidget(phosphatenamelabel, 0, 0)
+            self.phosphate_tab.layout.addWidget(self.phosphatename, 0, 1)
+            self.phosphate_tab.layout.addWidget(phosphatewindowsizelabel, 1, 0)
+            self.phosphate_tab.layout.addWidget(self.phosphatewindowsize, 1, 1)
+            self.phosphate_tab.layout.addWidget(phosphatewindowstartlabel, 2, 0)
+            self.phosphate_tab.layout.addWidget(self.phosphatewindowstart, 2, 1)
+            self.phosphate_tab.layout.addWidget(phosphatedrifttypelabel, 3, 0)
+            self.phosphate_tab.layout.addWidget(self.phosphatedrifttype, 3, 1)
+            self.phosphate_tab.layout.addWidget(phosphatebasetypelabel, 4, 0)
+            self.phosphate_tab.layout.addWidget(self.phosphatebasetype, 4, 1)
+            self.phosphate_tab.layout.addWidget(self.phosphatecarryover, 5, 0)
+            self.phosphate_tab.layout.addWidget(phosphatecaltypelabel, 6, 0)
+            self.phosphate_tab.layout.addWidget(self.phosphatecaltype, 6, 1)
+            self.phosphate_tab.layout.addWidget(phosphatecalerrorlabel, 7, 0)
+            self.phosphate_tab.layout.addWidget(self.phosphatecalerror, 7, 1)
+            self.phosphate_tab.layout.addWidget(phosphate_duplicate_label, 8, 0)
+            self.phosphate_tab.layout.addWidget(self.phosphate_duplicate_error, 8, 1)
 
-            self.silicatetab.layout = QGridLayout()
+            self.phosphate_tab.setLayout(self.phosphate_tab.layout)
+
+            """
+            *************************** Silicate Tab ***************************
+            """
+
+            self.silicate_tab.layout = QGridLayout()
 
             silicatenamelabel = QLabel('Name:', self)
             self.silicatename = QLineEdit(self)
@@ -282,27 +298,34 @@ class parametersDialog(hyproDialogTemplate):
             self.silicatecaltype.addItems(('Linear', 'Quadratic'))
             silicatecalerrorlabel = QLabel('Calibration Error: ')
             self.silicatecalerror = QLineEdit(self)
+            silicate_duplicate_label = QLabel('Duplicate Error: ')
+            self.silicate_duplicate_error = QLineEdit(self)
 
-            self.silicatetab.layout.addWidget(silicatenamelabel, 0, 0)
-            self.silicatetab.layout.addWidget(self.silicatename, 0, 1)
-            self.silicatetab.layout.addWidget(silicatewindowsizelabel, 1, 0)
-            self.silicatetab.layout.addWidget(self.silicatewindowsize, 1, 1)
-            self.silicatetab.layout.addWidget(silicatewindowstartlabel, 2, 0)
-            self.silicatetab.layout.addWidget(self.silicatewindowstart, 2, 1)
-            self.silicatetab.layout.addWidget(silicatedrifttypelabel, 3, 0)
-            self.silicatetab.layout.addWidget(self.silicatedrifttype, 3, 1)
-            self.silicatetab.layout.addWidget(silicatebasetypelabel, 4, 0)
-            self.silicatetab.layout.addWidget(self.silicatebasetype, 4, 1)
-            self.silicatetab.layout.addWidget(self.silicatecarryover, 5, 0)
-            self.silicatetab.layout.addWidget(silicatecaltypelabel, 6, 0)
-            self.silicatetab.layout.addWidget(self.silicatecaltype, 6, 1)
-            self.silicatetab.layout.addWidget(silicatecalerrorlabel, 7, 0)
-            self.silicatetab.layout.addWidget(self.silicatecalerror, 7, 1)
-            self.silicatetab.setLayout(self.silicatetab.layout)
+            self.silicate_tab.layout.addWidget(silicatenamelabel, 0, 0)
+            self.silicate_tab.layout.addWidget(self.silicatename, 0, 1)
+            self.silicate_tab.layout.addWidget(silicatewindowsizelabel, 1, 0)
+            self.silicate_tab.layout.addWidget(self.silicatewindowsize, 1, 1)
+            self.silicate_tab.layout.addWidget(silicatewindowstartlabel, 2, 0)
+            self.silicate_tab.layout.addWidget(self.silicatewindowstart, 2, 1)
+            self.silicate_tab.layout.addWidget(silicatedrifttypelabel, 3, 0)
+            self.silicate_tab.layout.addWidget(self.silicatedrifttype, 3, 1)
+            self.silicate_tab.layout.addWidget(silicatebasetypelabel, 4, 0)
+            self.silicate_tab.layout.addWidget(self.silicatebasetype, 4, 1)
+            self.silicate_tab.layout.addWidget(self.silicatecarryover, 5, 0)
+            self.silicate_tab.layout.addWidget(silicatecaltypelabel, 6, 0)
+            self.silicate_tab.layout.addWidget(self.silicatecaltype, 6, 1)
+            self.silicate_tab.layout.addWidget(silicatecalerrorlabel, 7, 0)
+            self.silicate_tab.layout.addWidget(self.silicatecalerror, 7, 1)
+            self.silicate_tab.layout.addWidget(silicate_duplicate_label, 8, 0)
+            self.silicate_tab.layout.addWidget(self.silicate_duplicate_error, 8, 1)
 
-            # ************************ Ammonia Tab ******************************
+            self.silicate_tab.setLayout(self.silicate_tab.layout)
 
-            self.ammoniatab.layout = QGridLayout()
+            """
+            ************************ Ammonia Tab ******************************
+            """
+
+            self.ammonia_tab.layout = QGridLayout()
 
             ammonianamelabel = QLabel('Name:', self)
             self.ammonianame = QLineEdit(self)
@@ -322,27 +345,34 @@ class parametersDialog(hyproDialogTemplate):
             self.ammoniacaltype.addItems(('Linear', 'Quadratic'))
             ammoniacalerrorlabel = QLabel('Calibration Error: ')
             self.ammoniacalerror = QLineEdit(self)
+            ammonia_duplicate_label = QLabel('Duplicate Error: ')
+            self.ammonia_duplicate_error = QLineEdit(self)
 
-            self.ammoniatab.layout.addWidget(ammonianamelabel, 0, 0)
-            self.ammoniatab.layout.addWidget(self.ammonianame, 0, 1)
-            self.ammoniatab.layout.addWidget(ammoniawindowsizelabel, 1, 0)
-            self.ammoniatab.layout.addWidget(self.ammoniawindowsize, 1, 1)
-            self.ammoniatab.layout.addWidget(ammoniawindowstartlabel, 2, 0)
-            self.ammoniatab.layout.addWidget(self.ammoniawindowstart, 2, 1)
-            self.ammoniatab.layout.addWidget(ammoniadrifttypelabel, 3, 0)
-            self.ammoniatab.layout.addWidget(self.ammoniadrifttype, 3, 1)
-            self.ammoniatab.layout.addWidget(ammoniabasetypelabel, 4, 0)
-            self.ammoniatab.layout.addWidget(self.ammoniabasetype, 4, 1)
-            self.ammoniatab.layout.addWidget(self.ammoniacarryover, 5, 0)
-            self.ammoniatab.layout.addWidget(ammoniacaltypelabel, 6, 0)
-            self.ammoniatab.layout.addWidget(self.ammoniacaltype, 6, 1)
-            self.ammoniatab.layout.addWidget(ammoniacalerrorlabel, 7, 0)
-            self.ammoniatab.layout.addWidget(self.ammoniacalerror, 7, 1)
-            self.ammoniatab.setLayout(self.ammoniatab.layout)
+            self.ammonia_tab.layout.addWidget(ammonianamelabel, 0, 0)
+            self.ammonia_tab.layout.addWidget(self.ammonianame, 0, 1)
+            self.ammonia_tab.layout.addWidget(ammoniawindowsizelabel, 1, 0)
+            self.ammonia_tab.layout.addWidget(self.ammoniawindowsize, 1, 1)
+            self.ammonia_tab.layout.addWidget(ammoniawindowstartlabel, 2, 0)
+            self.ammonia_tab.layout.addWidget(self.ammoniawindowstart, 2, 1)
+            self.ammonia_tab.layout.addWidget(ammoniadrifttypelabel, 3, 0)
+            self.ammonia_tab.layout.addWidget(self.ammoniadrifttype, 3, 1)
+            self.ammonia_tab.layout.addWidget(ammoniabasetypelabel, 4, 0)
+            self.ammonia_tab.layout.addWidget(self.ammoniabasetype, 4, 1)
+            self.ammonia_tab.layout.addWidget(self.ammoniacarryover, 5, 0)
+            self.ammonia_tab.layout.addWidget(ammoniacaltypelabel, 6, 0)
+            self.ammonia_tab.layout.addWidget(self.ammoniacaltype, 6, 1)
+            self.ammonia_tab.layout.addWidget(ammoniacalerrorlabel, 7, 0)
+            self.ammonia_tab.layout.addWidget(self.ammoniacalerror, 7, 1)
+            self.ammonia_tab.layout.addWidget(ammonia_duplicate_label, 8, 0)
+            self.ammonia_tab.layout.addWidget(self.ammonia_duplicate_error, 8, 1)
 
-            # ******************* Nitrite Tab ******************************
+            self.ammonia_tab.setLayout(self.ammonia_tab.layout)
 
-            self.nitritetab.layout = QGridLayout()
+            """
+            ******************* Nitrite Tab ******************************
+            """
+
+            self.nitrite_tab.layout = QGridLayout()
 
             nitritenamelabel = QLabel('Name:', self)
             self.nitritename = QLineEdit(self)
@@ -362,23 +392,28 @@ class parametersDialog(hyproDialogTemplate):
             self.nitritecaltype.addItems(('Linear', 'Quadratic'))
             nitritecalerrorlabel = QLabel('Calibration Error: ')
             self.nitritecalerror = QLineEdit(self)
+            nitrite_duplicate_label = QLabel('Duplicate Error: ')
+            self.nitrite_duplicate_error = QLineEdit(self)
 
-            self.nitritetab.layout.addWidget(nitritenamelabel, 0, 0)
-            self.nitritetab.layout.addWidget(self.nitritename, 0, 1)
-            self.nitritetab.layout.addWidget(nitritewindowsizelabel, 1, 0)
-            self.nitritetab.layout.addWidget(self.nitritewindowsize, 1, 1)
-            self.nitritetab.layout.addWidget(nitritewindowstartlabel, 2, 0)
-            self.nitritetab.layout.addWidget(self.nitritewindowstart, 2, 1)
-            self.nitritetab.layout.addWidget(nitritedrifttypelabel, 3, 0)
-            self.nitritetab.layout.addWidget(self.nitritedrifttype, 3, 1)
-            self.nitritetab.layout.addWidget(nitritebasetypelabel, 4, 0)
-            self.nitritetab.layout.addWidget(self.nitritebasetype, 4, 1)
-            self.nitritetab.layout.addWidget(self.nitritecarryover, 5, 0)
-            self.nitritetab.layout.addWidget(nitritecaltypelabel, 6, 0)
-            self.nitritetab.layout.addWidget(self.nitritecaltype, 6, 1)
-            self.nitritetab.layout.addWidget(nitritecalerrorlabel, 7, 0)
-            self.nitritetab.layout.addWidget(self.nitritecalerror, 7, 1)
-            self.nitritetab.setLayout(self.nitritetab.layout)
+            self.nitrite_tab.layout.addWidget(nitritenamelabel, 0, 0)
+            self.nitrite_tab.layout.addWidget(self.nitritename, 0, 1)
+            self.nitrite_tab.layout.addWidget(nitritewindowsizelabel, 1, 0)
+            self.nitrite_tab.layout.addWidget(self.nitritewindowsize, 1, 1)
+            self.nitrite_tab.layout.addWidget(nitritewindowstartlabel, 2, 0)
+            self.nitrite_tab.layout.addWidget(self.nitritewindowstart, 2, 1)
+            self.nitrite_tab.layout.addWidget(nitritedrifttypelabel, 3, 0)
+            self.nitrite_tab.layout.addWidget(self.nitritedrifttype, 3, 1)
+            self.nitrite_tab.layout.addWidget(nitritebasetypelabel, 4, 0)
+            self.nitrite_tab.layout.addWidget(self.nitritebasetype, 4, 1)
+            self.nitrite_tab.layout.addWidget(self.nitritecarryover, 5, 0)
+            self.nitrite_tab.layout.addWidget(nitritecaltypelabel, 6, 0)
+            self.nitrite_tab.layout.addWidget(self.nitritecaltype, 6, 1)
+            self.nitrite_tab.layout.addWidget(nitritecalerrorlabel, 7, 0)
+            self.nitrite_tab.layout.addWidget(self.nitritecalerror, 7, 1)
+            self.nitrite_tab.layout.addWidget(nitrite_duplicate_label, 8, 0)
+            self.nitrite_tab.layout.addWidget(self.nitrite_duplicate_error, 8, 1)
+
+            self.nitrite_tab.setLayout(self.nitrite_tab.layout)
 
             self.populatefields()
 
@@ -386,13 +421,13 @@ class parametersDialog(hyproDialogTemplate):
             print(e)
 
     def populatefields(self):
-        with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
+        with open(self.currpath + '/' + '%sParams.json' % self.current_project, 'r') as file:
             params = json.loads(file.read())
 
-        self.sampleid.setText(params['nutrient_processing']['slk_col_names']['sample_id'])
-        self.cupnumber.setText(params['nutrient_processing']['slk_col_names']['cup_numbers'])
-        self.cuptype.setText(params['nutrient_processing']['slk_col_names']['cup_types'])
-        self.datetime.setText(params['nutrient_processing']['slk_col_names']['date_time'])
+        self.sample_id.setText(params['nutrient_processing']['slk_col_names']['sample_id'])
+        self.cup_number.setText(params['nutrient_processing']['slk_col_names']['cup_numbers'])
+        self.cup_type.setText(params['nutrient_processing']['slk_col_names']['cup_types'])
+        self.date_time.setText(params['nutrient_processing']['slk_col_names']['date_time'])
 
         self.primer.setText(params['nutrient_processing']['cup_names']['primer'])
         self.recovery.setText(params['nutrient_processing']['cup_names']['recovery'])
@@ -405,91 +440,87 @@ class parametersDialog(hyproDialogTemplate):
         self.end.setText(params['nutrient_processing']['cup_names']['end'])
         self.sample.setText(params['nutrient_processing']['cup_names']['sample'])
 
-        self.driftcheck.setText(params['nutrient_processing']['qc_sample_names']['driftcheck'])
+        self.drift_check.setText(params['nutrient_processing']['qc_sample_names']['driftcheck'])
         self.rmns.setText(params['nutrient_processing']['qc_sample_names']['rmns'])
         self.mdl.setText(params['nutrient_processing']['qc_sample_names']['mdl'])
         self.bqc.setText(params['nutrient_processing']['qc_sample_names']['bqc'])
-        self.intqc.setText(params['nutrient_processing']['qc_sample_names']['internalqc'])
+        self.int_qc.setText(params['nutrient_processing']['qc_sample_names']['internalqc'])
         self.uwy.setText(params['nutrient_processing']['qc_sample_names']['underway'])
 
         self.nitratename.setText(params['nutrient_processing']['element_names']['nitrate_name'])
-        self.nitratewindowsize.setText(str(params['nutrient_processing']['processing_pars']['nitrate']['window_size']))
-        self.nitratewindowstart.setText(
-            str(params['nutrient_processing']['processing_pars']['nitrate']['window_start']))
-        self.nitratedrifttype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['nitrate']['drift_corr_type'])
-        self.nitratebasetype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['nitrate']['base_corr_type'])
-        self.nitratecarryover.setChecked(params['nutrient_processing']['processing_pars']['nitrate']['carryover_corr'])
-        self.nitratecaltype.setCurrentText(params['nutrient_processing']['processing_pars']['nitrate']['calibration'])
-        self.nitratecalerror.setText(str(params['nutrient_processing']['processing_pars']['nitrate']['cal_error']))
+
+        nitrate_params = params['nutrient_processing']['processing_pars']['nitrate']
+
+        self.nitratewindowsize.setText(str(nitrate_params['window_size']))
+        self.nitratewindowstart.setText(str(nitrate_params['window_start']))
+        self.nitratedrifttype.setCurrentText(nitrate_params['drift_corr_type'])
+        self.nitratebasetype.setCurrentText(nitrate_params['base_corr_type'])
+        self.nitratecarryover.setChecked(nitrate_params['carryover_corr'])
+        self.nitratecaltype.setCurrentText(nitrate_params['calibration'])
+        self.nitratecalerror.setText(str(nitrate_params['cal_error']))
+        self.nitrate_duplicate_error.setText(str(nitrate_params['duplicate_error']))
+
+        phosphate_params = params['nutrient_processing']['processing_pars']['phosphate']
 
         self.phosphatename.setText(params['nutrient_processing']['element_names']['phosphate_name'])
-        self.phosphatewindowsize.setText(
-            str(params['nutrient_processing']['processing_pars']['phosphate']['window_size']))
-        self.phosphatewindowstart.setText(
-            str(params['nutrient_processing']['processing_pars']['phosphate']['window_start']))
-        self.phosphatedrifttype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['phosphate']['drift_corr_type'])
-        self.phosphatebasetype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['phosphate']['base_corr_type'])
-        self.phosphatecarryover.setChecked(
-            params['nutrient_processing']['processing_pars']['phosphate']['carryover_corr'])
-        self.phosphatecaltype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['phosphate']['calibration'])
-        self.phosphatecalerror.setText(str(params['nutrient_processing']['processing_pars']['phosphate']['cal_error']))
+        self.phosphatewindowsize.setText(str(phosphate_params['window_size']))
+        self.phosphatewindowstart.setText(str(phosphate_params['window_start']))
+        self.phosphatedrifttype.setCurrentText(phosphate_params['drift_corr_type'])
+        self.phosphatebasetype.setCurrentText(phosphate_params['base_corr_type'])
+        self.phosphatecarryover.setChecked(phosphate_params['carryover_corr'])
+        self.phosphatecaltype.setCurrentText(phosphate_params['calibration'])
+        self.phosphatecalerror.setText(str(phosphate_params['cal_error']))
+        self.phosphate_duplicate_error.setText(str(phosphate_params['duplicate_error']))
+
+        silicate_params = params['nutrient_processing']['processing_pars']['silicate']
 
         self.silicatename.setText(params['nutrient_processing']['element_names']['silicate_name'])
-        self.silicatewindowsize.setText(
-            str(params['nutrient_processing']['processing_pars']['silicate']['window_size']))
-        self.silicatewindowstart.setText(
-            str(params['nutrient_processing']['processing_pars']['silicate']['window_start']))
-        self.silicatedrifttype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['silicate']['drift_corr_type'])
-        self.silicatebasetype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['silicate']['base_corr_type'])
-        self.silicatecarryover.setChecked(
-            params['nutrient_processing']['processing_pars']['silicate']['carryover_corr'])
-        self.silicatecaltype.setCurrentText(params['nutrient_processing']['processing_pars']['silicate']['calibration'])
-        self.silicatecalerror.setText(str(params['nutrient_processing']['processing_pars']['silicate']['cal_error']))
+        self.silicatewindowsize.setText(str(silicate_params['window_size']))
+        self.silicatewindowstart.setText(str(silicate_params['window_start']))
+        self.silicatedrifttype.setCurrentText(silicate_params['drift_corr_type'])
+        self.silicatebasetype.setCurrentText(silicate_params['base_corr_type'])
+        self.silicatecarryover.setChecked(silicate_params['carryover_corr'])
+        self.silicatecaltype.setCurrentText(silicate_params['calibration'])
+        self.silicatecalerror.setText(str(silicate_params['cal_error']))
+        self.silicate_duplicate_error.setText(str(silicate_params['duplicate_error']))
+
+        nitrite_params = params['nutrient_processing']['processing_pars']['nitrite']
 
         self.nitritename.setText(params['nutrient_processing']['element_names']['nitrite_name'])
-        self.nitritewindowsize.setText(str(params['nutrient_processing']['processing_pars']['nitrite']['window_size']))
-        self.nitritewindowstart.setText(
-            str(params['nutrient_processing']['processing_pars']['nitrite']['window_start']))
-        self.nitritedrifttype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['nitrite']['drift_corr_type'])
-        self.nitritebasetype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['nitrite']['base_corr_type'])
-        self.nitritecarryover.setChecked(params['nutrient_processing']['processing_pars']['nitrite']['carryover_corr'])
-        self.nitritecaltype.setCurrentText(params['nutrient_processing']['processing_pars']['nitrite']['calibration'])
-        self.nitritecalerror.setText(str(params['nutrient_processing']['processing_pars']['nitrite']['cal_error']))
+        self.nitritewindowsize.setText(str(nitrite_params['window_size']))
+        self.nitritewindowstart.setText(str(nitrite_params['window_start']))
+        self.nitritedrifttype.setCurrentText(nitrite_params['drift_corr_type'])
+        self.nitritebasetype.setCurrentText(nitrite_params['base_corr_type'])
+        self.nitritecarryover.setChecked(nitrite_params['carryover_corr'])
+        self.nitritecaltype.setCurrentText(nitrite_params['calibration'])
+        self.nitritecalerror.setText(str(nitrite_params['cal_error']))
+        self.nitrite_duplicate_error.setText(str(nitrite_params['duplicate_error']))
+
+        ammonia_params = params['nutrient_processing']['processing_pars']['ammonia']
 
         self.ammonianame.setText(params['nutrient_processing']['element_names']['ammonia_name'])
-        self.ammoniawindowsize.setText(str(params['nutrient_processing']['processing_pars']['ammonia']['window_size']))
-        self.ammoniawindowstart.setText(
-            str(params['nutrient_processing']['processing_pars']['ammonia']['window_start']))
-        self.ammoniadrifttype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['ammonia']['drift_corr_type'])
-        self.ammoniabasetype.setCurrentText(
-            params['nutrient_processing']['processing_pars']['ammonia']['base_corr_type'])
-        self.ammoniacarryover.setChecked(params['nutrient_processing']['processing_pars']['ammonia']['carryover_corr'])
-        self.ammoniacaltype.setCurrentText(params['nutrient_processing']['processing_pars']['ammonia']['calibration'])
-        self.ammoniacalerror.setText(str(params['nutrient_processing']['processing_pars']['ammonia']['cal_error']))
+        self.ammoniawindowsize.setText(str(ammonia_params['window_size']))
+        self.ammoniawindowstart.setText(str(ammonia_params['window_start']))
+        self.ammoniadrifttype.setCurrentText(ammonia_params['drift_corr_type'])
+        self.ammoniabasetype.setCurrentText(ammonia_params['base_corr_type'])
+        self.ammoniacarryover.setChecked(ammonia_params['carryover_corr'])
+        self.ammoniacaltype.setCurrentText(ammonia_params['calibration'])
+        self.ammoniacalerror.setText(str(ammonia_params['cal_error']))
+        self.ammonia_duplicate_error.setText(str(ammonia_params['duplicate_error']))
 
     def resizewindow(self):
         self.setGeometry(0, 0, 475, 600)
 
-    def savefunction(self):
+    def save_function(self):
         try:
-            with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'r') as file:
+            with open(self.currpath + '/' + '%sParams.json' % self.current_project, 'r') as file:
                 params = json.loads(file.read())
             # TODO Fix this so it changes the save query based on tabs open
 
-            params['nutrient_processing']['slk_col_names']['sample_id'] = self.sampleid.text()
-            params['nutrient_processing']['slk_col_names']['cup_numbers'] = self.cupnumber.text()
-            params['nutrient_processing']['slk_col_names']['cup_types'] = self.cuptype.text()
-            params['nutrient_processing']['slk_col_names']['date_time'] = self.datetime.text()
+            params['nutrient_processing']['slk_col_names']['sample_id'] = self.sample_id.text()
+            params['nutrient_processing']['slk_col_names']['cup_numbers'] = self.cup_number.text()
+            params['nutrient_processing']['slk_col_names']['cup_types'] = self.cup_type.text()
+            params['nutrient_processing']['slk_col_names']['date_time'] = self.date_time.text()
 
             params['nutrient_processing']['cup_names']['primer'] = self.primer.text()
             params['nutrient_processing']['cup_names']['recovery'] = self.recovery.text()
@@ -505,92 +536,73 @@ class parametersDialog(hyproDialogTemplate):
             params['nutrient_processing']['qc_sample_names']['rmns'] = self.rmns.text()
             params['nutrient_processing']['qc_sample_names']['mdl'] = self.mdl.text()
             params['nutrient_processing']['qc_sample_names']['bqc'] = self.bqc.text()
-            params['nutrient_processing']['qc_sample_names']['internalqc'] = self.intqc.text()
+            params['nutrient_processing']['qc_sample_names']['internalqc'] = self.int_qc.text()
             params['nutrient_processing']['qc_sample_names']['underway'] = self.uwy.text()
 
             params['nutrient_processing']['element_names']['nitrate_name'] = self.nitratename.text()
             params['nutrient_processing']['processing_pars']['nitrate']['window_size'] = self.nitratewindowsize.text()
             params['nutrient_processing']['processing_pars']['nitrate']['window_start'] = self.nitratewindowstart.text()
-            params['nutrient_processing']['processing_pars']['nitrate'][
-                'drift_corr_type'] = self.nitratedrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['nitrate'][
-                'base_corr_type'] = self.nitratebasetype.currentText()
-            params['nutrient_processing']['processing_pars']['nitrate'][
-                'carryover_corr'] = self.nitratecarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['nitrate'][
-                'calibration'] = self.nitratecaltype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrate']['drift_corr_type'] = self.nitratedrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrate']['base_corr_type'] = self.nitratebasetype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrate']['carryover_corr'] = self.nitratecarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['nitrate']['calibration'] = self.nitratecaltype.currentText()
             params['nutrient_processing']['processing_pars']['nitrate']['cal_error'] = self.nitratecalerror.text()
+            params['nutrient_processing']['processing_pars']['nitrate']['duplicate_error'] = self.nitrate_duplicate_error.text()
 
             params['nutrient_processing']['element_names']['phosphate_name'] = self.phosphatename.text()
-            params['nutrient_processing']['processing_pars']['phosphate'][
-                'window_size'] = self.phosphatewindowsize.text()
-            params['nutrient_processing']['processing_pars']['phosphate'][
-                'window_start'] = self.phosphatewindowstart.text()
-            params['nutrient_processing']['processing_pars']['phosphate'][
-                'drift_corr_type'] = self.phosphatedrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['phosphate'][
-                'base_corr_type'] = self.phosphatebasetype.currentText()
-            params['nutrient_processing']['processing_pars']['phosphate'][
-                'carryover_corr'] = self.phosphatecarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['phosphate'][
-                'calibration'] = self.phosphatecaltype.currentText()
+            params['nutrient_processing']['processing_pars']['phosphate']['window_size'] = self.phosphatewindowsize.text()
+            params['nutrient_processing']['processing_pars']['phosphate']['window_start'] = self.phosphatewindowstart.text()
+            params['nutrient_processing']['processing_pars']['phosphate']['drift_corr_type'] = self.phosphatedrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['phosphate']['base_corr_type'] = self.phosphatebasetype.currentText()
+            params['nutrient_processing']['processing_pars']['phosphate']['carryover_corr'] = self.phosphatecarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['phosphate']['calibration'] = self.phosphatecaltype.currentText()
             params['nutrient_processing']['processing_pars']['phosphate']['cal_error'] = self.phosphatecalerror.text()
+            params['nutrient_processing']['processing_pars']['phosphate']['duplicate_error'] = self.phosphate_duplicate_error.text()
 
             params['nutrient_processing']['element_names']['silicate_name'] = self.silicatename.text()
             params['nutrient_processing']['processing_pars']['silicate']['window_size'] = self.silicatewindowsize.text()
-            params['nutrient_processing']['processing_pars']['silicate'][
-                'window_start'] = self.silicatewindowstart.text()
-            params['nutrient_processing']['processing_pars']['silicate'][
-                'drift_corr_type'] = self.silicatedrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['silicate'][
-                'base_corr_type'] = self.silicatebasetype.currentText()
-            params['nutrient_processing']['processing_pars']['silicate'][
-                'carryover_corr'] = self.silicatecarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['silicate'][
-                'calibration'] = self.silicatecaltype.currentText()
+            params['nutrient_processing']['processing_pars']['silicate']['window_start'] = self.silicatewindowstart.text()
+            params['nutrient_processing']['processing_pars']['silicate']['drift_corr_type'] = self.silicatedrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['silicate']['base_corr_type'] = self.silicatebasetype.currentText()
+            params['nutrient_processing']['processing_pars']['silicate']['carryover_corr'] = self.silicatecarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['silicate']['calibration'] = self.silicatecaltype.currentText()
             params['nutrient_processing']['processing_pars']['silicate']['cal_error'] = self.silicatecalerror.text()
+            params['nutrient_processing']['processing_pars']['silicate']['duplicate_error'] = self.silicate_duplicate_error.text()
 
             params['nutrient_processing']['element_names']['nitrite_name'] = self.nitritename.text()
             params['nutrient_processing']['processing_pars']['nitrite']['window_size'] = self.nitritewindowsize.text()
             params['nutrient_processing']['processing_pars']['nitrite']['window_start'] = self.nitritewindowstart.text()
-            params['nutrient_processing']['processing_pars']['nitrite'][
-                'drift_corr_type'] = self.nitritedrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['nitrite'][
-                'base_corr_type'] = self.nitritebasetype.currentText()
-            params['nutrient_processing']['processing_pars']['nitrite'][
-                'carryover_corr'] = self.nitritecarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['nitrite'][
-                'calibration'] = self.nitritecaltype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrite']['drift_corr_type'] = self.nitritedrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrite']['base_corr_type'] = self.nitritebasetype.currentText()
+            params['nutrient_processing']['processing_pars']['nitrite']['carryover_corr'] = self.nitritecarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['nitrite']['calibration'] = self.nitritecaltype.currentText()
             params['nutrient_processing']['processing_pars']['nitrite']['cal_error'] = self.nitritecalerror.text()
+            params['nutrient_processing']['processing_pars']['nitrite']['duplicate_error'] = self.nitrite_duplicate_error.text()
 
             params['nutrient_processing']['element_names']['ammonia_name'] = self.ammonianame.text()
             params['nutrient_processing']['processing_pars']['ammonia']['window_size'] = self.ammoniawindowsize.text()
             params['nutrient_processing']['processing_pars']['ammonia']['window_start'] = self.ammoniawindowstart.text()
-            params['nutrient_processing']['processing_pars']['ammonia'][
-                'drift_corr_type'] = self.ammoniadrifttype.currentText()
-            params['nutrient_processing']['processing_pars']['ammonia'][
-                'base_corr_type'] = self.ammoniabasetype.currentText()
-            params['nutrient_processing']['processing_pars']['ammonia'][
-                'carryover_corr'] = self.ammoniacarryover.isChecked()
-            params['nutrient_processing']['processing_pars']['ammonia'][
-                'calibration'] = self.ammoniacaltype.currentText()
+            params['nutrient_processing']['processing_pars']['ammonia']['drift_corr_type'] = self.ammoniadrifttype.currentText()
+            params['nutrient_processing']['processing_pars']['ammonia']['base_corr_type'] = self.ammoniabasetype.currentText()
+            params['nutrient_processing']['processing_pars']['ammonia']['carryover_corr'] = self.ammoniacarryover.isChecked()
+            params['nutrient_processing']['processing_pars']['ammonia']['calibration'] = self.ammoniacaltype.currentText()
             params['nutrient_processing']['processing_pars']['ammonia']['cal_error'] = self.ammoniacalerror.text()
+            params['nutrient_processing']['processing_pars']['ammonia']['duplicate_error'] = self.nitrite_duplicate_error.text()
 
-            with open(self.currpath + '/' + '%sParams.json' % self.currproject, 'w') as file:
+            with open(self.currpath + '/' + '%sParams.json' % self.current_project, 'w') as file:
                 json.dump(params, file)
 
-            messagebox = QMessageBox(QtWidgets.QMessageBox.Information, 'Success',
-                                     "Project parameters saved",
-                                     buttons=QtWidgets.QMessageBox.Ok, parent=self)
-            messagebox.setIconPixmap(QPixmap(':/assets/success.svg'))
-            messagebox.setFont(QFont('Segoe UI'))
-            messagebox.setStyleSheet('QLabel { font: 15px; } QPushButton { font: 15px; }')
-            messagebox.exec_()
+            message = hyproMessageBoxTemplate(
+                'Success',
+                'Project parameters saved',
+                'success'
+            )
+
             time.sleep(0.3)
             self.close()
 
         except Exception as e:
             logging.error(e)
 
-    def cancelfunction(self):
+    def cancel_function(self):
         self.close()
