@@ -87,6 +87,8 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     # Match the SLK peak start data to the CHD A/D data
     # for subsequent processing runs, check if we use
 
+    # w_d stands for working_data, hope thats OK?
+
     w_d.window_values, w_d.time_values, w_d.adjusted_peak_starts[current_nutrient] = get_peak_values(
         slk_data.clean_peak_starts[current_nutrient],
         chd_data.ad_data[current_nutrient],
@@ -609,8 +611,8 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
     calibration_iteration = 0
 
     # TODO: Massive todo, it works and works OK, but it is not clean at all.
-    # Subset on if the flag isn't bad
 
+    # Subset on if the flag isn't bad
     medians_to_fit = [x for i, x in enumerate(calibrant_medians) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
     concs_to_fit = [x for i, x in enumerate(calibrant_concentrations) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
     weightings_to_fit = [x for i, x in enumerate(calibrant_weightings) if calibrant_flags[i] in [1, 2, 4, 5, 6]]
@@ -620,7 +622,6 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
     cal_coefficients = []
     while repeat_calibration:
         try:
-
             calibration_iteration += 1
 
             if cal_type == 'Linear':
@@ -640,40 +641,53 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
                 logging.error('ERROR: No calibration type specified for nutrient')
                 raise NameError('No calibration type could be applied')
 
+            # Set repeat calibration to false now, if we need to go again, it will be turned to true.
             repeat_calibration = False
 
+            # Calculate the calibration residuals, from the residuals we can determine if it is a good or bad fit
             calibrant_residuals = []
             for i, x in enumerate(concs_to_fit):
                 cal_residual = x - fp(medians_to_fit[i])
                 calibrant_residuals.append(cal_residual)
 
+            # Get the list index of the calibrant with the highest residual...
             max_residual_index = int(npargmax(npabs(nparray(calibrant_residuals))))
+            absolute_calibrant_residual = abs(calibrant_residuals[max_residual_index])
 
-            if abs(calibrant_residuals[max_residual_index]) > (2 * calibrant_error) and flags_to_fit[
-                max_residual_index] != 92:
+            # Let's check if that calibrant is outside the specified cut off
+            if absolute_calibrant_residual > (2 * calibrant_error) and flags_to_fit[max_residual_index] != 92:
+                # That calibrant IS outside our cutoff. We will remove it and re-run calibration fit.
                 repeat_calibration = True
-                weightings_to_fit[max_residual_index] = 0
-                flags_to_fit[max_residual_index] = 91
 
+                # Set the weighting of that calibrant to 0 and flag it 91 to indicate
+                weightings_to_fit[max_residual_index] = 0
+                flags_to_fit[max_residual_index] = 92
+
+                # Remove the bad calibrant from the
                 medians_to_fit.pop(max_residual_index)
                 concs_to_fit.pop(max_residual_index)
                 weightings_to_fit.pop(max_residual_index)
                 original_indexes.pop(max_residual_index)
                 flags_to_fit.pop(max_residual_index)
 
-                calibrant_flags[original_indexes[max_residual_index]] = 91
+                calibrant_flags[original_indexes[max_residual_index]] = 92
                 calibrant_weightings[original_indexes[max_residual_index]] = 0
 
-            if calibrant_error < abs(calibrant_residuals[max_residual_index]) < (2 * calibrant_error) and flags_to_fit[
-                max_residual_index] != 6:
+            # If true here, the calibrant is only "suspect", sitting just outside the base calibrant error value
+            if calibrant_error < absolute_calibrant_residual < (2 * calibrant_error) and flags_to_fit[max_residual_index] != 6:
+                # We want to redo the calibration with the weighting of this calibrant reduced
                 repeat_calibration = True
-                weightings_to_fit[max_residual_index] = 0.5
-                flags_to_fit[max_residual_index] = 92
-                calibrant_flags[original_indexes[max_residual_index]] = 92
-                calibrant_weightings[original_indexes[max_residual_index]] = 0.5
 
-            if calibration_iteration > 7:
+                # Halve the weighting of this calibrant and set its flag to cal error suspect
+                weightings_to_fit[max_residual_index] = 0.5
+                flags_to_fit[max_residual_index] = 91
+
+                calibrant_weightings[original_indexes[max_residual_index]] = 0.5
+                calibrant_flags[original_indexes[max_residual_index]] = 91
+
+            if calibration_iteration > 5:
                 repeat_calibration = False
+
         except IndexError:
             pass
 

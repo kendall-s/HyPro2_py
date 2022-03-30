@@ -303,6 +303,7 @@ class exportDeployments(hyproDialogTemplate):
     def exportnetcdf(self):
         conn = sqlite3.connect(self.db)
         c = conn.cursor()
+        # TODO: properly implement netcdf export. This was setup to work for the underway nuts, but needs to be implemented for deployments
         c.execute('SELECT * from underwayNutrients')
         data = list(c.fetchall())
 

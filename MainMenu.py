@@ -30,9 +30,8 @@ import sqlalchemy
 import sqlalchemy.ext.baked
 import sqlalchemy.sql.default_comparator
 
-# TODO: please clean me up - style sheet needs transfer to style file
-# TODO: Refactor code to suit current code style
-# TODO: clean up Tools menu - revmoved ununsed. Change to Utility menu, include DO calc, QC stats
+# TODO: refactor of the main menu needed, this has been the most neglected part of the project as it isn't really used.
+# TODO: clean up Tools menu - removed ununsed. Change to Utility menu, include DO calc, QC stats other hydro apps
 
 
 """
@@ -48,24 +47,32 @@ class Mainmenu(hyproMainWindowTemplate):
 
         self.grid_layout.setContentsMargins(0, 0, 5, 0)
 
+        self.current_project = ""
+
+        # The hypro settings as the base system settings and include the known projects
         self.hypro_settings = self.start_up()
+
+        # Create the main menu UI
         self.init_ui()
 
+        # Create the system dbs, currently only RMNS data. Could be removed and turned into just a json file
         self.create_base_dbs()
 
     def init_ui(self):
 
         # Set the current project, if there is already one set of course, if not = no active project
         if self.hypro_settings['activeproject'] != "":
-            self.currproject = self.hypro_settings['activeproject']
+            self.current_project = self.hypro_settings['activeproject']
             project = True
         else:
-            self.currproject = 'No active project'
+            self.current_project = 'No active project'
             project = False
 
         self.setFont(QFont('Segoe UI'))
 
-        # Initialise menu buttons and options
+        """
+        Menu bar buttons and dropdowns
+        """
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('File')
         editMenu = mainMenu.addMenu('Edit')
@@ -129,7 +136,9 @@ class Mainmenu(hyproMainWindowTemplate):
         header_logo.setPixmap(QPixmap(':/assets/2dropsshadow.ico').scaled(32, 32, QtCore.Qt.KeepAspectRatio))
         header_logo.setProperty('headerLogo', True)
 
-        # Labels
+        """
+        Labels and text
+        """
         header_frame = QFrame(self)
         header_frame.setProperty('sideHeaderFrame', True)
         header_label = QLabel('<b>       HyPro②</b>')
@@ -145,7 +154,7 @@ class Mainmenu(hyproMainWindowTemplate):
         self.curr_project_label.setProperty('dashboardText', True)
         self.curr_project_label.setStyleSheet('font: 15px; padding: 20px; font-weight: bold;')
 
-        self.curr_project_disp = QLabel(str(self.currproject))
+        self.curr_project_disp = QLabel(str(self.current_project))
         self.curr_project_disp.setProperty('dashboardText', True)
         self.curr_project_disp.setStyleSheet('font: 15px; font-weight: bold;')
 
@@ -175,7 +184,10 @@ class Mainmenu(hyproMainWindowTemplate):
 
         self.processor.setCurrentText(self.hypro_settings['activeprocessor'])
 
-        # ------------------------- Sidebar Buttons -------------------------------------------------------------------
+        """
+        ----------------------------------- Sidebar Buttons --------------------------------------------------
+        """
+
         create_new_proj = QPushButton('Create New Project')
         create_new_proj.setProperty('sideBarButton', True)
         create_new_proj.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
@@ -211,7 +223,10 @@ class Mainmenu(hyproMainWindowTemplate):
         open_processing.setCursor(QCursor(QtCore.Qt.PointingHandCursor))
         open_processing.clicked.connect(self.open_processing)
 
-        # Set up grid layout
+        """
+        -------------------------- Apply everything to main grid layout --------------------------------------
+                
+        """
         self.grid_layout.addWidget(header_frame, 0, 0, 3, 1)
         self.grid_layout.addWidget(header_logo, 0, 0, 2, 1, QtCore.Qt.AlignLeft)
         self.grid_layout.addWidget(header_label, 0, 0, 2, 1, QtCore.Qt.AlignCenter)
@@ -236,7 +251,11 @@ class Mainmenu(hyproMainWindowTemplate):
         self.grid_layout.addWidget(self.processor, 13, 0, QtCore.Qt.AlignCenter)
         self.grid_layout.addWidget(add_proc, 14, 0)
 
-        # ------------------------- Dashboard elements ---------------------------------------------------------------
+        """
+        ----------------------------- Dashboardy elements ---------------------------------------------------------
+        
+        """
+
         # Project information
         path_frame = QFrame(self)
         path_frame.setProperty('dashboardFrame', True)
@@ -368,6 +387,12 @@ class Mainmenu(hyproMainWindowTemplate):
         # End of initialising Main Menu.
 
     def start_up(self):
+        """
+        Called at initial main menu start up. Creates a base C drive folder and adds in a settings json file
+        that keeps specific system settings.
+
+        """
+
         # Check if the base directory for settings exists
         base_path = 'C:/HyPro'
         if not os.path.exists(base_path):
@@ -394,6 +419,11 @@ class Mainmenu(hyproMainWindowTemplate):
         return hypro_settings
 
     def create_base_dbs(self):
+        """
+        These system dbs are used for keeping reference sample data that can be used across any projects.
+        Though these are kept as a sqlite db, the lack of data means it could be a json file.
+        """
+
         # Make Hypro settings database file
         if not os.path.isdir('C:/HyPro/Settings'):
             os.makedirs('C:/HyPro/Settings')
@@ -510,7 +540,7 @@ class Mainmenu(hyproMainWindowTemplate):
 
         if method == 'new':
             self.curr_project_disp.setText(self.create_new_project_window.project_prefix_str)
-            self.currproject = self.create_new_project_window.project_prefix_str
+            self.current_project = self.create_new_project_window.project_prefix_str
 
         if method == 'load':
             self.curr_project_disp.setText(self.open_existing_project.selectedproject)
@@ -537,6 +567,9 @@ class Mainmenu(hyproMainWindowTemplate):
         print('osils')
 
     def enable_dark_mode(self):
+        """
+        Dark mode is just switching between the stylesheet config in the style.py file
+        """
         with open('C:/HyPro/hyprosettings.json', 'r') as file:
             params = json.loads(file.read())
         if params['theme'] == 'normal':
@@ -576,14 +609,14 @@ class Mainmenu(hyproMainWindowTemplate):
         except Exception as e:
             print(e)
 
-    # Nothing yet need to link up TODO: add view data feature
+    # TODO: add view data feature, this could just point to the processing menu one
     def view_data(self):
         print('i am nothing')
 
     # Opens the processing menu
     def open_processing(self):
         try:
-            if self.currproject == 'No active project':
+            if self.current_project == 'No active project':
                 message_box = hyproMessageBoxTemplate('Error',
                                                       'There is no active project currently selected, please create or import one.',
                                                       'information')
@@ -621,7 +654,7 @@ class Mainmenu(hyproMainWindowTemplate):
         except Exception as e:
             print(e)
 
-    # Opens windows explorer to look a the project path
+    # Opens windows explorer to look the project directory
     def open_explorer(self):
         path = self.project_path.text()
         if os.path.isdir(path):
@@ -643,13 +676,13 @@ class Mainmenu(hyproMainWindowTemplate):
 
     # Not working currently
     def mapplot(self):
-        # self.mapplot = mapPlotting(self.currproject)
+        # self.mapplot = mapPlotting(self.current_project)
         # self.mapplot.show()
         print('Disabled')
 
     # Works but not great
     def triaxusplot(self):
-        # self.triaxusplot = triaxusPlotting(self.currproject)
+        # self.triaxusplot = triaxusPlotting(self.current_project)
         # self.triaxusplot.show()
         print('Disabled')
 

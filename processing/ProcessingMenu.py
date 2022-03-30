@@ -38,8 +38,6 @@ from processing.readdata import ReadCTDData, ReadSampleSheet
 from processing.procdata.InteractiveOxygenProcessing import processingOxygenWindow
 from processing.procdata.InteractiveSalinityProcessing import processingSalinityWindow
 
-# TODO: Make output for ODV
-# TODO: make logsheet go to Dissolved Oxygen box file
 
 # This file contains the GUI functionality of the processing menu which is secondary to the main menu
 # Processing of all files within a project takes place from within this menu
@@ -111,6 +109,8 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
         exportUnderwayNutrients = QAction('Export Underway Nutrients', self)
         exportUnderwayNutrients.triggered.connect(self.exportuwynuts)
         export_menu.addAction(exportUnderwayNutrients)
+
+        # TODO: Make export and output for ODV
 
         file_menu.addSeparator()
 
@@ -742,12 +742,20 @@ class Processingmenu(hyproMainWindowTemplate, QPlainTextEdit):
 
 
     def toggle_performance_mode(self):
+        """
+        Performance mode is used to change the rendering method for nutrients processing, make it run on lower end
+        machines
+        """
         if self.performance_mode:
             self.performance_mode = False
         else:
             self.performance_mode = True
 
     def toggle_ultra_perf_mode(self):
+        """
+        Ultra performance mode really turns back on the rendering bling for the nutrient processing, makes even massive
+        underway files reasonable to process
+        """
         if self.ultra_performance_mode:
             self.ultra_performance_mode = False
         else:

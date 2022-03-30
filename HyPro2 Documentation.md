@@ -1,5 +1,4 @@
-﻿> Written with [StackEdit](https://stackedit.io/)
-
+﻿
 ![CSIRO](https://www.csiro.au/~/media/Web-team/Images/CSIRO_Logo/logo.png?mw=90&hash=E7225C4985C2701654821B94F7A06AF5C3D30F8E)
 # HyPro Technical Documentation
 
@@ -75,10 +74,10 @@ In an ideal world these peaks are <b>П </b> shaped, as this represents a perfec
  6. Apply drift corrections
  7. Iteratively apply regression to ensure calibrants are within defined error margins
  8. Calculate concentrations
- 9. Look at QC charts to determine if analysis was within acceptable limits
+ 9. Look at QC charts to determine if analysis was within acceptable limits (acceptable limits set by Hydrochemistry)
 
 #### 1. Match raw A/D data to analysis cup list
-In order for the analog to digital data to make sense, it needs to be aligned with the analysis order, which is held within the .SLK file. Matching up the datatypes then allows processing to take place
+In order for the analog to digital data to make sense, it needs to be aligned with the sample analysis order, which is held within the .SLK file. Matching up the CHD raw data to the SLK sample order then allows processing to take place
 <p align="center">
   <img src="https://github.com/kendall-s/-markdown_reference/blob/master/slkfile.png?raw=true"
   alt = "SLK and CHD file">
@@ -86,6 +85,7 @@ In order for the analog to digital data to make sense, it needs to be aligned wi
 
 #### 1.5 Apply time correction to realign peaks 
 This is not entirely necessary and not implemented in the current version. However  on longer analytical runs with continuous segmented flow, the peaks can begin to shift, meaning the peak windows will not be consistently spaced. 
+To combat this, I have implemented a manual peak shifting for fixing the issue.
 <p align="center">
   <img src="https://github.com/kendall-s/-markdown_reference/blob/master/peakslippage.png?raw=true"
   alt = "SLK and CHD file">
@@ -150,7 +150,7 @@ The cutoff limits are defined as the method detection limit or 0.5% of full scal
 #### 8. Calculate concentrations
 The concentrations of each sample are simply determined by solving the calibration curve using the median peak heights. 
 
-At this stage, any diluted samples should be consider and re-corrected to their original concentrations. This is calculated by taking into account the amount of nutrients that is found in the LNSW, which is used when diluting over-range samples. Original concentrations are calculated as follows, where <i>dil</i> is the dilution factor which is a number greater than 1, e.g. 1:10 dilution = 10.
+At this stage, any diluted samples should be considered and re-corrected to their original concentrations. This is calculated by taking into account the amount of nutrients that is found in the LNSW, which is used when diluting over-range samples. Original concentrations are calculated as follows, where <i>dil</i> is the dilution factor which is a number greater than 1, e.g. 1:10 dilution = 10.
 
 $$
 \dot{x} = x \cdot dil - (dil - 1) \cdot [LNSW]
@@ -165,6 +165,7 @@ To assess a run, a number of quality control charts are inspected to ensure the 
 - Drift consistency
 - Method detection limit precision
 - RMNS accuracy and precision
+- Any other quality control samples, i.e. BQC, Internal QC.
 
 
 
@@ -183,10 +184,6 @@ This data is ingested to be used for the quality control and checking of sample 
 
 # HyPro in Python documentation
 
-## Note
-For making the icons file you need to input a .qrc file into pyrcc5.exe, this will generate bytecode of the icons to use in the PyQt app 
-
-
 ### Structure 
 HyPro in python was very heavily based off of the processing and workflow of the first HyPro, written in Matlab. This workflow allows data to be contained on a voyage basis and also allows for a systematic approach in processing files.
 The structure of how HyPro runs is outlined:
@@ -204,7 +201,7 @@ id8 --> id9(Exported Data for use)
 ```
 ---
 ## Python file structure
-
+( this is out of date and I should autogenerate a new one)
  - assets
  - [dialogs](#dialogs)
 	 -  [AddRMNSDialog.py](#addrmnsdialog)

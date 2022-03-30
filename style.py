@@ -1,4 +1,10 @@
 import matplotlib as mpl
+"""
+This file contains the styling for the Qt objects as well as the matplotlib plots across both light and dark modes.
+
+At the end there is also a template structure for the params.json file that gets created for each project.
+
+"""
 
 # Color cycle is a very slightly modified Seaborn Muted palette (removed the grey color)
 mplstyle = {'normal': {'axes.edgecolor': '#000000', 'xtick.color': '#000000', 'ytick.color': '#000000',

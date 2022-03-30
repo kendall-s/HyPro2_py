@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QPushButton, QLineEdit, QLabel, QComboBox)
 
 from dialogs.templates.DialogTemplate import hyproDialogTemplate
 
-# TODO: consolidate the flagging
+# TODO: consolidate the flagging to one source
 """
 Flagging system: 1 = Good, 2 = Suspect, 3 = Bad, 4 = Peak shape suspect, 5 = Peak shape bad, 
                 91 = Calibrant error suspect, 92 = Calibrant error bad, 8 = Duplicate different
@@ -40,7 +40,7 @@ class traceSelection(hyproDialogTemplate):
         self.dialogtype = type
 
         self.init_ui()
-
+        print(f'SampleID: {sampleid} | Cup type: {cuptype} | Peak #: {peaknumber} | ADMedian: {admedian} | Conc: {conc} | Flag: {flag} | Dilution: {dil} | Type: {type}')
         self.show()
 
     def init_ui(self):

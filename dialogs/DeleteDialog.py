@@ -125,7 +125,8 @@ class deleteDialog(hyproDialogTemplate):
 
                 if filetype == 'Nutrients':
                     pass
-                    # TODO: complete the section for nutrients
+                    # TODO: add deleting nutrients
+                    # psuedo code, delete from %sData where runNumber=?, loop based on nuts
 
                 if filetype == 'Salinity':
                     runnumber = [selectedfile[-8:-5]]

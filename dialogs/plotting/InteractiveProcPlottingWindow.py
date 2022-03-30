@@ -21,8 +21,6 @@ mpl.use('Agg')
 flag_converter = {1: 'Good', 2: 'Suspect', 3: 'Bad', 4: 'Shape Sus', 5: 'Shape Bad', 6: 'Cal Bad',
                   91: 'CalError Sus', 92: 'CalError Bad', 8: 'Dup Diff'}
 
-# TODO: This windows code could probably be scaled back and re-use some of the general plotting functionality, there is now some double ups i.e. flagging
-
 """
 This window serves as a basis for extending, primarily for interactive salinity and oxygen processing 
 """
@@ -315,6 +313,11 @@ class hyproProcPlotWindow(QMainWindow):
         self.picked_bottle_dialog.saveSig.connect(self.update_flag)
 
     def update_flag(self, update_inputs):
+        """
+        When a flag has been updated, send that value back to the original working data, then action a redraw
+        so that the flag change is reflected
+        """
+
         rev_flag_converter = {x: y for y, x in flag_converter.items()}
         numeric_flag = rev_flag_converter[update_inputs[0]]
         self.working_quality_flags[self.referenced_index] = numeric_flag
@@ -323,7 +326,9 @@ class hyproProcPlotWindow(QMainWindow):
         self.redraw.emit()
 
     def on_hover(self, event):
-
+        """
+        Handle the hovering interaction, to display information about a sample if the mouse is hovering over it.
+        """
         x_data = event.xdata
         y_data = event.ydata
         xy_data = (x_data, y_data)

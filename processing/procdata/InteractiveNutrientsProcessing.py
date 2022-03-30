@@ -1,9 +1,6 @@
 import json
-import logging
-import os
-import sys
 import traceback
-
+import os
 import pyqtgraph as pg
 from PyQt5.QtCore import Qt, QSize, pyqtSignal, QThread
 from PyQt5.QtGui import *
@@ -1112,7 +1109,7 @@ class processingNutrientsWindow(hyproMainWindowTemplate):
 
             self.nutrient_processing_controller.re_process()
 
-    # TODO: this could actually be turned into a class method of the nutrient processing controller.
+    # TODO: this could actually be turned into a class method of the nutrient processing controller. For now keep here.
     def replay_processing(self):
         """
         UI functionality for the replaying of processing steps
