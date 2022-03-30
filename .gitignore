@@ -9,6 +9,7 @@
 .idea/modules.xml
 .idea/*.iml
 .idea/*.xml
+.idea/*
 
 .hypothesis/*
 .pytest_cache/*
