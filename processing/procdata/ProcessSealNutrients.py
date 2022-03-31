@@ -55,27 +55,26 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     st = time.time()
 
     # ----------- Read in latest configurable processing parameters (in order of use) ------------------------
-    window_size = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['window_size']
-    window_start = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['window_start']
+    nutrient_processing_params = processing_parameters['nutrient_processing']['processing_pars']
+
+    window_size = nutrient_processing_params[current_nutrient]['window_size']
+    window_start = nutrient_processing_params[current_nutrient]['window_start']
 
     null_cup_type = processing_parameters['nutrient_processing']['cup_names']['null']
     baseline_cup_type = processing_parameters['nutrient_processing']['cup_names']['baseline']
-    baseline_corr_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient][
-        'base_corr_type']
+    baseline_corr_type = nutrient_processing_params[current_nutrient]['base_corr_type']
     high_cup_type = processing_parameters['nutrient_processing']['cup_names']['high']
     low_cup_type = processing_parameters['nutrient_processing']['cup_names']['low']
     drift_cup_type = processing_parameters['nutrient_processing']['cup_names']['drift']
     recovery_cup_type = processing_parameters['nutrient_processing']['cup_names']['recovery']
-    drift_corr_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient][
-        'drift_corr_type']
+    drift_corr_type = nutrient_processing_params[current_nutrient]['drift_corr_type']
     calibrant_cup_type = processing_parameters['nutrient_processing']['cup_names']['calibrant']
 
     cal_zero_label = processing_parameters['nutrient_processing']['calibrants']['cal0']
-    cal_type = processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['calibration']
-    cal_error_limit = float(
-        processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['cal_error'])
-    dupe_error_limit = float(
-        processing_parameters['nutrient_processing']['processing_pars'][current_nutrient]['duplicate_error'])
+    cal_type = nutrient_processing_params[current_nutrient]['calibration']
+
+    cal_error_limit = float(nutrient_processing_params[current_nutrient]['cal_error'])
+    dupe_error_limit = float(nutrient_processing_params[current_nutrient]['duplicate_error'])
 
     mdl_cup = processing_parameters['nutrient_processing']['qc_sample_names']['mdl']
     sample_cup_type = processing_parameters['nutrient_processing']['cup_names']['sample']
@@ -83,58 +82,79 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
                   processing_parameters['nutrient_processing']['qc_sample_names'].keys()]
     qc_cups = processing_parameters['nutrient_processing']['qc_sample_names']
 
-    # ----------- Match peaks to CHD data ---------------------------------------------------------------------
-    # Match the SLK peak start data to the CHD A/D data
-    # for subsequent processing runs, check if we use
-
-    # w_d stands for working_data, hope thats OK?
+    """
+    ------------- Match SLK peaks to CHD data -----------------------------------------------------------------
+    """
+    # w_d stands for working_data, hope that shorthand is OK?
 
     w_d.window_values, w_d.time_values, w_d.adjusted_peak_starts[current_nutrient] = get_peak_values(
-        slk_data.clean_peak_starts[current_nutrient],
-        chd_data.ad_data[current_nutrient],
-        window_size, window_start)
-
+                                                                        slk_data.clean_peak_starts[current_nutrient],
+                                                                        chd_data.ad_data[current_nutrient],
+                                                                        window_size, window_start)
+    # Initially flag the nulled and hashed samples (hashed samples have a # in the sample name
+    # to indicate they are bad
     w_d.quality_flag = flag_null_samples(slk_data.cup_types, null_cup_type, w_d.quality_flag)
     w_d.quality_flag = flag_hashed_samples(slk_data.peak_starts[current_nutrient], w_d.quality_flag)
 
     # Get channel specifiers finds Sample IDs where round brackets are used to specify a channel
-    w_d.specific_cup_types[current_nutrient] = get_channel_specifier(slk_data.sample_ids, slk_data.cup_types,
+    w_d.specific_cup_types[current_nutrient] = get_channel_specifier(slk_data.sample_ids,
+                                                                     slk_data.cup_types,
                                                                      slk_data.chd_channel[current_nutrient],
                                                                      null_cup_type)
+    # Pull out the dilution factor from the sample ID if it exists
     w_d.dilution_factor = get_dilution_factor(slk_data.sample_ids, w_d.dilution_factor)
 
-    # ----------- Check peaks for peak shape - apply quality control -------------------------------------------
+    """
+    ------------- Check peaks for peak shape and apply quality control ------------------------------------------
+    """
     w_d.quality_flag = peak_shape_qc(w_d.window_values, w_d.quality_flag)
 
-    # ----------- Calculate the peak window medians for all peaks ----------------------------------------------
+    """
+    ------------- Calculate the peak window medians for all peaks -----------------------------------------------
+    """
     w_d.raw_window_medians = window_medians(w_d.window_values)
 
-    # ----------- Find the baseline peaks - apply baseline correction ------------------------------------------
-    w_d.baseline_indexes = find_cup_indexes(baseline_cup_type, w_d.specific_cup_types[current_nutrient])
-
+    """
+    ------------- Find baseline peaks and apply baseline corrections --------------------------------------------
+    """
+    w_d.baseline_indexes = find_cup_indexes(baseline_cup_type,
+                                            w_d.specific_cup_types[current_nutrient])
     # Got to check if there is enough baselines for a correction, if not don't apply a correction and log the warning!
     if len(w_d.baseline_indexes) < 2:
         logging.info(f'WARNING: Not enough baseline peaks found, baseline correction not applied for run {w_d.run}')
+        # If there wasn't enough baselines, just set corrected window medians equal to the raw
         w_d.corr_window_medians = w_d.raw_window_medians
     else:
         w_d.baseline_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.baseline_indexes]
+
         w_d.baseline_medians, w_d.baseline_indexes = organise_basedrift_medians(w_d.baseline_indexes,
                                                                                 w_d.raw_window_medians)
-        w_d.baseline_flags = get_basedrift_flags(w_d.baseline_indexes, w_d.quality_flag)
-        w_d.corr_window_medians = baseline_correction(w_d.baseline_indexes, w_d.baseline_medians, baseline_corr_type,
-                                                      w_d.raw_window_medians)
 
-    # ----------  Find carryover peaks - apply carryover correction ---------------------------------------------
-    w_d.high_index, w_d.low_indexes = find_carryover_indexes(high_cup_type, low_cup_type, slk_data.cup_types)
+        w_d.baseline_flags = get_basedrift_flags(w_d.baseline_indexes, w_d.quality_flag)
+
+        w_d.corr_window_medians = baseline_correction(w_d.baseline_indexes,
+                                                      w_d.baseline_medians,
+                                                      baseline_corr_type,
+                                                      w_d.raw_window_medians)
+    """
+    ------------- Find carryover peaks and apply carryover correction -------------------------------------------
+    """
+    w_d.high_index, w_d.low_indexes = find_carryover_indexes(high_cup_type,
+                                                             low_cup_type,
+                                                             slk_data.cup_types)
     # TODO: implement warning when there is no carryover correction being applied
     if w_d.high_index:
-        w_d.corr_window_medians, w_d.carryover_coefficient = carryover_correction(w_d.high_index, w_d.low_indexes,
+        w_d.corr_window_medians, w_d.carryover_coefficient = carryover_correction(w_d.high_index,
+                                                                                  w_d.low_indexes,
                                                                                   w_d.corr_window_medians)
     else:
         logging.info(f'WARNING: No carryover correction applied for run {w_d.run}')
 
-    # ----------- Find drift peaks - apply drift correction -----------------------------------------------------
-    w_d.drift_indexes = find_cup_indexes(drift_cup_type, w_d.specific_cup_types[current_nutrient])
+    """
+    ------------- Find drift peaks and apply drift corrections --------------------------------------------------
+    """
+    w_d.drift_indexes = find_cup_indexes(drift_cup_type,
+                                         w_d.specific_cup_types[current_nutrient])
 
     # Got to check if there is enough drifts for a correction, if not don't apply a correction and log the warning!
     if len(w_d.drift_indexes) < 2:
@@ -142,19 +162,34 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     else:
         w_d.drift_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.drift_indexes]
         w_d.raw_drift_medians = [w_d.raw_window_medians[x] for x in w_d.drift_indexes]
-        w_d.drift_medians, w_d.drift_indexes = organise_basedrift_medians(w_d.drift_indexes, w_d.corr_window_medians)
-        w_d.drift_flags = get_basedrift_flags(w_d.drift_indexes, w_d.quality_flag)
-        w_d.drift_corr_percent = get_basedrift_corr_percent(w_d.drift_medians, statistics.mean(w_d.drift_medians[1:-1]))
-        w_d.corr_window_medians = drift_correction(w_d.drift_indexes, w_d.drift_medians, drift_corr_type,
+
+        w_d.drift_medians, w_d.drift_indexes = organise_basedrift_medians(w_d.drift_indexes,
+                                                                          w_d.corr_window_medians)
+        w_d.drift_flags = get_basedrift_flags(w_d.drift_indexes,
+                                              w_d.quality_flag)
+
+        w_d.drift_corr_percent = get_basedrift_corr_percent(w_d.drift_medians,
+                                                            statistics.mean(w_d.drift_medians[1:-1]))
+
+        w_d.corr_window_medians = drift_correction(w_d.drift_indexes,
+                                                   w_d.drift_medians,
+                                                   drift_corr_type,
                                                    w_d.corr_window_medians)
 
-    # ----------- Find calibrant peaks --------------------------------------------------------------------------
-    w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type, w_d.specific_cup_types[current_nutrient])
+    """
+    ------------- Find calibrant peaks --------------------------------------------------------------------------
+    """
+    w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type,
+                                             w_d.specific_cup_types[current_nutrient])
+
     if len(w_d.calibrant_indexes) < 2:
         logging.error(f'ERROR: Not enough calibrants were found to create a curve in {w_d.run}. Processing Aborted!')
+        # Return none here because the processing is aborted
         return None
 
-    # ----------- Prepare calibrants and various parameters ------------------------------------------------------
+    """
+    ------------- Prepare calibrants and the cal parameters ------------------------------------------------------
+    """
     w_d.calibrant_medians = get_calibrant_medians(w_d.calibrant_indexes, w_d.corr_window_medians)
     # Side note for baseline plot - get highest cal median and determine a percentage corr from that
     w_d.baseline_corr_percent = get_basedrift_corr_percent(w_d.baseline_medians, max(w_d.calibrant_medians))
@@ -164,41 +199,74 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     w_d.calibrant_medians_minuszero = remove_calibrant_zero(w_d.calibrant_medians, w_d.calibrant_zero_mean)
     w_d.calibrant_weightings = get_calibrant_weightings(w_d.calibrant_concs)
 
-    # ------------ Create calibration ---------------------------------------------------------------------------
+    """
+    ------------- Create calibration  ---------------------------------------------------------------------------
+    """
     w_d.calibration_coefficients, w_d.calibrant_flags, w_d.calibrants_weightings, \
     w_d.calibrant_residuals, w_d.calibration_r_score = create_calibration(cal_type, w_d.calibrant_medians_minuszero,
                                                                           w_d.calibrant_concs, w_d.calibrant_weightings,
                                                                           cal_error_limit, w_d.calibrant_flags)
 
-    # ------------ Apply calibration ----------------------------------------------------------------------------
-    w_d.calculated_concentrations = apply_calibration(cal_type, w_d.corr_window_medians, w_d.calibration_coefficients)
+    """
+    ------------- Apply calibration -----------------------------------------------------------------------------
+    """
+    w_d.calculated_concentrations = apply_calibration(cal_type,
+                                                      w_d.corr_window_medians,
+                                                      w_d.calibration_coefficients)
+    """
+    ------------- Apply dilution factors ------------------------------------------------------------------------
+    """
+    # Need to find the MDLs because those concentrations are used in the dilution calculation
+    mdl_indexes = find_cup_indexes(mdl_cup,
+                                   slk_data.sample_ids)
 
-    # ------------ Apply dilution factors -----------------------------------------------------------------------
-    mdl_indexes = find_cup_indexes(mdl_cup, slk_data.sample_ids)
     if len(mdl_indexes) > 0:
         w_d.calculated_concentrations = apply_dilution(mdl_indexes, w_d.dilution_factor, w_d.calculated_concentrations)
     else:
         logging.error(f'ERROR: No MDL samples were found. Dilution factors cannot be applied for run {w_d.run}.')
-    # ----- Find duplicates and flag if outside analyte tolerance ------------------------------------------------
-    duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
-    sample_duplicate_indexes = find_duplicate_samples(duplicate_indexes, slk_data.sample_ids,
-                                                      w_d.specific_cup_types[current_nutrient], sample_cup_type,
-                                                      qc_cup_ids)
-    w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes, w_d.calculated_concentrations,
-                                                 w_d.quality_flag, dupe_error_limit)
 
-    # ------------- Pull out the data for the QC samples that were measured --------------------------------------
-    w_d.qc_present = find_qc_present(qc_cups, slk_data.sample_ids)
+    """
+    ------------- Find duplicates and flag if outside specified analyte tolerance --------------------------------
+    """
+    duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
+
+    sample_duplicate_indexes = find_duplicate_samples(duplicate_indexes,
+                                                      slk_data.sample_ids,
+                                                      w_d.specific_cup_types[current_nutrient],
+                                                      sample_cup_type,
+                                                      qc_cup_ids)
+
+    w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes,
+                                                 w_d.calculated_concentrations,
+                                                 w_d.quality_flag,
+                                                 dupe_error_limit)
+
+    """
+    ------------- Pull out the data for the QC samples that were measured ----------------------------------------
+    """
+    # As the QC present in an analysis can change, we don't exactly know what we will find.
+    w_d.qc_present = find_qc_present(qc_cups,
+                                     slk_data.sample_ids)
+
     for qc in w_d.qc_present:
-        indexes = get_qc_index(qc, slk_data.sample_ids)
-        medians, flags = get_qc_data(indexes, w_d.calculated_concentrations, w_d.quality_flag)
+        indexes = get_qc_index(qc,
+                               slk_data.sample_ids)
+
+        medians, flags = get_qc_data(indexes,
+                                     w_d.calculated_concentrations,
+                                     w_d.quality_flag)
+
         qc_name = ''.join(i for i in qc.replace(" ", "") if not i.isdigit())
+        # This should be removed and replaced with a QCs dictionary ....
         setattr(w_d, "{}".format(qc_name + '_indexes'), indexes)
         setattr(w_d, "{}".format(qc_name + '_concentrations'), medians)
         setattr(w_d, "{}".format(qc_name + '_flags'), flags)
 
-    # ----------- Get NOx recovery peaks ---------------------------------------------------------------------------
+    """
+    ------------- Get NOx recovery peaks ---------------------------------------------------------------------------
+    """
     if w_d.analyte == 'nitrate':
+        # Need to do this so later we can plot and check that the recovery is >98%
         w_d.recovery_indexes = find_cup_indexes(recovery_cup_type, w_d.specific_cup_types[current_nutrient])
         w_d.recovery_ids = [slk_data.sample_ids[ind] for ind in w_d.recovery_indexes]
         w_d.recovery_medians = [w_d.corr_window_medians[ind] for ind in w_d.recovery_indexes]
@@ -674,7 +742,8 @@ def create_calibration(cal_type, calibrant_medians, calibrant_concentrations, ca
                 calibrant_weightings[original_indexes[max_residual_index]] = 0
 
             # If true here, the calibrant is only "suspect", sitting just outside the base calibrant error value
-            if calibrant_error < absolute_calibrant_residual < (2 * calibrant_error) and flags_to_fit[max_residual_index] != 6:
+            if calibrant_error < absolute_calibrant_residual < (2 * calibrant_error) and flags_to_fit[
+                max_residual_index] != 6:
                 # We want to redo the calibration with the weighting of this calibrant reduced
                 repeat_calibration = True
 
