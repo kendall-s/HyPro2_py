@@ -11,6 +11,7 @@ HyPro is an application used to interactively process hydrochemistry data.
 - Provide interactive UI for processing and QC'ing data
 - Plotting functionality with SBE CTD data
 - Collation and packaging of data into usable export formats
+- Stores processed data locally in a SQLite database file 
 
 
 
@@ -19,6 +20,18 @@ HyPro is an application used to interactively process hydrochemistry data.
 Setup a Python environment using the included requirements.txt, there is not anything complex in the environment so it should not have any issues being created. If there is issue try running conda and using the environment.yml file instead.
 
 Run the MainMenu.py file from the project root to open HyPro.
+
+### Building an .exe 
+
+Pyinstaller is included in the environment and is used to generate a .exe for HyPro. Included in the root of the project
+is a .spec file. Pyinstaller uses the .spec file as configuration for the .exe build.
+
+In a terminal at the root of the project run:
+`
+pyinstaller ./HyPro_py.spec
+`
+
+A dist folder will be created and contain the built .exe 
 
 ### Processing
 
@@ -65,3 +78,11 @@ The Salinity measurements are pulled from the Excel export that the salinometer 
 Samples collected from the CTD can be input into Hypro using this data format. It is a simple XLSX in the following structure. Headings (match order): rosette position, oxygen bottle labels, oxygen draw temp., salinity bottle labels and nutrient labels. Each row corresponds to a rosette position. Deployment number is generated using the file name and the number associated.
 
 
+### Accessing and inspecting project database files
+The table structure is incredibly simplistic and is mostly de-normalised. This decision was made such that data kept 
+within the database can be easily understood and inspected by people unfamiliar with relational 
+databases. This decision would hopefully reduce any reliance from hydrochemists on software engineering staff.
+
+
+A free tool, SQLite browser, can be downloaded and used to directly open the database file. With this tool,
+the data can be viewed and edited in a similar fashion to an Excel file with multiple sheets.
