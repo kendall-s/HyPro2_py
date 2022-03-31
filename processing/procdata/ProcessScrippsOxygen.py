@@ -63,11 +63,15 @@ def determine_oxygen_survey(station, cast, rp, bottle_id, database_path, process
     c = conn.cursor()
     surveys = list(processing_parameters['survey_params'].keys())
 
+    # Iterate through the different surveys
     for surv in surveys:
+        # Anything above station 900 is likely a custom survey not a CTD
         if station < 900:
+            # If this current survey is activated as a CTD survey
             if processing_parameters['survey_params'][surv]['scripps']['ctd_survey']:
                 deployment = station
                 rosette_position = rp
+                # Try to match the oxygen samples to the logsheet data if it is a CTD
                 c.execute('SELECT oxygen from logsheetData WHERE deployment=? AND rosettePosition=?', [deployment, rosette_position])
                 logsheet_bottle = c.fetchone()
 
@@ -80,7 +84,9 @@ def determine_oxygen_survey(station, cast, rp, bottle_id, database_path, process
                     return None
 
         else:
+            # Above 900 on the station will have to match to a custom survey
             if processing_parameters['survey_params'][surv]['scripps']['decode_sample_id']:
+                # Get the survey prefix and check if it matches the entered station
                 survey_prefix = processing_parameters['survey_params'][surv]['scripps']['survey_prefix']
                 if station == int(survey_prefix):
                     survey = surv
