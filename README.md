@@ -1,5 +1,8 @@
 # HyPro
 
+`
+Please note this is a very rough version, originally built without allocation and for processing underway hydrochemitry data. It was built upon to become a more full-featured HyPro.`
+
 HyPro is an application used to interactively process hydrochemistry data.
 
 
