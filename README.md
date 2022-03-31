@@ -16,9 +16,9 @@ HyPro is an application used to interactively process hydrochemistry data.
 
 ### Running HyPro
 
-Setup a Python environment using the included requirements.txt, there is not anything complex in the environment so it should not have any issues being created. 
+Setup a Python environment using the included requirements.txt, there is not anything complex in the environment so it should not have any issues being created. If there is issue try running conda and using the environment.yml file instead.
 
-Run the MainMenu.py file to open HyPro
+Run the MainMenu.py file from the project root to open HyPro.
 
 ### Processing
 
