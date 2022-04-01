@@ -107,16 +107,19 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     """
     ------------- Check peaks for peak shape and apply quality control ------------------------------------------
     """
+    # Quality control is applied to the peak shapes to flag any bad shapes
     w_d.quality_flag = peak_shape_qc(w_d.window_values, w_d.quality_flag)
 
     """
     ------------- Calculate the peak window medians for all peaks -----------------------------------------------
     """
+    # Extract the raw peak window medians from the working data window values list
     w_d.raw_window_medians = window_medians(w_d.window_values)
 
     """
     ------------- Find baseline peaks and apply baseline corrections --------------------------------------------
     """
+    # Fetch the indexes for the samples which are baselines
     w_d.baseline_indexes = find_cup_indexes(baseline_cup_type,
                                             w_d.specific_cup_types[current_nutrient])
     # Got to check if there is enough baselines for a correction, if not don't apply a correction and log the warning!
@@ -127,11 +130,13 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     else:
         w_d.baseline_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.baseline_indexes]
 
+        # Setup the medians into a usable way
         w_d.baseline_medians, w_d.baseline_indexes = organise_basedrift_medians(w_d.baseline_indexes,
                                                                                 w_d.raw_window_medians)
-
+        # Extract the flags from the overall working data
         w_d.baseline_flags = get_basedrift_flags(w_d.baseline_indexes, w_d.quality_flag)
 
+        # Apply the baseline correction to all of the peaks
         w_d.corr_window_medians = baseline_correction(w_d.baseline_indexes,
                                                       w_d.baseline_medians,
                                                       baseline_corr_type,
@@ -139,6 +144,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     """
     ------------- Find carryover peaks and apply carryover correction -------------------------------------------
     """
+    # For calculating the carryover present, first find the indexes of these peaks
     w_d.high_index, w_d.low_indexes = find_carryover_indexes(high_cup_type,
                                                              low_cup_type,
                                                              slk_data.cup_types)
@@ -153,6 +159,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     """
     ------------- Find drift peaks and apply drift corrections --------------------------------------------------
     """
+    # Pull out the peak indexes that match up to the drift samples
     w_d.drift_indexes = find_cup_indexes(drift_cup_type,
                                          w_d.specific_cup_types[current_nutrient])
 
@@ -163,14 +170,18 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
         w_d.drift_peak_starts = [int(slk_data.peak_starts[current_nutrient][x]) for x in w_d.drift_indexes]
         w_d.raw_drift_medians = [w_d.raw_window_medians[x] for x in w_d.drift_indexes]
 
+        # Setup the medians into a usable way
         w_d.drift_medians, w_d.drift_indexes = organise_basedrift_medians(w_d.drift_indexes,
                                                                           w_d.corr_window_medians)
+        # Pull out the flags
         w_d.drift_flags = get_basedrift_flags(w_d.drift_indexes,
                                               w_d.quality_flag)
 
+        # Compute the correction percentage
         w_d.drift_corr_percent = get_basedrift_corr_percent(w_d.drift_medians,
                                                             statistics.mean(w_d.drift_medians[1:-1]))
 
+        # Apply the drift correction to all the peaks
         w_d.corr_window_medians = drift_correction(w_d.drift_indexes,
                                                    w_d.drift_medians,
                                                    drift_corr_type,
@@ -179,6 +190,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     """
     ------------- Find calibrant peaks --------------------------------------------------------------------------
     """
+    # Pull out the calibrant indexes
     w_d.calibrant_indexes = find_cup_indexes(calibrant_cup_type,
                                              w_d.specific_cup_types[current_nutrient])
 
@@ -190,18 +202,28 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     """
     ------------- Prepare calibrants and the cal parameters ------------------------------------------------------
     """
+    # Extract the medians for the calibrants
     w_d.calibrant_medians = get_calibrant_medians(w_d.calibrant_indexes, w_d.corr_window_medians)
+
     # Side note for baseline plot - get highest cal median and determine a percentage corr from that
     w_d.baseline_corr_percent = get_basedrift_corr_percent(w_d.baseline_medians, max(w_d.calibrant_medians))
+
+    # Extract the calibrant concentrations from the slk data
     w_d.calibrant_concs = get_calibrant_concentrations(w_d.calibrant_indexes, slk_data.calibrants[current_nutrient])
+
     w_d.calibrant_flags = get_calibrant_flags(w_d.calibrant_indexes, w_d.quality_flag)
+
+    # Get the cal zero mean, this is used to subtract from the other calibrants before creating a calibration
     w_d.calibrant_zero_mean = get_calibrant_zero_mean(w_d.corr_window_medians, slk_data.sample_ids, cal_zero_label)
     w_d.calibrant_medians_minuszero = remove_calibrant_zero(w_d.calibrant_medians, w_d.calibrant_zero_mean)
+
+    # Produce the calibration weightings for each calibrant
     w_d.calibrant_weightings = get_calibrant_weightings(w_d.calibrant_concs)
 
     """
     ------------- Create calibration  ---------------------------------------------------------------------------
     """
+    # Create the calibration, yes we return a lot here, but this is more for long-term diagnostic stuff
     w_d.calibration_coefficients, w_d.calibrant_flags, w_d.calibrants_weightings, \
     w_d.calibrant_residuals, w_d.calibration_r_score = create_calibration(cal_type, w_d.calibrant_medians_minuszero,
                                                                           w_d.calibrant_concs, w_d.calibrant_weightings,
@@ -210,6 +232,7 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     """
     ------------- Apply calibration -----------------------------------------------------------------------------
     """
+    # Apply the created calibration to all of the peaks
     w_d.calculated_concentrations = apply_calibration(cal_type,
                                                       w_d.corr_window_medians,
                                                       w_d.calibration_coefficients)
@@ -228,14 +251,17 @@ def processing_routine(slk_data, chd_data, w_d, processing_parameters, current_n
     """
     ------------- Find duplicates and flag if outside specified analyte tolerance --------------------------------
     """
+    # Find the peak indexes for duplicates
     duplicate_indexes = find_duplicate_indexes(slk_data.sample_ids)
 
+    # Match the indexes to samples
     sample_duplicate_indexes = find_duplicate_samples(duplicate_indexes,
                                                       slk_data.sample_ids,
                                                       w_d.specific_cup_types[current_nutrient],
                                                       sample_cup_type,
                                                       qc_cup_ids)
 
+    # Compute the error between duplicates and apply the quality flag
     w_d.quality_flag = determine_duplicate_error(sample_duplicate_indexes,
                                                  w_d.calculated_concentrations,
                                                  w_d.quality_flag,
